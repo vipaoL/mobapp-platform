@@ -1,6 +1,14 @@
 package mobileapplication3.platform.ui;
 
+import android.graphics.Paint;
+import android.graphics.Rect;
+import android.util.Log;
+
+import com.vipaol.mobapp.android.MainActivity;
+
 import java.util.Vector;
+
+import mobileapplication3.platform.Platform;
 
 public class Font {
 	public static final int
@@ -17,73 +25,90 @@ public class Font {
 		FONT_STATIC_TEXT = 0,
 		FONT_INPUT_TEXT = 1;
 
-	private javax.microedition.lcdui.Font font;
+	private Paint p;
+	private int size;
 	
 	public Font() {
-		this(javax.microedition.lcdui.Font.getDefaultFont().getSize());
+		this(SIZE_MEDIUM);
 	}
 	
 	public Font(int size) {
-		javax.microedition.lcdui.Font defFont = javax.microedition.lcdui.Font.getDefaultFont();
-		this.font = javax.microedition.lcdui.Font.getFont(defFont.getFace(), defFont.getStyle(), size);
+		this.size = size;
+		p = new Paint();
+        float density = Platform.getActivityInst().getResources().getDisplayMetrics().density;
+        switch (size) {
+            case SIZE_SMALL:
+                p.setTextSize(20 * density);
+                break;
+            case SIZE_MEDIUM:
+                p.setTextSize(24 * density);
+                break;
+            case SIZE_LARGE:
+                p.setTextSize(38 * density);
+                break;
+        }
 	}
 	
-	protected Font(javax.microedition.lcdui.Font font) {
-		this.font = font;
+	protected Font(Paint p) {
+		this.p = p;
 	}
 	
-	protected javax.microedition.lcdui.Font getFont() {
-		return font;
+	protected Paint getPaint() {
+		return p;
 	}
 	
 	public int getFace() {
-		return font.getFace();
+		return FACE_SYSTEM;
 	}
 
 	public int getStyle() {
-		return font.getStyle();
+		return STYLE_PLAIN;
 	}
 
 	public int getSize() {
-		return font.getSize();
+		return size;
 	}
 
 	public int getHeight() {
-		return font.getHeight();
+        Rect bounds = new Rect();
+        p.getTextBounds("Aa", 0, 2, bounds);
+        return bounds.height();
 	}
 
 	public int stringWidth(String str) {
-		return font.stringWidth(str);
+		return substringWidth(str, 0, str.length());
 	}
 	
 	public int substringWidth(String str, int offset, int len) {
-		return font.substringWidth(str, offset, len);
+		Rect bounds = new Rect();
+		p.getTextBounds(str, offset, offset + len, bounds);
+		return bounds.width();
 	}
 	
 	public static Font getDefaultFont() {
-		return new Font(javax.microedition.lcdui.Font.getDefaultFont());
+		return new Font(SIZE_MEDIUM);
 	}
 	
 	public static int defaultFontStringWidth(String str) {
-		return javax.microedition.lcdui.Font.getDefaultFont().stringWidth(str);
+		return getDefaultFont().stringWidth(str);
 	}
 	
 	public static int defaultFontSubstringWidth(String str, int offset, int len) {
-		return javax.microedition.lcdui.Font.getDefaultFont().substringWidth(str, offset, len);
+		return getDefaultFont().substringWidth(str, offset, len);
 	}
 	
 	public static int getDefaultFontHeight() {
-		return javax.microedition.lcdui.Font.getDefaultFont().getHeight();
+		return getDefaultFont().getHeight();
 	}
 	
 	public static int getDefaultFontSize() {
-		return javax.microedition.lcdui.Font.getDefaultFont().getSize();
+		return getDefaultFont().getSize();
 	}
 	
 	public int[][] getLineBounds(String text, int w, int padding) {
         Vector lineBoundsVector = new Vector(text.length() / 5);
         int charOffset = 0;
-        if (font.stringWidth(text) <= w - padding * 2 && text.indexOf('\n') == -1) {
+        if (stringWidth(text) <= w - padding * 2 && text.indexOf('\n') == -1) {
             lineBoundsVector.addElement(new int[]{0, text.length()});
         } else {
             while (charOffset < text.length()) {
@@ -91,7 +116,7 @@ public class Font {
                 boolean maxLineLengthReached = false;
                 boolean lineBreakSymFound = false;
                 for (int lineLength = 1; lineLength <= text.length() - charOffset; lineLength++) {
-                    if (font.substringWidth(text, charOffset, lineLength) > w - padding * 2) {
+                    if (substringWidth(text, charOffset, lineLength) > w - padding * 2) {
                         maxLineLengthReached = true;
                         break;
                     }

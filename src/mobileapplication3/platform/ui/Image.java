@@ -1,23 +1,38 @@
 package mobileapplication3.platform.ui;
 
+import android.content.res.Resources;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.util.Log;
+import android.view.View;
+
+import com.vipaol.mobapp.android.MainActivity;
+import com.vipaol.mobapp.android.R;
+
 import java.io.IOException;
 
+import mobileapplication3.platform.Platform;
+
 public class Image {
-	javax.microedition.lcdui.Image image;
+	private Bitmap image;
 	
-	public Image(javax.microedition.lcdui.Image image) {
+	public Image(Bitmap image) {
+		if (image == null) {
+			Log.d("new Image", "null");
+		}
 		this.image = image;
 	}
 	
 	public static Image createImage(int width, int height) {
-		return new Image(javax.microedition.lcdui.Image.createImage(width, height));
+		return new Image(Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888));
 	}
 	
 	public Graphics getGraphics() {
-		return new Graphics(image.getGraphics());
+		return new Graphics(new Canvas(image));
 	}
 	
-	public javax.microedition.lcdui.Image getImage() {
+	public Bitmap getImage() {
 		return image;
 	}
 
@@ -29,19 +44,23 @@ public class Image {
 		return image.getHeight();
 	}
 
-//	public static Image createRGBImage(int[] rgb, int width, int height, boolean processAlpha) {
-//		// TODO Auto-generated method stub
-//		return null;
-//	}
-//
-//	public void getRGB(int[] rgbData, int offset, int scanlength, int x, int y, int width, int height) {
-//		// TODO Auto-generated method stub
-//		
-//	}
+	public static Image createRGBImage(int[] rgb, int width, int height, boolean processAlpha) {
+		return new Image(Bitmap.createBitmap(rgb, width, height, processAlpha ? Bitmap.Config.ARGB_8888 : Bitmap.Config.RGB_565));
+	}
+
+	public void getRGB(int[] rgbData, int offset, int scanlength, int x, int y, int width, int height) {
+		if (image != null) {
+			image.getPixels(rgbData, offset, scanlength, x, y, width, height);
+		}
+	}
 	
 	public Image scale(int newWidth, int newHeight) {
+		if (image == null) {
+			return null;
+		}
+
         int[] rawInput = new int[image.getHeight() * image.getWidth()];
-        image.getRGB(rawInput, 0, image.getWidth(), 0, 0, image.getWidth(), image.getHeight());
+        getRGB(rawInput, 0, image.getWidth(), 0, 0, image.getWidth(), image.getHeight());
 
         int[] rawOutput = new int[newWidth * newHeight];
 
@@ -70,12 +89,20 @@ public class Image {
                 inOffset += image.getWidth();
             }
         }
-        rawInput = null;
-        return new Image(javax.microedition.lcdui.Image.createRGBImage(rawOutput, newWidth, newHeight, true));
+        return createRGBImage(rawOutput, newWidth, newHeight, true);
 
     }
 
 	public static Image createImage(String source) throws IOException {
-		return new Image(javax.microedition.lcdui.Image.createImage(source));
+		if (source.startsWith("/")) {
+			source = source.substring(1);
+		}
+		if (source.endsWith(".png")) {
+			source = source.substring(0, source.length() - 4);
+		}
+		Log.d("Getting resource", source);
+		Resources resources = Platform.getActivityInst().getResources();
+		int id = resources.getIdentifier(source, "drawable", Platform.getActivityInst().getPackageName());
+        return new Image(BitmapFactory.decodeResource(resources, id));
 	}
 }

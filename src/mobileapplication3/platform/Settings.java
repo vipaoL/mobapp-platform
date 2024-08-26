@@ -5,6 +5,11 @@
  */
 package mobileapplication3.platform;
 
+import android.content.Context;
+import android.content.SharedPreferences;
+
+import com.vipaol.mobapp.android.MainActivity;
+
 /**
  *
  * @author vipaol
@@ -14,114 +19,32 @@ public class Settings {
             TRUE = "1",
             FALSE = "0",
             UNDEF = "";
+
+    private SharedPreferences prefs;
     
-    private static final char SEP = '\n';
-    
-    private String recordStoreName;
-    private String[] settingsKeysVals;
-    private String[] keys;
-    
-    public Settings(String[] keys, String recordStoreName) {
-    	this.keys = keys;
-    	this.recordStoreName = recordStoreName;
-    }
-    
-    public void saveToRMS() {
-        try {
-        	RecordStores.writeStringToStore(getCurrentSettingsAsStr(), recordStoreName);
-        } catch (Exception ex) {
-        	Platform.showError("Can't save settings to RMS: " + ex.toString());
-        }
+    public Settings(String[] keys, String storeName) {
+        prefs = Platform.getActivityInst().getSharedPreferences(storeName, Context.MODE_PRIVATE);
     }
     
     public void resetSettings() {
-    	RecordStores.deleteStore(recordStoreName);
-    	loadDefaults();
-    }
-    
-    public void loadDefaults() {
-    	settingsKeysVals = new String[keys.length * 2];
-    	for (int i = 0; i < keys.length; i++) {
-			settingsKeysVals[i*2] = keys[i];
-			settingsKeysVals[i*2 + 1] = UNDEF;
-		}
-    }
-    
-    public void loadFromRMS() {
-        loadFromString(RecordStores.readStringFromStore(recordStoreName));
-    }
-    
-    public void loadFromString(String str) {
-        loadDefaults();
-        if (str == null) {
-            return;
-        }
-        
-        String[] keyValueCouples = Utils.split(str.substring(0, str.length() - 1), "" + SEP);
-        //settingsKeysVals = new String[(keyValueCouples.length) * 2];
-        for (int i = 0; i < keyValueCouples.length; i++) {
-            int splitterIndex = keyValueCouples[i].indexOf(' ');
-            String key = keyValueCouples[i].substring(0, splitterIndex);
-            String value = keyValueCouples[i].substring(splitterIndex + 1);
-            for (int j = 0; j < settingsKeysVals.length / 2; j++) {
-                if (key.equals(settingsKeysVals[j*2])) {
-                    settingsKeysVals[i*2 + 1] = value;
-                }
-            }
-        }
-    }
-    
-    public String getCurrentSettingsAsStr() {
-        if (settingsKeysVals == null) {
-            loadFromRMS();
-        }
-        
-        //assert ((settingsKeysVals.length % 2) == 0);
-        StringBuffer sb = new StringBuffer(settingsKeysVals.length*5);
-        for (int i = 0; i < settingsKeysVals.length / 2; i++) {
-            sb.append(settingsKeysVals[i*2]);
-            sb.append(" ");
-            sb.append(settingsKeysVals[i*2 + 1]);
-            sb.append(SEP);
-        }
-        return sb.toString();
+        prefs.edit().clear().apply();
     }
 
     public boolean set(String key, String value) {
-        if (settingsKeysVals == null) {
-            loadFromRMS();
-        }
-        
-        for (int i = 0; i < settingsKeysVals.length / 2; i++) {
-            if (settingsKeysVals[i*2].equals(key)) {
-                settingsKeysVals[i*2 + 1] = value;
-                saveToRMS();
-                return true;
-            }
-        }
-        
-        return false;
+        prefs.edit().putString(key, value).apply();
+        return true;
     }
     
     public boolean set(String key, boolean value) {
-        return set(key, toStr(value));
+        return set(key, value ? TRUE : FALSE);
     }
     
     public String getStr(String key) {
-        if (settingsKeysVals == null) {
-            loadFromRMS();
-        }
-        
-        for (int i = 0; i < settingsKeysVals.length / 2; i++) {
-            if (settingsKeysVals[i*2].equals(key)) {
-            	String value = settingsKeysVals[i*2 + 1];
-            	if (value.equals(null)) {
-            		value = UNDEF;
-            	}
-                return value;
-            }
-        }
-        return null;
+        return prefs.getString(key, UNDEF);
+    }
+
+    public String getStr(String key, String defValue) {
+        return prefs.getString(key, defValue);
     }
     
     public boolean toggleBool(String key) {
@@ -135,16 +58,11 @@ public class Settings {
     }
     
     public boolean getBool(String key, boolean defaultValue) {
-    	String value = getStr(key);
-    	if (value == null || "".equals(value)) {
-    		set(key, defaultValue);
-    		return TRUE.equals(getStr(key));
-    	}
-        return TRUE.equals(value);
+        return TRUE.equals(getStr(key, toStr(defaultValue)));
     }
     
-    public int getInt(String key) {
-    	String value = getStr(key);
+    public int getInt(String key, int defaultValue) {
+    	String value = getStr(key, String.valueOf(defaultValue));
     	if (UNDEF.equals(value)) {
     		return 0;
     	}
@@ -152,6 +70,6 @@ public class Settings {
     }
     
     private String toStr(boolean b) {
-        return b ? "1" : "0";
+        return b ? TRUE : FALSE;
     }
 }

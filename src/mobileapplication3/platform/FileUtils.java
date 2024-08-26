@@ -5,17 +5,26 @@
  */
 package mobileapplication3.platform;
 
+import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
+import static android.os.Build.VERSION.SDK_INT;
+
+import android.content.Intent;
+import android.net.Uri;
+import android.os.Build;
+import android.os.Environment;
+import android.provider.Settings;
+
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Enumeration;
 import java.util.Vector;
-
-import javax.microedition.io.Connector;
-import javax.microedition.io.file.FileConnection;
-import javax.microedition.io.file.FileSystemRegistry;
 
 /**
  *
@@ -23,15 +32,12 @@ import javax.microedition.io.file.FileSystemRegistry;
  */
 public class FileUtils {
     
-    public static final String PREFIX = "file:///";
+    public static final String PREFIX = "";
     public static final char SEP = '/';
     private static final short[] TESTDATA = new short[]{0, 1, 2, 3};
     
     public static void saveShortArrayToFile(short[] arr, String path) throws IOException, SecurityException {
-        FileConnection fc = (FileConnection) Connector.open(path, Connector.READ_WRITE);
-        if (!fc.exists()) {
-            fc.create();
-        }
+        File file = new File(path);
 
         ByteArrayOutputStream buf = new ByteArrayOutputStream(arr.length*2);
         DataOutputStream dos = new DataOutputStream(buf);
@@ -46,28 +52,29 @@ public class FileUtils {
         dos.close();
         buf.close();
 
-        OutputStream fos = fc.openOutputStream();
+        OutputStream fos = new FileOutputStream(path);
         fos.write(data);
         fos.close();
-        fc.close();
+        fos.close();
     }
     
     public static DataInputStream fileToDataInputStream(String path) {
         try {
-            FileConnection fc = (FileConnection) Connector.open(path, Connector.READ);
-            return fc.openDataInputStream();
-        } catch (IOException ex) {
-            ex.printStackTrace();
+            return new DataInputStream(new FileInputStream(path));
+        } catch (FileNotFoundException e) {
+            return null;
         }
-        return null;
     }
     
     public static String[] getRoots() {
-        return enumToArray(FileSystemRegistry.listRoots());
+        return new String[]{
+                Environment.getExternalStorageDirectory().getPath() + SEP,
+                Platform.getFilesDir().getPath() + SEP
+        };
     }
     
     public static String[] list(String path) throws IOException {
-        return enumToArray(((FileConnection) Connector.open(path, Connector.READ)).list());
+        return new File(path).list();
     }
     
     public static String[] enumToArray(Enumeration en) {
@@ -84,32 +91,61 @@ public class FileUtils {
     }
 
     public static void createFolder(String path) throws IOException {
-        FileConnection fc = (FileConnection) Connector.open(path, Connector.READ_WRITE);
-        if (!fc.exists()) {
-            // "file:///root/other/MGStructs/" - 6 '/'. we need to check if the parent folder doesn't exist if MGStruct is a subfolder (not in root)
-            if (Utils.count(path, SEP) >= 6) {
-                String parentFolderPath = path.substring(0, path.length() - Paths.GAME_FOLDER_NAME.length() - 1);
-                System.out.println("checking parent folder: " + parentFolderPath);
-                FileConnection parentFc = (FileConnection) Connector.open(parentFolderPath, Connector.READ_WRITE);
-                if (!parentFc.exists()) {
-                    parentFc.mkdir();
-                }
-                parentFc.close();
-            }
-            
-            fc.mkdir();
+        File f = new File(path);
+        try {
+            f.mkdirs();
+        } catch (Exception ex) {
+            openDirectory(Uri.parse(path));
+            f.mkdirs();
         }
-        fc.close();
     }
     
     public static void checkFolder(String path) throws IOException {
+        if (!(new File(path)).canWrite()) {
+            openDirectory(Uri.parse(path));
+        }
+
         path = path + "test.mgstruct";
-        
+
         saveShortArrayToFile(TESTDATA, path);
-        
-        FileConnection fc = (FileConnection) Connector.open(path, Connector.WRITE);
-        fc.delete();
-        fc.close();
+        new File(path).delete();
+    }
+
+    public static void openDirectory(Uri uriToLoad) {
+        checkAndRequestPermissions();
+//        if (SDK_INT >= Build.VERSION_CODES.O) {
+//            // Choose a directory using the system's file picker.
+//            Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
+//
+//            // Optionally, specify a URI for the directory that should be opened in
+//            // the system file picker when it loads.
+//            intent.putExtra(DocumentsContract.EXTRA_INITIAL_URI, uriToLoad);
+//
+//            MainActivity.inst.startActivityForResult(intent, Activity.RESULT_OK);
+//            final int takeFlags = intent.getFlags()
+//                    & (Intent.FLAG_GRANT_READ_URI_PERMISSION
+//                    | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+//            // Check for the freshest data.
+//            MainActivity.inst.getContentResolver().takePersistableUriPermission(uriToLoad, takeFlags);
+//        } else {
+//            checkAndRequestPermissions();
+//        }
+
+    }
+
+    private static void checkAndRequestPermissions() {
+        if (SDK_INT >= Build.VERSION_CODES.R) {
+            if (!Environment.isExternalStorageManager()) { //request for the permission
+                Intent intent = new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION);
+                Uri uri = Uri.fromParts("package", Platform.getActivityInst().getPackageName(), null);
+                intent.setData(uri);
+                Platform.getActivityInst().startActivity(intent);
+            }
+        } else {
+            if (SDK_INT >= Build.VERSION_CODES.M) {
+                Platform.getActivityInst().requestPermissions(new String[]{WRITE_EXTERNAL_STORAGE}, 123);
+            }
+        }
     }
     
 }

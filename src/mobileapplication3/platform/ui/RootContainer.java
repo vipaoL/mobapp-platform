@@ -5,18 +5,24 @@
  */
 package mobileapplication3.platform.ui;
 
-import javax.microedition.lcdui.Canvas;
-import javax.microedition.lcdui.Graphics;
+import android.content.Context;
+import android.graphics.Canvas;
+import android.view.MotionEvent;
+import android.view.View;
 
+import com.vipaol.mobapp.android.MainActivity;
+
+import mobileapplication3.platform.Platform;
 import mobileapplication3.ui.IContainer;
 import mobileapplication3.ui.IUIComponent;
+import mobileapplication3.ui.Keys;
 import mobileapplication3.ui.UISettings;
 
 /**
  *
  * @author vipaol
  */
-public class RootContainer extends Canvas implements IContainer {
+public class RootContainer extends View implements IContainer {
     
     private IUIComponent rootUIComponent = null;
     private KeyboardHelper kbHelper;
@@ -26,12 +32,12 @@ public class RootContainer extends Canvas implements IContainer {
     private static RootContainer inst = null;
     private UISettings uiSettings;
 
-    public RootContainer(IUIComponent rootUIComponent, UISettings uiSettings) {
-        setFullScreenMode(true);
+    public RootContainer(Context context, IUIComponent rootUIComponent, UISettings uiSettings) {
+        super(context);
         this.uiSettings = uiSettings;
         inst = this;
         kbHelper = new KeyboardHelper();
-        displayKbHints = !hasPointerEvents();
+        displayKbHints = false;//!hasPointerEvents();
         setRootUIComponent(rootUIComponent);
     }
 
@@ -54,17 +60,27 @@ public class RootContainer extends Canvas implements IContainer {
         }
         return this;
     }
-    
+
+    @Override
+    public void repaint() {
+        Platform.getActivityInst().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                invalidate();
+            }
+        });
+    }
+
     public UISettings getUISettings() {
 		return uiSettings;
 	}
 
-    protected void paint(Graphics g) {
+    protected void onDraw(Canvas c) {
     	if (bgColor >= 0) {
-    		g.fillRect(0, 0, w, h);
+    		c.drawColor(0xff000000);
     	}
         if (rootUIComponent != null) {
-            rootUIComponent.paint(new mobileapplication3.platform.ui.Graphics(g));
+            rootUIComponent.paint(new mobileapplication3.platform.ui.Graphics(c));
         }
     }
     
@@ -77,7 +93,8 @@ public class RootContainer extends Canvas implements IContainer {
 	}
     
     public static int getGameActionn(int keyCode) {
-    	return inst.getGameAction(keyCode);
+    	return Keys.FIRE; // TODO
+        //return inst.getGameAction(keyCode);
     }
     
     protected void keyPressed(int keyCode) {
@@ -98,7 +115,7 @@ public class RootContainer extends Canvas implements IContainer {
     }
     
     protected void handleKeyRepeated(int keyCode, int pressedCount) {
-        if (getGameAction(keyCode) == Canvas.FIRE) {
+        if (getGameActionn(keyCode) == Keys.FIRE) {
             return;
         }
         if (rootUIComponent != null) {
@@ -124,7 +141,25 @@ public class RootContainer extends Canvas implements IContainer {
             }
         }
     }
-    
+
+    @Override
+    public boolean onTouchEvent(MotionEvent e) {
+        switch (e.getAction()) {
+            case MotionEvent.ACTION_DOWN:
+                pointerPressed(Math.round(e.getX()), Math.round(e.getY()));
+                break;
+            case MotionEvent.ACTION_MOVE:
+                pointerDragged(Math.round(e.getX()), Math.round(e.getY()));
+                break;
+            case MotionEvent.ACTION_UP:
+                pointerReleased(Math.round(e.getX()), Math.round(e.getY()));
+                break;
+            default:
+                return false;
+        }
+        return true;
+    }
+
     protected void pointerReleased(int x, int y) {
         if (rootUIComponent != null) {
             if (rootUIComponent.pointerReleased(x, y)) {
@@ -132,8 +167,10 @@ public class RootContainer extends Canvas implements IContainer {
             }
         }
     }
-    
-    protected void sizeChanged(int w, int h) {
+
+    @Override
+    protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+        super.onSizeChanged(w, h, oldw, oldh);
     	this.w = w;
     	this.h = h;
         if (rootUIComponent != null) {
@@ -148,7 +185,7 @@ public class RootContainer extends Canvas implements IContainer {
             rootUIComponent.setVisible(true);
             repaint();
         }
-        sizeChanged(getWidth(), getHeight());
+        onSizeChanged(getWidth(), getHeight(), 0, 0);
     }
     
     protected void hideNotify() {
