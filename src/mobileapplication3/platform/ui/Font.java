@@ -2,9 +2,6 @@ package mobileapplication3.platform.ui;
 
 import android.graphics.Paint;
 import android.graphics.Rect;
-import android.util.Log;
-
-import com.vipaol.mobapp.android.MainActivity;
 
 import java.util.Vector;
 

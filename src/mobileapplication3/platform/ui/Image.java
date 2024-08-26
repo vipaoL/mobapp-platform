@@ -5,10 +5,6 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.util.Log;
-import android.view.View;
-
-import com.vipaol.mobapp.android.MainActivity;
-import com.vipaol.mobapp.android.R;
 
 import java.io.IOException;
 

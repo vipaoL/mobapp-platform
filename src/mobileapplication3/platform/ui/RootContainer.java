@@ -10,8 +10,6 @@ import android.graphics.Canvas;
 import android.view.MotionEvent;
 import android.view.View;
 
-import com.vipaol.mobapp.android.MainActivity;
-
 import mobileapplication3.platform.Platform;
 import mobileapplication3.ui.IContainer;
 import mobileapplication3.ui.IUIComponent;
