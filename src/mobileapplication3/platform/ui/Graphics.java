@@ -134,4 +134,70 @@ public class Graphics {
 	public int getColor() {
 		return g.getColor();
 	}
+
+	public void drawLine(int x1, int y1, int x2, int y2, int thickness, int zoomOut, boolean drawThickness, boolean rounding, boolean markSkeleton) {
+	    if (thickness > 2) {
+	        int t2 = thickness/2;
+	        int dx = x2 - x1;
+	        int dy = y2 - y1;
+	        int l = (int) Math.sqrt(dx*dx+dy*dy);
+	        
+	        if (l == 0 || !drawThickness) {
+	            g.drawLine(x1, y1, x2, y2);
+	            return;
+	        }
+	        
+	        // normal vector
+	        int nx = dy*t2 * 1000 / zoomOut / l;
+	        int ny = dx*t2 * 1000 / zoomOut / l;
+	        
+	        if (nx == 0 && ny == 0) {
+	            g.drawLine(x1, y1, x2, y2);
+	            return;
+	        }
+	        
+	        // draw bold line with two triangles (splitting by diagonal)
+	        g.fillTriangle(x1-nx, y1+ny, x2-nx, y2+ny, x1+nx, y1-ny);
+	        g.fillTriangle(x2-nx, y2+ny, x2+nx, y2-ny, x1+nx, y1-ny);
+	        if (rounding) {
+	            int r = t2 * 1000 / zoomOut;
+	            int d = r * 2;
+	            g.fillArc(x1-r, y1-r, d, d, 0, 360);
+	            g.fillArc(x2-r, y2-r, d, d, 0, 360);
+	        }
+	        if (markSkeleton && thickness * 1000 / zoomOut > 8) {
+	            int prevCol = g.getColor();
+	            g.setColor(0xff0000);
+	            g.drawLine(x1, y1, x2, y2);
+	            g.setColor(prevCol);
+	        }
+	    } else {
+	        g.drawLine(x1, y1, x2, y2);
+	    }
+	}
+
+	public void drawLine(int x1, int y1, int x2, int y2, int thickness, int zoomOut, boolean drawThickness) {
+	    drawLine(x1, y1, x2, y2, thickness, zoomOut, drawThickness, true, true);
+	}
+
+	public void drawTriangle(int x1, int y1, int x2, int y2, int x3, int y3, boolean fill) {
+		if (!fill) {
+	        g.drawLine(x1, y1, x2, y2);
+	        g.drawLine(x2, y2, x3, y3);
+	        g.drawLine(x1, y1, x3, y3);
+	    } else {
+	    	g.fillTriangle(x1, y1, x2, y2, x3, y3);
+	    }
+	}
+
+	public void drawArrow(int x1, int y1, int x2, int y2, int thickness, int zoomOut, boolean drawThickness) {
+	    int dx = x2 - x1;
+	    int dy = y2 - y1;
+	    int arrowX = (x2*5 + x1) / 6;
+	    int arrowY = (y2*5 + y1) / 6;
+	    int arrowSideVecX = dy / 8;
+	    int arrowSideVecY = -dx / 8;
+	    drawLine(x1, y1, arrowX, arrowY, thickness, zoomOut, drawThickness, false, false);
+	    drawTriangle(x2, y2, arrowX + arrowSideVecX, arrowY + arrowSideVecY, arrowX - arrowSideVecX, arrowY - arrowSideVecY, drawThickness);
+	}
 }
