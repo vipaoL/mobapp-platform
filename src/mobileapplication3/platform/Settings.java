@@ -5,8 +5,6 @@
  */
 package mobileapplication3.platform;
 
-import mobileapplication3.platform.ui.Platform;
-
 /**
  *
  * @author vipaol

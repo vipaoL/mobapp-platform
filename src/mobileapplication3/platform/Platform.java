@@ -1,4 +1,4 @@
-package mobileapplication3.platform.ui;
+package mobileapplication3.platform;
 
 import java.io.DataInputStream;
 
@@ -8,8 +8,6 @@ import javax.microedition.lcdui.Display;
 import javax.microedition.lcdui.Displayable;
 import javax.microedition.midlet.MIDlet;
 import javax.microedition.rms.RecordStoreException;
-
-import mobileapplication3.platform.RecordStores;
 
 public class Platform {
 	private static MIDlet midletInst = null;
