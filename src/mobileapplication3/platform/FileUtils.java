@@ -27,6 +27,10 @@ public class FileUtils {
     public static final char SEP = '/';
     private static final short[] TESTDATA = new short[]{0, 1, 2, 3};
     
+    private static final String[] PLACES_ON_EACH_ROOT = {"", "other" + SEP};
+    private static final String[] PLACES_FROM_SYSTEM_PROPS = {"fileconn.dir.photos", "fileconn.dir.graphics"};
+    private static String[] OTHER_PLACES = null;
+    
     public static void saveShortArrayToFile(short[] arr, String path) throws IOException, SecurityException {
         FileConnection fc = (FileConnection) Connector.open(path, Connector.READ_WRITE);
         if (!fc.exists()) {
@@ -67,7 +71,12 @@ public class FileUtils {
     }
     
     public static String[] list(String path) throws IOException {
-        return enumToArray(((FileConnection) Connector.open(path, Connector.READ)).list());
+    	FileConnection fc = (FileConnection) Connector.open(path, Connector.READ);
+    	try {
+    		return enumToArray(fc.list());
+    	} finally {
+			fc.close();
+		}
     }
     
     public static String[] enumToArray(Enumeration en) {
@@ -84,22 +93,24 @@ public class FileUtils {
     }
 
     public static void createFolder(String path) throws IOException {
-        FileConnection fc = (FileConnection) Connector.open(path, Connector.READ_WRITE);
-        if (!fc.exists()) {
-            // "file:///root/other/MGStructs/" - 6 '/'. we need to check if the parent folder doesn't exist if MGStruct is a subfolder (not in root)
-            if (Utils.count(path, SEP) >= 6) {
-                String parentFolderPath = path.substring(0, path.length() - Paths.GAME_FOLDER_NAME.length() - 1);
-                System.out.println("checking parent folder: " + parentFolderPath);
-                FileConnection parentFc = (FileConnection) Connector.open(parentFolderPath, Connector.READ_WRITE);
-                if (!parentFc.exists()) {
-                    parentFc.mkdir();
-                }
-                parentFc.close();
-            }
-            
-            fc.mkdir();
-        }
-        fc.close();
+    	FileConnection fc = (FileConnection) Connector.open(path, Connector.READ_WRITE);
+    	try {
+	        if (!fc.exists()) {
+	        	createFolder(getParent(path));
+	            fc.mkdir();
+	        }
+    	} finally {
+    		fc.close();
+    	}
+    }
+    
+    public static String getParent(String path) {
+    	for (int i = path.length() - 2; i > PREFIX.length(); i++) {
+    		if (path.charAt(i) == SEP) {
+    			return path.substring(0, i + 1);
+    		}
+    	}
+    	return null;
     }
     
     public static void checkFolder(String path) throws IOException {
@@ -110,6 +121,38 @@ public class FileUtils {
         FileConnection fc = (FileConnection) Connector.open(path, Connector.WRITE);
         fc.delete();
         fc.close();
+    }
+    
+    public static String[] getAllPlaces(String folderName) {
+    	OTHER_PLACES = new String[PLACES_FROM_SYSTEM_PROPS.length];
+    	for (int i = 0; i < PLACES_FROM_SYSTEM_PROPS.length; i++) {
+			OTHER_PLACES[i] = PLACES_FROM_SYSTEM_PROPS[i];
+		}
+
+        Vector pathsVec = new Vector(8);
+        String[] roots = FileUtils.getRoots();
+        
+        for (int i = 0; i < roots.length; i++) {
+            for (int j = 0; j < PLACES_ON_EACH_ROOT.length; j++) {
+                pathsVec.addElement(PREFIX + roots[i] + PLACES_ON_EACH_ROOT[j] + folderName + SEP);
+            }
+        }
+        
+        for (int i = 0; i < OTHER_PLACES.length; i++) {
+            String path = System.getProperty(OTHER_PLACES[i]);
+            if (path != null) {
+                pathsVec.addElement(path + folderName + SEP);
+            }
+        }
+        
+        String[] paths = new String[roots.length * PLACES_ON_EACH_ROOT.length + OTHER_PLACES.length];
+        paths = new String[pathsVec.size()];
+        
+        for (int i = 0; i < pathsVec.size(); i++) {
+            paths[i] = (String) pathsVec.elementAt(i);
+        }
+        
+        return paths;
     }
     
 }

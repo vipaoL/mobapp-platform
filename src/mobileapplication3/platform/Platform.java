@@ -1,7 +1,9 @@
 package mobileapplication3.platform;
 
 import java.io.DataInputStream;
+import java.io.InputStream;
 
+import javax.microedition.io.ConnectionNotFoundException;
 import javax.microedition.lcdui.Alert;
 import javax.microedition.lcdui.AlertType;
 import javax.microedition.lcdui.Display;
@@ -55,5 +57,22 @@ public class Platform {
 	
 	private static Display getDisplay() {
 		return Display.getDisplay(midletInst);
+	}
+
+	public static String getAppProperty(String string) {
+		return midletInst.getAppProperty(string);
+	}
+
+	public static boolean platformRequest(String url) {
+		try {
+			return midletInst.platformRequest(url);
+		} catch (ConnectionNotFoundException e) {
+			e.printStackTrace();
+			return false;
+		}
+	}
+	
+	public static InputStream getResource(String path) {
+		return midletInst.getClass().getResourceAsStream(path);
 	}
 }

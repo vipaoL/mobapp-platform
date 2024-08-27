@@ -23,9 +23,13 @@ public class Font {
 		this(javax.microedition.lcdui.Font.getDefaultFont().getSize());
 	}
 	
+	public Font(int face, int style, int size) {
+		font = javax.microedition.lcdui.Font.getFont(face, style, size);
+	}
+	
 	public Font(int size) {
 		javax.microedition.lcdui.Font defFont = javax.microedition.lcdui.Font.getDefaultFont();
-		this.font = javax.microedition.lcdui.Font.getFont(defFont.getFace(), defFont.getStyle(), size);
+		font = javax.microedition.lcdui.Font.getFont(defFont.getFace(), defFont.getStyle(), size);
 	}
 	
 	protected Font(javax.microedition.lcdui.Font font) {
@@ -34,6 +38,10 @@ public class Font {
 	
 	protected javax.microedition.lcdui.Font getFont() {
 		return font;
+	}
+	
+	public static Font getFont(int face, int style, int size) {
+		return new Font(face, style, size);
 	}
 	
 	public int getFace() {

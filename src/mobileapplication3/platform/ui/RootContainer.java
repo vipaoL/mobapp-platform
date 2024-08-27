@@ -7,6 +7,7 @@ package mobileapplication3.platform.ui;
 
 import javax.microedition.lcdui.Canvas;
 import javax.microedition.lcdui.Graphics;
+import javax.microedition.lcdui.game.GameCanvas;
 
 import mobileapplication3.ui.IContainer;
 import mobileapplication3.ui.IUIComponent;
@@ -16,7 +17,7 @@ import mobileapplication3.ui.UISettings;
  *
  * @author vipaol
  */
-public class RootContainer extends Canvas implements IContainer {
+public class RootContainer extends GameCanvas implements IContainer {
     
     private IUIComponent rootUIComponent = null;
     private KeyboardHelper kbHelper;
@@ -27,6 +28,7 @@ public class RootContainer extends Canvas implements IContainer {
     private UISettings uiSettings;
 
     public RootContainer(IUIComponent rootUIComponent, UISettings uiSettings) {
+    	super(false);
         setFullScreenMode(true);
         this.uiSettings = uiSettings;
         inst = this;
@@ -41,25 +43,26 @@ public class RootContainer extends Canvas implements IContainer {
     	}
 	}
 
-    public RootContainer setRootUIComponent(IUIComponent rootUIComponent) {
-        if (this.rootUIComponent != null) {
-            this.rootUIComponent.setParent(null);
-            this.rootUIComponent.setFocused(false);
+    public static RootContainer setRootUIComponent(IUIComponent rootUIComponent) {
+        if (inst.rootUIComponent != null) {
+            inst.rootUIComponent.setParent(null);
+            inst.rootUIComponent.setFocused(false);
         }
         
         if (rootUIComponent != null) {
-		    this.rootUIComponent = rootUIComponent.setParent(this).setFocused(true);
+		    inst.rootUIComponent = rootUIComponent.setParent(inst).setFocused(true);
+		    rootUIComponent.setSize(inst.getWidth(), inst.getHeight());
 		    rootUIComponent.init();
 		    rootUIComponent.setFocused(true);
         }
-        return this;
+        return inst;
     }
     
     public UISettings getUISettings() {
 		return uiSettings;
 	}
 
-    protected void paint(Graphics g) {
+    public void paint(Graphics g) {
     	if (bgColor >= 0) {
     		g.fillRect(0, 0, w, h);
     	}
@@ -67,6 +70,10 @@ public class RootContainer extends Canvas implements IContainer {
             rootUIComponent.paint(new mobileapplication3.platform.ui.Graphics(g));
         }
     }
+    
+    public mobileapplication3.platform.ui.Graphics getUGraphics() {
+		return new mobileapplication3.platform.ui.Graphics(getGraphics());
+	}
     
     public int getBgColor() {
 		return bgColor;
@@ -95,6 +102,15 @@ public class RootContainer extends Canvas implements IContainer {
 
     protected void keyReleased(int keyCode) {
         kbHelper.keyReleased(keyCode);
+    }
+    
+    private void handleKeyReleased(int keyCode, int count) {
+        if (rootUIComponent != null) {
+            rootUIComponent.setVisible(true);
+            if (rootUIComponent.keyReleased(keyCode, count)) {
+                repaint();
+            }
+        }
     }
     
     protected void handleKeyRepeated(int keyCode, int pressedCount) {
@@ -228,6 +244,7 @@ public class RootContainer extends Canvas implements IContainer {
             } else {
                 pressCount = 0;
             }
+            handleKeyReleased(k, pressCount);
         }
         
         private boolean isLastEventOld() {
