@@ -2,9 +2,6 @@ package mobileapplication3.platform.ui;
 
 import android.graphics.Paint;
 import android.graphics.Rect;
-import android.util.Log;
-
-import com.vipaol.mobapp.android.MainActivity;
 
 import java.util.Vector;
 
@@ -27,6 +24,10 @@ public class Font {
 
 	private Paint p;
 	private int size;
+
+    public Font(int face, int style, int size) {
+        this(size); // TODO
+    }
 	
 	public Font() {
 		this(SIZE_MEDIUM);
@@ -56,6 +57,10 @@ public class Font {
 	protected Paint getPaint() {
 		return p;
 	}
+
+    public static Font getFont(int face, int style, int size) {
+        return new Font(face, style, size);
+    }
 	
 	public int getFace() {
 		return FACE_SYSTEM;

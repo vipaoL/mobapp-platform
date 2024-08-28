@@ -4,17 +4,21 @@ import static mobileapplication3.platform.FileUtils.SEP;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.res.Resources;
 import android.os.Build;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
+import android.util.Log;
 import android.widget.Toast;
 
 import java.io.DataInputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 
 public class Platform {
+	public static final String RES_TYPE_DRAWABLE = "drawable";
+	public static final String RES_TYPE_RAW = "raw";
 	private static Activity activityInst = null;
 
 	public static void init(Activity inst) {
@@ -30,7 +34,7 @@ public class Platform {
 		});
     }
 
-	public static void showError(Exception ex) {
+	public static void showError(Throwable ex) {
 		showError(ex.toString());
 		ex.printStackTrace();
 	}
@@ -59,6 +63,35 @@ public class Platform {
 		} catch (Exception ignored) { }
 	}
 
+	public static String getAppProperty(String string) {
+		return "can't get app prop: not implemented yet"; // TODO
+	}
+
+	public static boolean platformRequest(String url) {
+		// TODO
+		return false;
+	}
+
+	public static InputStream getResource(String path) {
+		try {
+			return Resources.getSystem().openRawResource(getResourceID(path, RES_TYPE_RAW));
+		} catch (Exception ex) {
+			return null;
+		}
+	}
+
+	public static int getResourceID(String resourceName, String type) {
+		if (resourceName.startsWith("/")) {
+			resourceName = resourceName.substring(1);
+		}
+		if (resourceName.endsWith(".png")) {
+			resourceName = resourceName.substring(0, resourceName.length() - 4);
+		}
+		Log.d("Getting resource", resourceName);
+		Resources resources = Platform.getActivityInst().getResources();
+		return resources.getIdentifier(resourceName, type, Platform.getActivityInst().getPackageName());
+	}
+
 	private static String getStoragePath(String storageName) {
 		return activityInst.getFilesDir().getPath() + SEP + storageName;
 	}
@@ -69,5 +102,9 @@ public class Platform {
 
 	public static Activity getActivityInst() {
 		return activityInst;
+	}
+
+	public static void exit() {
+		System.exit(0);
 	}
 }

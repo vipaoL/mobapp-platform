@@ -8,8 +8,6 @@ package mobileapplication3.platform;
 import android.content.Context;
 import android.content.SharedPreferences;
 
-import com.vipaol.mobapp.android.MainActivity;
-
 /**
  *
  * @author vipaol

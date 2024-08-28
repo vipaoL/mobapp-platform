@@ -1,14 +1,9 @@
 package mobileapplication3.platform.ui;
 
-import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.util.Log;
-import android.view.View;
-
-import com.vipaol.mobapp.android.MainActivity;
-import com.vipaol.mobapp.android.R;
 
 import java.io.IOException;
 
@@ -94,15 +89,6 @@ public class Image {
     }
 
 	public static Image createImage(String source) throws IOException {
-		if (source.startsWith("/")) {
-			source = source.substring(1);
-		}
-		if (source.endsWith(".png")) {
-			source = source.substring(0, source.length() - 4);
-		}
-		Log.d("Getting resource", source);
-		Resources resources = Platform.getActivityInst().getResources();
-		int id = resources.getIdentifier(source, "drawable", Platform.getActivityInst().getPackageName());
-        return new Image(BitmapFactory.decodeResource(resources, id));
+		return new Image(BitmapFactory.decodeResource(Platform.getActivityInst().getResources(), Platform.getResourceID(source, Platform.RES_TYPE_DRAWABLE)));
 	}
 }

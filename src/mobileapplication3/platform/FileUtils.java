@@ -34,6 +34,7 @@ public class FileUtils {
     
     public static final String PREFIX = "";
     public static final char SEP = '/';
+    private static final String[] FOLDERS_ON_EACH_DRIVE = {"", "other" + SEP};
     private static final short[] TESTDATA = new short[]{0, 1, 2, 3};
     
     public static void saveShortArrayToFile(short[] arr, String path) throws IOException, SecurityException {
@@ -146,6 +147,19 @@ public class FileUtils {
                 Platform.getActivityInst().requestPermissions(new String[]{WRITE_EXTERNAL_STORAGE}, 123);
             }
         }
+    }
+
+    public static String[] getAllPlaces(String folderName) {
+        String[] roots = FileUtils.getRoots();
+        String[] paths = new String[roots.length * FOLDERS_ON_EACH_DRIVE.length];
+
+        for (int i = 0; i < roots.length; i++) {
+            for (int j = 0; j < FOLDERS_ON_EACH_DRIVE.length; j++) {
+                paths[i*FOLDERS_ON_EACH_DRIVE.length + j] = roots[i] + FOLDERS_ON_EACH_DRIVE[j] + folderName + SEP;
+            }
+        }
+
+        return paths;
     }
     
 }

@@ -6,11 +6,11 @@
 package mobileapplication3.platform.ui;
 
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Paint;
 import android.view.MotionEvent;
 import android.view.View;
-
-import com.vipaol.mobapp.android.MainActivity;
 
 import mobileapplication3.platform.Platform;
 import mobileapplication3.ui.IContainer;
@@ -31,6 +31,8 @@ public class RootContainer extends View implements IContainer {
     public int w, h;
     private static RootContainer inst = null;
     private UISettings uiSettings;
+    private Bitmap buffer = null;
+    private Paint bufferPaint;
 
     public RootContainer(Context context, IUIComponent rootUIComponent, UISettings uiSettings) {
         super(context);
@@ -38,6 +40,7 @@ public class RootContainer extends View implements IContainer {
         inst = this;
         kbHelper = new KeyboardHelper();
         displayKbHints = false;//!hasPointerEvents();
+        bufferPaint = new Paint();
         setRootUIComponent(rootUIComponent);
     }
 
@@ -47,18 +50,19 @@ public class RootContainer extends View implements IContainer {
     	}
 	}
 
-    public RootContainer setRootUIComponent(IUIComponent rootUIComponent) {
-        if (this.rootUIComponent != null) {
-            this.rootUIComponent.setParent(null);
-            this.rootUIComponent.setFocused(false);
+    public static RootContainer setRootUIComponent(IUIComponent rootUIComponent) {
+        if (inst.rootUIComponent != null) {
+            inst.rootUIComponent.setParent(null);
+            inst.rootUIComponent.setFocused(false);
         }
         
         if (rootUIComponent != null) {
-		    this.rootUIComponent = rootUIComponent.setParent(this).setFocused(true);
+            inst.rootUIComponent = rootUIComponent.setParent(inst).setFocused(true);
+            rootUIComponent.setSize(inst.getWidth(), inst.getHeight());
 		    rootUIComponent.init();
 		    rootUIComponent.setFocused(true);
         }
-        return this;
+        return inst;
     }
 
     @Override
@@ -76,12 +80,29 @@ public class RootContainer extends View implements IContainer {
 	}
 
     protected void onDraw(Canvas c) {
+        if (buffer != null) {
+            c.drawBitmap(buffer, 0, 0, bufferPaint);
+            buffer = null;
+            return;
+        }
+
     	if (bgColor >= 0) {
     		c.drawColor(0xff000000);
     	}
+
         if (rootUIComponent != null) {
             rootUIComponent.paint(new mobileapplication3.platform.ui.Graphics(c));
         }
+    }
+
+    @Override
+    public Graphics getUGraphics() {
+        return new mobileapplication3.platform.ui.Graphics(new Canvas(buffer = Bitmap.createBitmap(getWidth(), getHeight(), Bitmap.Config.RGB_565)));
+    }
+
+    @Override
+    public void flushGraphics() {
+        repaint();
     }
     
     public int getBgColor() {
@@ -112,6 +133,15 @@ public class RootContainer extends View implements IContainer {
 
     protected void keyReleased(int keyCode) {
         kbHelper.keyReleased(keyCode);
+    }
+
+    private void handleKeyReleased(int keyCode, int count) {
+        if (rootUIComponent != null) {
+            rootUIComponent.setVisible(true);
+            if (rootUIComponent.keyReleased(keyCode, count)) {
+                repaint();
+            }
+        }
     }
     
     protected void handleKeyRepeated(int keyCode, int pressedCount) {
