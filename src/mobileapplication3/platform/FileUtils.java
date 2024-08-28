@@ -70,7 +70,7 @@ public class FileUtils {
     
     public static String[] getRoots() {
         return new String[]{
-                Environment.getExternalStorageDirectory().getPath() + SEP,
+                //Environment.getExternalStorageDirectory().getPath() + SEP,
                 Platform.getFilesDir().getPath() + SEP,
                 Platform.getExternalFilesDir().getPath() + SEP
         };
@@ -116,7 +116,7 @@ public class FileUtils {
     }
 
     public static void openDirectory(Uri uriToLoad) {
-        checkAndRequestPermissions();
+        //checkAndRequestPermissions();
 //        if (SDK_INT >= Build.VERSION_CODES.O) {
 //            // Choose a directory using the system's file picker.
 //            Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
