@@ -35,7 +35,7 @@ public class FileUtils {
     
     public static final String PREFIX = "";
     public static final char SEP = '/';
-    private static final String[] FOLDERS_ON_EACH_DRIVE = {"", "other" + SEP};
+    private static final String[] FOLDERS_ON_EACH_DRIVE = {""};
     private static final short[] TESTDATA = new short[]{0, 1, 2, 3};
     
     public static void saveShortArrayToFile(short[] arr, String path) throws IOException, SecurityException {
