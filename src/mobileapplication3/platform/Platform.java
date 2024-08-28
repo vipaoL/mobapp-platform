@@ -84,8 +84,8 @@ public class Platform {
 		if (resourceName.startsWith("/")) {
 			resourceName = resourceName.substring(1);
 		}
-		if (resourceName.endsWith(".png")) {
-			resourceName = resourceName.substring(0, resourceName.length() - 4);
+		if (resourceName.contains(".")) {
+			resourceName = resourceName.substring(0, resourceName.lastIndexOf("."));
 		}
 		Log.d("Getting resource", resourceName);
 		Resources resources = Platform.getActivityInst().getResources();

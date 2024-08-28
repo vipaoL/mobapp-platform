@@ -31,7 +31,8 @@ public class RootContainer extends View implements IContainer {
     public int w, h;
     private static RootContainer inst = null;
     private UISettings uiSettings;
-    private Bitmap buffer = null;
+    private Bitmap newBuffer;
+    private Bitmap currentBuffer = null;
     private Paint bufferPaint;
 
     public RootContainer(Context context, IUIComponent rootUIComponent, UISettings uiSettings) {
@@ -80,9 +81,9 @@ public class RootContainer extends View implements IContainer {
 	}
 
     protected void onDraw(Canvas c) {
-        if (buffer != null) {
-            c.drawBitmap(buffer, 0, 0, bufferPaint);
-            buffer = null;
+        if (currentBuffer != null) {
+            c.drawBitmap(currentBuffer, 0, 0, bufferPaint);
+            currentBuffer = null;
             return;
         }
 
@@ -97,7 +98,8 @@ public class RootContainer extends View implements IContainer {
 
     @Override
     public Graphics getUGraphics() {
-        return new mobileapplication3.platform.ui.Graphics(new Canvas(buffer = Bitmap.createBitmap(getWidth(), getHeight(), Bitmap.Config.RGB_565)));
+        currentBuffer = newBuffer;
+        return new mobileapplication3.platform.ui.Graphics(new Canvas(newBuffer = Bitmap.createBitmap(getWidth(), getHeight(), Bitmap.Config.RGB_565)));
     }
 
     @Override

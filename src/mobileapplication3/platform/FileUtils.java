@@ -75,6 +75,7 @@ public class FileUtils {
     }
     
     public static String[] list(String path) throws IOException {
+        openDirectory(Uri.parse(path));
         return new File(path).list();
     }
     
@@ -140,7 +141,14 @@ public class FileUtils {
                 Intent intent = new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION);
                 Uri uri = Uri.fromParts("package", Platform.getActivityInst().getPackageName(), null);
                 intent.setData(uri);
-                Platform.getActivityInst().startActivity(intent);
+                if (Platform.getActivityInst().hasWindowFocus()) { // to prevent spamming with permission windows
+                    Platform.getActivityInst().startActivity(intent);
+                    try {
+                        Thread.sleep(200);
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
             }
         } else {
             if (SDK_INT >= Build.VERSION_CODES.M) {
