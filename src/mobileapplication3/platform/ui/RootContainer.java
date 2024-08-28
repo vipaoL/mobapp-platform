@@ -8,14 +8,13 @@ package mobileapplication3.platform.ui;
 import static android.view.KeyEvent.*;
 
 import android.content.Context;
-import android.graphics.Bitmap;
 import android.graphics.Canvas;
-import android.graphics.Paint;
 import android.util.Log;
 import android.view.MotionEvent;
+import android.view.SurfaceHolder;
+import android.view.SurfaceView;
 import android.view.View;
 
-import mobileapplication3.platform.Platform;
 import mobileapplication3.ui.IContainer;
 import mobileapplication3.ui.IUIComponent;
 import mobileapplication3.ui.Keys;
@@ -25,8 +24,7 @@ import mobileapplication3.ui.UISettings;
  *
  * @author vipaol
  */
-public class RootContainer extends View implements IContainer {
-    
+public class RootContainer extends SurfaceView implements IContainer {
     private IUIComponent rootUIComponent = null;
     private KeyboardHelper kbHelper;
     public static boolean displayKbHints = false;
@@ -34,9 +32,10 @@ public class RootContainer extends View implements IContainer {
     public int w, h;
     private static RootContainer inst = null;
     private UISettings uiSettings;
-    private Bitmap newBuffer;
-    private Bitmap currentBuffer = null;
-    private Paint bufferPaint;
+    private SurfaceHolder surfaceHolder;
+    private Canvas c;
+    private static Thread repaintThread = null;
+    private boolean wasDownEvent = false;
 
     public RootContainer(Context context, IUIComponent rootUIComponent, UISettings uiSettings) {
         super(context);
@@ -44,8 +43,7 @@ public class RootContainer extends View implements IContainer {
         inst = this;
         kbHelper = new KeyboardHelper();
         displayKbHints = false;//!hasPointerEvents();
-        bufferPaint = new Paint();
-        //setFocusable(true);
+        surfaceHolder = getHolder();
         setRootUIComponent(rootUIComponent);
     }
 
@@ -57,58 +55,85 @@ public class RootContainer extends View implements IContainer {
 
     public static RootContainer setRootUIComponent(IUIComponent rootUIComponent) {
         if (inst.rootUIComponent != null) {
-            inst.rootUIComponent.setParent(null);
+            inst.rootUIComponent.setVisible(false);
+            //inst.rootUIComponent.setParent(null);
             inst.rootUIComponent.setFocused(false);
         }
         
         if (rootUIComponent != null) {
-            inst.rootUIComponent = rootUIComponent.setParent(inst).setFocused(true);
+            inst.rootUIComponent = rootUIComponent.setParent(inst).setVisible(true);
+            rootUIComponent.init();
             rootUIComponent.setSize(inst.getWidth(), inst.getHeight());
-		    rootUIComponent.init();
 		    rootUIComponent.setFocused(true);
+            if (!rootUIComponent.repaintOnlyOnFlushGraphics() && repaintThread == null) {
+                repaintThread = new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        while (!rootUIComponent.repaintOnlyOnFlushGraphics()) {
+                            try {
+                                Thread.sleep(200);
+                            } catch (InterruptedException e) {
+                                throw new RuntimeException(e);
+                            }
+                            inst.repaint();
+                        }
+                    }
+                });
+                repaintThread.start();
+            }
+        } else {
+            try {
+                throw new Exception("setRootUIComponent(): got null");
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
         }
         return inst;
     }
 
     @Override
     public void repaint() {
-        Platform.getActivityInst().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                invalidate();
-            }
-        });
+        if (rootUIComponent != null && !rootUIComponent.repaintOnlyOnFlushGraphics()) {
+            paint();
+        }
     }
 
     public UISettings getUISettings() {
 		return uiSettings;
 	}
 
-    protected void onDraw(Canvas c) {
-        if (currentBuffer != null) {
-            c.drawBitmap(currentBuffer, 0, 0, bufferPaint);
-            currentBuffer = null;
-            return;
-        }
-
-    	if (bgColor >= 0) {
-    		c.drawColor(0xff000000);
-    	}
-
+    protected void paint() {
         if (rootUIComponent != null) {
-            rootUIComponent.paint(new mobileapplication3.platform.ui.Graphics(c));
+            Graphics g = getUGraphics();
+            rootUIComponent.paint(g);
+            flushGraphics();
         }
     }
 
     @Override
     public Graphics getUGraphics() {
-        currentBuffer = newBuffer;
-        return new mobileapplication3.platform.ui.Graphics(new Canvas(newBuffer = Bitmap.createBitmap(getWidth(), getHeight(), Bitmap.Config.RGB_565)));
+        try {
+            c = surfaceHolder.lockCanvas();
+        } catch (Exception ex) {
+            flushGraphics();
+            c = null;
+        }
+
+        if (c == null) {
+            c = new Canvas();
+        }
+
+        if (bgColor >= 0) {
+            c.drawColor(0xff000000);
+        }
+        return new Graphics(c);
     }
 
     @Override
     public void flushGraphics() {
-        repaint();
+        try {
+            surfaceHolder.unlockCanvasAndPost(c);
+        } catch (Exception ignored) { }
     }
     
     public int getBgColor() {
@@ -156,10 +181,11 @@ public class RootContainer extends View implements IContainer {
     }
     
     private void handleKeyPressed(int keyCode, int count) {
+        wasDownEvent = true;
         if (rootUIComponent != null) {
             rootUIComponent.setVisible(true);
             if (rootUIComponent.keyPressed(keyCode, count)) {
-                repaint();
+                paint();
             }
         }
     }
@@ -171,19 +197,20 @@ public class RootContainer extends View implements IContainer {
     }
 
     private void handleKeyReleased(int keyCode, int count) {
-        if (rootUIComponent != null) {
+        if (rootUIComponent != null && wasDownEvent) {
             rootUIComponent.setVisible(true);
             if (rootUIComponent.keyReleased(keyCode, count)) {
                 repaint();
             }
         }
+        wasDownEvent = false;
     }
     
     protected void handleKeyRepeated(int keyCode, int pressedCount) {
         if (getGameActionn(keyCode) == Keys.FIRE) {
             return;
         }
-        if (rootUIComponent != null) {
+        if (rootUIComponent != null && wasDownEvent) {
             if (rootUIComponent.keyRepeated(keyCode, pressedCount)) {
                 repaint();
             }
@@ -191,6 +218,7 @@ public class RootContainer extends View implements IContainer {
     }
 
     protected void pointerPressed(int x, int y) {
+        wasDownEvent = true;
         if (rootUIComponent != null) {
             rootUIComponent.setVisible(true);
             if (rootUIComponent.pointerPressed(x, y)) {
@@ -200,7 +228,7 @@ public class RootContainer extends View implements IContainer {
     }
     
     protected void pointerDragged(int x, int y) {
-        if (rootUIComponent != null) {
+        if (rootUIComponent != null && wasDownEvent) {
             if (rootUIComponent.pointerDragged(x, y)) {
                 repaint();
             }
@@ -226,21 +254,23 @@ public class RootContainer extends View implements IContainer {
     }
 
     protected void pointerReleased(int x, int y) {
-        if (rootUIComponent != null) {
+        if (rootUIComponent != null && wasDownEvent) {
             if (rootUIComponent.pointerReleased(x, y)) {
                 repaint();
             }
         }
+        wasDownEvent = false;
     }
 
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+        System.out.println(w + " " + h);
         super.onSizeChanged(w, h, oldw, oldh);
     	this.w = w;
     	this.h = h;
         if (rootUIComponent != null) {
             rootUIComponent.setSize(w, h);
-            repaint();
+            paint();
         }
     }
 
@@ -260,20 +290,17 @@ public class RootContainer extends View implements IContainer {
         kbHelper.show();
         if (rootUIComponent != null) {
             rootUIComponent.setVisible(true);
-            repaint();
-        }
-        onSizeChanged(getWidth(), getHeight(), 0, 0);
-        if (rootUIComponent != null) {
+            onSizeChanged(getWidth(), getHeight(), 0, 0);
             rootUIComponent.onShow();
         }
+        paint();
     }
     
     protected void onHide() {
         kbHelper.hide();
         if (rootUIComponent != null) {
-            rootUIComponent.setVisible(false);
             rootUIComponent.onHide();
-            repaint();
+            rootUIComponent.setVisible(false);
         }
     }
 
@@ -298,8 +325,10 @@ public class RootContainer extends View implements IContainer {
                 return Keys.LEFT;
             case KEYCODE_DPAD_RIGHT:
                 return Keys.RIGHT;
+            case KEYCODE_MENU:
             case KEYCODE_SOFT_LEFT:
                 return Keys.KEY_SOFT_LEFT;
+            case KEYCODE_BACK:
             case KEYCODE_SOFT_RIGHT:
                 return Keys.KEY_SOFT_RIGHT;
             case KEYCODE_0:

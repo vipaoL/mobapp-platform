@@ -225,48 +225,23 @@ public class Graphics {
 	}
 
 	public void drawLine(int x1, int y1, int x2, int y2, int thickness, int zoomOut, boolean drawThickness, boolean rounding, boolean markSkeleton) {
-		if (thickness > 2) {
-			int t2 = thickness/2;
-			int dx = x2 - x1;
-			int dy = y2 - y1;
-			int l = (int) Math.sqrt(dx*dx+dy*dy);
-
-			if (l == 0 || !drawThickness) {
-				drawLine(x1, y1, x2, y2);
-				return;
-			}
-
-			// normal vector
-			int nx = dy*t2 * 1000 / zoomOut / l;
-			int ny = dx*t2 * 1000 / zoomOut / l;
-
-			if (nx == 0 && ny == 0) {
-				drawLine(x1, y1, x2, y2);
-				return;
-			}
-
-			// draw bold line with two triangles (splitting by diagonal)
-			fillTriangle(x1-nx, y1+ny, x2-nx, y2+ny, x1+nx, y1-ny);
-			fillTriangle(x2-nx, y2+ny, x2+nx, y2-ny, x1+nx, y1-ny);
-			if (rounding) {
-				int r = t2 * 1000 / zoomOut;
-				int d = r * 2;
-				fillArc(x1-r, y1-r, d, d, 0, 360);
-				fillArc(x2-r, y2-r, d, d, 0, 360);
-			}
-			if (markSkeleton && thickness * 1000 / zoomOut > 8) {
-				int prevCol = getColor();
-				setColor(0xff0000);
-				drawLine(x1, y1, x2, y2);
-				setColor(prevCol);
-			}
-		} else {
+		float prevThickness = p.getStrokeWidth();
+		Paint.Cap prevCap = p.getStrokeCap();
+		p.setStrokeCap(Paint.Cap.ROUND);
+		p.setStrokeWidth(thickness * 1000f / zoomOut);
+		c.drawLine(x1 + 0.5f, y1 + 0.5f, x2 + 0.5f, y2 + 0.5f, p);
+		p.setStrokeWidth(prevThickness);
+		p.setStrokeCap(prevCap);
+		if (markSkeleton && thickness * 1000 / zoomOut > 8) {
+			int prevCol = getColor();
+			setColor(0xff0000);
 			drawLine(x1, y1, x2, y2);
+			setColor(prevCol);
 		}
 	}
 
 	public void drawLine(int x1, int y1, int x2, int y2, int thickness, int zoomOut, boolean drawThickness) {
-		drawLine(x1, y1, x2, y2, thickness, zoomOut, drawThickness, true, true);
+		drawLine(x1, y1, x2, y2, thickness, zoomOut, drawThickness, true, false);
 	}
 
 	public void drawTriangle(int x1, int y1, int x2, int y2, int x3, int y3, boolean fill) {

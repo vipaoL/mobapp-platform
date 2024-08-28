@@ -71,8 +71,8 @@ public class FileUtils {
     public static String[] getRoots() {
         return new String[]{
                 //Environment.getExternalStorageDirectory().getPath() + SEP,
-                Platform.getFilesDir().getPath() + SEP,
-                Platform.getExternalFilesDir().getPath() + SEP
+                String.valueOf(Platform.getFilesDir()) + SEP,
+                String.valueOf(Platform.getExternalFilesDir()) + SEP
         };
     }
     
