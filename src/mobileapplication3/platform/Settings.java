@@ -42,7 +42,9 @@ public class Settings {
     }
 
     public String getStr(String key, String defValue) {
-        return prefs.getString(key, defValue);
+        String value = prefs.getString(key, defValue);
+        set(key, value);
+        return value;
     }
     
     public boolean toggleBool(String key) {

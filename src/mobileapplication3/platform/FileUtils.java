@@ -13,6 +13,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
 import android.provider.Settings;
+import android.util.Log;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
@@ -70,7 +71,8 @@ public class FileUtils {
     public static String[] getRoots() {
         return new String[]{
                 Environment.getExternalStorageDirectory().getPath() + SEP,
-                Platform.getFilesDir().getPath() + SEP
+                Platform.getFilesDir().getPath() + SEP,
+                Platform.getExternalFilesDir().getPath() + SEP
         };
     }
     
@@ -145,9 +147,7 @@ public class FileUtils {
                     Platform.getActivityInst().startActivity(intent);
                     try {
                         Thread.sleep(200);
-                    } catch (InterruptedException e) {
-                        throw new RuntimeException(e);
-                    }
+                    } catch (InterruptedException ignored) { }
                 }
             }
         } else {
@@ -158,10 +158,11 @@ public class FileUtils {
     }
 
     public static String[] getAllPlaces(String folderName) {
-        String[] roots = FileUtils.getRoots();
+        String[] roots = getRoots();
         String[] paths = new String[roots.length * FOLDERS_ON_EACH_DRIVE.length];
 
         for (int i = 0; i < roots.length; i++) {
+            Log.d("Searching for places in", roots[i]);
             for (int j = 0; j < FOLDERS_ON_EACH_DRIVE.length; j++) {
                 paths[i*FOLDERS_ON_EACH_DRIVE.length + j] = roots[i] + FOLDERS_ON_EACH_DRIVE[j] + folderName + SEP;
             }

@@ -6,6 +6,7 @@ import android.graphics.Canvas;
 import android.util.Log;
 
 import java.io.IOException;
+import java.io.InputStream;
 
 import mobileapplication3.platform.Platform;
 
@@ -89,6 +90,10 @@ public class Image {
     }
 
 	public static Image createImage(String source) throws IOException {
-		return new Image(BitmapFactory.decodeResource(Platform.getActivityInst().getResources(), Platform.getResourceID(source, Platform.RES_TYPE_DRAWABLE)));
+		InputStream is = Platform.getResource(source);
+		if (is == null) {
+			return null;
+		}
+		return new Image(BitmapFactory.decodeStream(is));
 	}
 }

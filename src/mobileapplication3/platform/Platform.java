@@ -4,7 +4,9 @@ import static mobileapplication3.platform.FileUtils.SEP;
 
 import android.app.Activity;
 import android.content.Context;
-import android.content.res.Resources;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Build;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
@@ -15,10 +17,9 @@ import java.io.DataInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Properties;
 
 public class Platform {
-	public static final String RES_TYPE_DRAWABLE = "drawable";
-	public static final String RES_TYPE_RAW = "raw";
 	private static Activity activityInst = null;
 
 	public static void init(Activity inst) {
@@ -63,33 +64,47 @@ public class Platform {
 		} catch (Exception ignored) { }
 	}
 
-	public static String getAppProperty(String string) {
-		return "can't get app prop: not implemented yet"; // TODO
-	}
-
-	public static boolean platformRequest(String url) {
-		// TODO
-		return false;
-	}
-
-	public static InputStream getResource(String path) {
-		try {
-			return Resources.getSystem().openRawResource(getResourceID(path, RES_TYPE_RAW));
+	public static String getAppProperty(String key) {
+		try (InputStream is = getActivityInst().getAssets().open("app.properties")) {
+			Properties props = new Properties();
+			props.load(is);
+			return props.getProperty(key);
 		} catch (Exception ex) {
 			return null;
 		}
 	}
 
-	public static int getResourceID(String resourceName, String type) {
-		if (resourceName.startsWith("/")) {
-			resourceName = resourceName.substring(1);
+	public static String getAppVersion() {
+		try{
+			return getActivityInst().getPackageManager()
+					.getPackageInfo(getActivityInst().getPackageName(), 0).versionName;
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			return null;
 		}
-		if (resourceName.contains(".")) {
-			resourceName = resourceName.substring(0, resourceName.lastIndexOf("."));
+	}
+
+	public static boolean platformRequest(String url) {
+		try {
+			Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+			getActivityInst().startActivity(browserIntent);
+		} catch (Exception ex) {
+			showError(ex);
 		}
-		Log.d("Getting resource", resourceName);
-		Resources resources = Platform.getActivityInst().getResources();
-		return resources.getIdentifier(resourceName, type, Platform.getActivityInst().getPackageName());
+		return false;
+	}
+
+	public static InputStream getResource(String path) {
+		if (path.startsWith("/")) {
+			path = path.substring(1);
+		}
+		try {
+			Log.d("Getting asset: ", path);
+			return getActivityInst().getAssets().open(path);
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			return null;
+		}
 	}
 
 	private static String getStoragePath(String storageName) {
@@ -98,6 +113,10 @@ public class Platform {
 
 	public static File getFilesDir() {
 		return activityInst.getFilesDir();
+	}
+
+	public static File getExternalFilesDir() {
+		return activityInst.getExternalFilesDir(null);
 	}
 
 	public static Activity getActivityInst() {
