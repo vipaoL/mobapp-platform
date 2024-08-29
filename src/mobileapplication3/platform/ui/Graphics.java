@@ -63,7 +63,7 @@ public class Graphics {
 				y -= h;
 			}
 
-			c.drawBitmap(img.getImage(), x + 0.5f, y + 0.5f, p);
+			c.drawBitmap(img.getImage(), x, y, p);
 		}
 	}
 
