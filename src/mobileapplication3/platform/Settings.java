@@ -7,6 +7,7 @@ package mobileapplication3.platform;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.Build;
 
 /**
  *
@@ -25,11 +26,23 @@ public class Settings {
     }
     
     public void resetSettings() {
-        prefs.edit().clear().apply();
+        SharedPreferences.Editor editor = prefs.edit();
+        prefs.edit().clear();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.GINGERBREAD) {
+            editor.apply();
+        } else {
+            editor.commit();
+        }
     }
 
     public boolean set(String key, String value) {
-        prefs.edit().putString(key, value).apply();
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putString(key, value);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.GINGERBREAD) {
+            editor.apply();
+        } else {
+            editor.commit();
+        }
         return true;
     }
     
