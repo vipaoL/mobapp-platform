@@ -116,7 +116,11 @@ public class Platform {
 	}
 
 	public static File getExternalFilesDir() {
-		return activityInst.getExternalFilesDir(null);
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.FROYO) {
+			return activityInst.getExternalFilesDir(null);
+		} else {
+			return null;
+		}
 	}
 
 	public static Activity getActivityInst() {
