@@ -224,11 +224,15 @@ public class Graphics {
 		return p.getColor() % 0xff000000;
 	}
 
-	public void drawLine(int x1, int y1, int x2, int y2, int thickness, int zoomOut, boolean drawThickness, boolean rounding, boolean markSkeleton) {
+	public void drawLine(int x1, int y1, int x2, int y2, int thickness, int zoomOut, boolean drawThickness, boolean zoomThickness, boolean rounding, boolean markSkeleton) {
 		float prevThickness = p.getStrokeWidth();
 		Paint.Cap prevCap = p.getStrokeCap();
 		p.setStrokeCap(Paint.Cap.ROUND);
-		p.setStrokeWidth(thickness * 1000f / zoomOut);
+		if (zoomThickness) {
+			p.setStrokeWidth(thickness * 1000f / zoomOut);
+		} else {
+			p.setStrokeWidth(thickness);
+		}
 		c.drawLine(x1 + 0.5f, y1 + 0.5f, x2 + 0.5f, y2 + 0.5f, p);
 		p.setStrokeWidth(prevThickness);
 		p.setStrokeCap(prevCap);
@@ -241,7 +245,11 @@ public class Graphics {
 	}
 
 	public void drawLine(int x1, int y1, int x2, int y2, int thickness, int zoomOut, boolean drawThickness) {
-		drawLine(x1, y1, x2, y2, thickness, zoomOut, drawThickness, true, false);
+		drawLine(x1, y1, x2, y2, thickness, zoomOut, drawThickness, true, true, false);
+	}
+
+	public void drawLine(int x1, int y1, int x2, int y2, int thickness, int zoomOut, boolean drawThickness, boolean zoomThickness) {
+		drawLine(x1, y1, x2, y2, thickness, zoomOut, drawThickness, zoomThickness, true, false);
 	}
 
 	public void drawTriangle(int x1, int y1, int x2, int y2, int x3, int y3, boolean fill) {
@@ -261,7 +269,7 @@ public class Graphics {
 		int arrowY = (y2*5 + y1) / 6;
 		int arrowSideVecX = dy / 8;
 		int arrowSideVecY = -dx / 8;
-		drawLine(x1, y1, arrowX, arrowY, thickness, zoomOut, drawThickness, false, false);
+		drawLine(x1, y1, arrowX, arrowY, thickness, zoomOut, drawThickness, true, false, false);
 		drawTriangle(x2, y2, arrowX + arrowSideVecX, arrowY + arrowSideVecY, arrowX - arrowSideVecX, arrowY - arrowSideVecY, drawThickness);
 	}
 }

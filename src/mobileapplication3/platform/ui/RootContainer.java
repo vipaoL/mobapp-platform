@@ -192,7 +192,6 @@ public class RootContainer extends SurfaceView implements IContainer {
 
     public void keyReleased(int keyCode) {
         keyCode = convertKeyCode(keyCode);
-        Log.d("keyReleased", String.valueOf(keyCode));
         kbHelper.keyReleased(keyCode);
     }
 
