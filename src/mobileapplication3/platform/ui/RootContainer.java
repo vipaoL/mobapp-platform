@@ -24,7 +24,7 @@ import mobileapplication3.ui.UISettings;
  *
  * @author vipaol
  */
-public class RootContainer extends SurfaceView implements IContainer {
+public class RootContainer extends SurfaceView implements IContainer, SurfaceHolder.Callback {
     private IUIComponent rootUIComponent = null;
     private KeyboardHelper kbHelper;
     public static boolean displayKbHints = false;
@@ -36,9 +36,11 @@ public class RootContainer extends SurfaceView implements IContainer {
     private Canvas c;
     private static Thread repaintThread = null;
     private boolean wasDownEvent = false;
+    private boolean surfaceCreated = false;
 
     public RootContainer(Context context, IUIComponent rootUIComponent, UISettings uiSettings) {
         super(context);
+        getHolder().addCallback(this);
         this.uiSettings = uiSettings;
         inst = this;
         kbHelper = new KeyboardHelper();
@@ -93,7 +95,7 @@ public class RootContainer extends SurfaceView implements IContainer {
     }
 
     @Override
-    public void repaint() {
+    public synchronized void repaint() {
         if (rootUIComponent != null && !rootUIComponent.repaintOnlyOnFlushGraphics()) {
             paint();
         }
@@ -103,8 +105,8 @@ public class RootContainer extends SurfaceView implements IContainer {
 		return uiSettings;
 	}
 
-    protected void paint() {
-        if (rootUIComponent != null) {
+    protected synchronized void paint() {
+        if (rootUIComponent != null && surfaceCreated) {
             Graphics g = getUGraphics();
             rootUIComponent.paint(g);
             flushGraphics();
@@ -303,12 +305,17 @@ public class RootContainer extends SurfaceView implements IContainer {
         }
     }
 
-    protected void showNotify() {
-        onShow();
+    @Override
+    public void surfaceCreated(SurfaceHolder surfaceHolder) {
+        surfaceCreated = true;
     }
 
-    protected void hideNotify() {
-        onHide();
+    @Override
+    public void surfaceChanged(SurfaceHolder surfaceHolder, int format, int w, int h) { }
+
+    @Override
+    public void surfaceDestroyed(SurfaceHolder surfaceHolder) {
+        surfaceCreated = false;
     }
 
     private int convertKeyCode(int androidKeyCode) {
@@ -358,7 +365,7 @@ public class RootContainer extends SurfaceView implements IContainer {
                 return 0;
         }
     }
-    
+
     private class KeyboardHelper {
         private Object tillPressed = new Object();
         private int lastKey, pressCount;
