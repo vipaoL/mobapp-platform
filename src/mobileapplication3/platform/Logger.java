@@ -25,7 +25,11 @@ public class Logger {
 
     public static void enableOnScreenLog(int screenHeight) {
         isOnScreenLogEnabled = true;
-        String[] newLog = new String[screenHeight / Font.getFont(Font.FACE_MONOSPACE, Font.STYLE_BOLD, Font.SIZE_SMALL).getHeight()];
+        int n = screenHeight / Math.max(1, Font.getFont(Font.FACE_MONOSPACE, Font.STYLE_BOLD, Font.SIZE_SMALL).getHeight());
+        if (n < 5) {
+            n = 5;
+        }
+        String[] newLog = new String[n];
         if (onScreenLog != null) {
             System.out.println(Math.min(onScreenLog.length, newLog.length));
             int minL = Math.min(onScreenLog.length, newLog.length);
@@ -69,15 +73,18 @@ public class Logger {
             return false;
         }
 
-        if (onScreenLog[lastWroteI] == null) {
-            return false;
+        try {
+            if (onScreenLog[lastWroteI] == null) {
+                return false;
+            }
+            if (onScreenLog[lastWroteI].equals(prevMsg)) {
+                onScreenLog[lastWroteI] = newMsg;
+                return true;
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
         }
-        if (onScreenLog[lastWroteI].equals(prevMsg)) {
-            onScreenLog[lastWroteI] = newMsg;
-            return true;
-        } else {
-            return false;
-        }
+        return false;
     }
 
     /*public static void logErr(String text, int value) {
@@ -98,25 +105,29 @@ public class Logger {
         if (logToStdout) {
             System.out.println(text);
         }
-        if (isOnScreenLogEnabled) {
-            if (onScreenLog[onScreenLogOffset] != null) {
-                for (int i = 0; i < onScreenLog.length - 1; i++) {
-                    onScreenLog[i] = onScreenLog[i + 1];
+        try {
+            if (isOnScreenLogEnabled) {
+                if (onScreenLog[onScreenLogOffset] != null) {
+                    for (int i = 0; i < onScreenLog.length - 1; i++) {
+                        onScreenLog[i] = onScreenLog[i + 1];
+                    }
+                }
+                onScreenLog[onScreenLogOffset] = text;
+                lastWroteI = onScreenLogOffset;
+                if (onScreenLogOffset < onScreenLog.length - 1) {
+                    onScreenLogOffset++;
+                }
+                try {
+                    // slowing for log readability
+                    if (logMessageDelay > 0) {
+                        Thread.sleep(logMessageDelay);
+                    }
+                } catch (InterruptedException ex) {
+                    ex.printStackTrace();
                 }
             }
-            onScreenLog[onScreenLogOffset] = text;
-            lastWroteI = onScreenLogOffset;
-            if (onScreenLogOffset < onScreenLog.length - 1) {
-                onScreenLogOffset++;
-            }
-            try {
-                // slowing for log readability
-                if (logMessageDelay > 0) {
-                    Thread.sleep(logMessageDelay);
-                }
-            } catch (InterruptedException ex) {
-                ex.printStackTrace();
-            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
         }
     }
     
