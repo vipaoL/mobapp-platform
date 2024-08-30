@@ -102,7 +102,7 @@ public class Platform {
 			Log.d("Getting asset: ", path);
 			return getActivityInst().getAssets().open(path);
 		} catch (Exception ex) {
-			ex.printStackTrace();
+			Log.d("Could not load resource", path + " (" + ex.toString() + ")");
 			return null;
 		}
 	}
