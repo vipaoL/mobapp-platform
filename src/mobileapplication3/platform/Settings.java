@@ -27,7 +27,7 @@ public class Settings {
     
     public void resetSettings() {
         SharedPreferences.Editor editor = prefs.edit();
-        prefs.edit().clear();
+        editor.clear();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.GINGERBREAD) {
             editor.apply();
         } else {
