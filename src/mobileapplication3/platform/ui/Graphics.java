@@ -228,15 +228,19 @@ public class Graphics {
 		float prevThickness = p.getStrokeWidth();
 		Paint.Cap prevCap = p.getStrokeCap();
 		p.setStrokeCap(Paint.Cap.ROUND);
-		if (zoomThickness) {
-			p.setStrokeWidth(thickness * 1000f / zoomOut);
+		if (drawThickness) {
+			if (zoomThickness) {
+				p.setStrokeWidth(thickness * 1000f / zoomOut);
+			} else {
+				p.setStrokeWidth(thickness);
+			}
 		} else {
-			p.setStrokeWidth(thickness);
+			p.setStrokeWidth(1);
 		}
 		c.drawLine(x1 + 0.5f, y1 + 0.5f, x2 + 0.5f, y2 + 0.5f, p);
 		p.setStrokeWidth(prevThickness);
 		p.setStrokeCap(prevCap);
-		if (markSkeleton && thickness * 1000 / zoomOut > 8) {
+		if (markSkeleton && drawThickness && thickness * 1000 / zoomOut > 8) {
 			int prevCol = getColor();
 			setColor(0xff0000);
 			drawLine(x1, y1, x2, y2);
