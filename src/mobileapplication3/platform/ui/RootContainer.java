@@ -63,8 +63,8 @@ public class RootContainer extends SurfaceView implements IContainer {
         
         if (rootUIComponent != null) {
             inst.rootUIComponent = rootUIComponent.setParent(inst).setVisible(true);
-            rootUIComponent.init();
             rootUIComponent.setSize(inst.getWidth(), inst.getHeight());
+            rootUIComponent.init();
 		    rootUIComponent.setFocused(true);
             if (!rootUIComponent.repaintOnlyOnFlushGraphics() && repaintThread == null) {
                 repaintThread = new Thread(new Runnable() {
@@ -177,7 +177,6 @@ public class RootContainer extends SurfaceView implements IContainer {
     
     public void keyPressed(int keyCode) {
         keyCode = convertKeyCode(keyCode);
-        Log.d("keyPressed", String.valueOf(keyCode));
         kbHelper.keyPressed(keyCode);
     }
     
