@@ -54,6 +54,7 @@ public class RootContainer extends SurfaceView implements IContainer {
 	}
 
     public static RootContainer setRootUIComponent(IUIComponent rootUIComponent) {
+        inst.wasDownEvent = false;
         if (inst.rootUIComponent != null) {
             inst.rootUIComponent.setVisible(false);
             //inst.rootUIComponent.setParent(null);
