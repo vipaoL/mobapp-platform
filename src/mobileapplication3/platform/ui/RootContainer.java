@@ -37,6 +37,7 @@ public class RootContainer extends SurfaceView implements IContainer, SurfaceHol
     private static Thread repaintThread = null;
     private boolean wasDownEvent = false;
     private boolean surfaceCreated = false;
+    private boolean isLocked = false;
 
     public RootContainer(Context context, IUIComponent rootUIComponent, UISettings uiSettings) {
         super(context);
@@ -65,7 +66,9 @@ public class RootContainer extends SurfaceView implements IContainer, SurfaceHol
         
         if (rootUIComponent != null) {
             inst.rootUIComponent = rootUIComponent.setParent(inst).setVisible(true);
-            rootUIComponent.setSize(inst.getWidth(), inst.getHeight());
+            try {
+                rootUIComponent.setSize(inst.getWidth(), inst.getHeight());
+            } catch (Exception ignored) { }
             rootUIComponent.init();
 		    rootUIComponent.setFocused(true);
             if (!rootUIComponent.repaintOnlyOnFlushGraphics() && repaintThread == null) {
@@ -114,16 +117,16 @@ public class RootContainer extends SurfaceView implements IContainer, SurfaceHol
     }
 
     @Override
-    public Graphics getUGraphics() {
+    public synchronized Graphics getUGraphics() {
+        if (isLocked) {
+            flushGraphics();
+        }
+        isLocked = true;
         try {
             c = surfaceHolder.lockCanvas();
         } catch (Exception ex) {
             flushGraphics();
             c = null;
-        }
-
-        if (c == null) {
-            c = new Canvas();
         }
 
         if (bgColor >= 0) {
@@ -133,7 +136,11 @@ public class RootContainer extends SurfaceView implements IContainer, SurfaceHol
     }
 
     @Override
-    public void flushGraphics() {
+    public synchronized void flushGraphics() {
+        if (!isLocked) {
+            return;
+        }
+        isLocked = false;
         try {
             surfaceHolder.unlockCanvasAndPost(c);
         } catch (Exception ignored) { }
@@ -187,7 +194,7 @@ public class RootContainer extends SurfaceView implements IContainer, SurfaceHol
         if (rootUIComponent != null) {
             rootUIComponent.setVisible(true);
             if (rootUIComponent.keyPressed(keyCode, count)) {
-                paint();
+                repaint();
             }
         }
     }
@@ -267,11 +274,11 @@ public class RootContainer extends SurfaceView implements IContainer, SurfaceHol
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         System.out.println(w + " " + h);
         super.onSizeChanged(w, h, oldw, oldh);
-    	this.w = w;
-    	this.h = h;
+        this.w = w;
+        this.h = h;
         if (rootUIComponent != null) {
             rootUIComponent.setSize(w, h);
-            paint();
+            repaint();
         }
     }
 
@@ -294,7 +301,7 @@ public class RootContainer extends SurfaceView implements IContainer, SurfaceHol
             onSizeChanged(getWidth(), getHeight(), 0, 0);
             rootUIComponent.onShow();
         }
-        paint();
+        repaint();
     }
     
     protected void onHide() {
