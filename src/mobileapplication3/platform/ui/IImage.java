@@ -1,14 +1,8 @@
 package mobileapplication3.platform.ui;
 
-import android.graphics.Bitmap;
-
 public interface IImage {
 
     Graphics getGraphics();
-
-    Bitmap getImage();
-
-    void setImage(Bitmap image);
 
     int getWidth();
 
