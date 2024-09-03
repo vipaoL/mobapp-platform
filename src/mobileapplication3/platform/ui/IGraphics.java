@@ -1,13 +1,8 @@
 package mobileapplication3.platform.ui;
 
 public interface IGraphics {
-    int HCENTER = 1;
-    int VCENTER = 2;
-    int LEFT = 4;
-    int RIGHT = 8;
-    int TOP = 16;
-    int BOTTOM = 32;
-    int BASELINE = 64;
+
+    int HCENTER = 1, VCENTER = 2, LEFT = 4, RIGHT = 8, TOP = 16, BOTTOM = 32, BASELINE = 64;
 
     void drawArc(int x, int y, int width, int height, int startAngle, int arcAngle);
 
