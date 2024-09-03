@@ -6,14 +6,7 @@ import android.graphics.Path;
 import android.graphics.Rect;
 import android.os.Build;
 
-public class Graphics {
-	public static final int HCENTER = 1;
-	public static final int VCENTER = 2;
-	public static final int LEFT = 4;
-	public static final int RIGHT = 8;
-	public static final int TOP = 16;
-	public static final int BOTTOM = 32;
-	public static final int BASELINE = 64;
+public class Graphics implements IGraphics {
 
 	private Canvas c;
 	private Paint p;
@@ -28,6 +21,7 @@ public class Graphics {
 		currentFont = new Font();
 	}
 
+	@Override
 	public void drawArc(int x, int y, int width, int height, int startAngle, int arcAngle) {
 		drawArc(x, y, width, height, startAngle, arcAngle, false);
 	}
@@ -47,6 +41,7 @@ public class Graphics {
 		}
 	}
 
+	@Override
 	public void drawImage(Image img, int x, int y, int anchor) {
 		if (img != null && img.getImage() != null) {
 			int w = img.getWidth();
@@ -67,15 +62,18 @@ public class Graphics {
 		}
 	}
 
+	@Override
 	public void drawLine(int x1, int y1, int x2, int y2) {
 		p.setStyle(Paint.Style.STROKE);
 		c.drawLine(x1 + 0.5f, y1 + 0.5f, x2 + 0.5f, y2 + 0.5f, p);
 	}
 
+	@Override
 	public void drawRect(int x, int y, int width, int height) {
 		drawRoundRect(x, y, width, height, 0, 0, false);
 	}
 
+	@Override
 	public void drawRoundRect(int x, int y, int width, int height, int arcWidth, int arcHeight) {
 		drawRoundRect(x, y, width, height, arcWidth, arcHeight, false);
 	}
@@ -94,10 +92,12 @@ public class Graphics {
 		}
 	}
 
+	@Override
 	public void drawString(String str, int x, int y, int anchor) {
 		drawSubstring(str, 0, str.length(), x, y, anchor);
 	}
 
+	@Override
 	public void drawSubstring(String str, int offset, int len, int x, int y, int anchor) {
 		Paint p = currentFont.getPaint();
 		p.setStyle(Paint.Style.FILL);
@@ -118,18 +118,22 @@ public class Graphics {
 		c.drawText(str, offset, offset + len, x, y, p);
 	}
 
+	@Override
 	public void fillArc(int x, int y, int width, int height, int startAngle, int arcAngle) {
 		drawArc(x, y, width, height, startAngle, arcAngle, true);
 	}
 
+	@Override
 	public void fillRect(int x, int y, int width, int height) {
 		drawRoundRect(x, y, width, height, 0, 0, true);
 	}
 
+	@Override
 	public void fillRoundRect(int x, int y, int width, int height, int arcWidth, int arcHeight) {
 		drawRoundRect(x, y, width, height, arcWidth, arcHeight, true);
 	}
 
+	@Override
 	public void fillTriangle(int x1, int y1, int x2, int y2, int x3, int y3) {
 		p.setStyle(Paint.Style.FILL);
 		Path path = new Path();
@@ -144,6 +148,7 @@ public class Graphics {
 		p.setStyle(Paint.Style.STROKE);
 	}
 
+	@Override
 	public void setClip(int x, int y, int width, int height) {
 		try {
 			c.restore();
@@ -152,78 +157,97 @@ public class Graphics {
 		c.clipRect(x, y, x + width, y + height);
 	}
 
+	@Override
 	public void setColor(int RGB) {
 		p.setColor(RGB + 0xff000000);
 	}
 
+	@Override
 	public void setColor(int red, int green, int blue) {
 		p.setARGB(255, red, green, blue);
 	}
 	
+	@Override
 	public void setFontSize(int size) {
 		currentFont = new Font(size);
 	}
 
+	@Override
 	public void setFont(int face, int style, int size) {
 		currentFont = new Font(size); // TODO
 	}
 	
+	@Override
 	public void setFont(Font font) {
 		currentFont = font;
 	}
 	
+	@Override
 	public Font getFont() {
 		return currentFont;
 	}
 
+	@Override
 	public int getFontFace() {
 		return currentFont.getFace();
 	}
 
+	@Override
 	public int getFontStyle() {
 		return currentFont.getStyle();
 	}
 
+	@Override
 	public int getFontSize() {
 		return currentFont.getSize();
 	}
 
+	@Override
 	public int getFontHeight() {
 		return currentFont.getHeight();
 	}
 
+	@Override
 	public int stringWidth(String str) {
 		return currentFont.stringWidth(str);
 	}
 
+	@Override
 	public int substringWidth(String str, int offset, int len) {
 		return currentFont.substringWidth(str, offset, len);
 	}
 
+	@Override
 	public int getFontHeight(int face, int style, int size) {
 		return currentFont.getHeight();
 	}
 
+	@Override
 	public int getClipWidth() {
 		return c.getClipBounds().width();
 	}
 
+	@Override
 	public int getClipHeight() {
 		return c.getClipBounds().height();
 	}
 
+	@Override
 	public int getClipX() {
 		return c.getClipBounds().left;
 	}
 
+	@Override
 	public int getClipY() {
 		return c.getClipBounds().top;
 	}
 
+	@Override
 	public int getColor() {
 		return p.getColor() % 0xff000000;
 	}
 
+	@Override
 	public void drawLine(int x1, int y1, int x2, int y2, int thickness, int zoomOut, boolean drawThickness, boolean zoomThickness, boolean rounding, boolean markSkeleton) {
 		float prevThickness = p.getStrokeWidth();
 		Paint.Cap prevCap = p.getStrokeCap();
@@ -248,14 +272,17 @@ public class Graphics {
 		}
 	}
 
+	@Override
 	public void drawLine(int x1, int y1, int x2, int y2, int thickness, int zoomOut, boolean drawThickness) {
 		drawLine(x1, y1, x2, y2, thickness, zoomOut, drawThickness, true, true, false);
 	}
 
+	@Override
 	public void drawLine(int x1, int y1, int x2, int y2, int thickness, int zoomOut, boolean drawThickness, boolean zoomThickness) {
 		drawLine(x1, y1, x2, y2, thickness, zoomOut, drawThickness, zoomThickness, true, false);
 	}
 
+	@Override
 	public void drawTriangle(int x1, int y1, int x2, int y2, int x3, int y3, boolean fill) {
 		if (!fill) {
 			drawLine(x1, y1, x2, y2);
@@ -266,6 +293,7 @@ public class Graphics {
 		}
 	}
 
+	@Override
 	public void drawArrow(int x1, int y1, int x2, int y2, int thickness, int zoomOut, boolean drawThickness) {
 		int dx = x2 - x1;
 		int dy = y2 - y1;

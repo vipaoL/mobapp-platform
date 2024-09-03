@@ -5,14 +5,13 @@ import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.util.Log;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Random;
 
 import mobileapplication3.platform.Platform;
 
-public class Image {
+public class Image implements IImage {
 	private Bitmap image;
 
 	public Image(Bitmap image) {
@@ -21,15 +20,15 @@ public class Image {
 		}
 		this.image = image;
 	}
-	
+
 	public static Image createImage(int width, int height) {
 		return new Image(Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888));
 	}
-	
+
 	public Graphics getGraphics() {
 		return new Graphics(new Canvas(image));
 	}
-	
+
 	public Bitmap getImage() {
 		return image;
 	}
@@ -55,45 +54,45 @@ public class Image {
 			image.getPixels(rgbData, offset, scanlength, x, y, width, height);
 		}
 	}
-	
+
 	public Image scale(int newWidth, int newHeight) {
 		if (image == null) {
 			return null;
 		}
 
-        int[] rawInput = new int[image.getHeight() * image.getWidth()];
-        getRGB(rawInput, 0, image.getWidth(), 0, 0, image.getWidth(), image.getHeight());
+		int[] rawInput = new int[image.getHeight() * image.getWidth()];
+		getRGB(rawInput, 0, image.getWidth(), 0, 0, image.getWidth(), image.getHeight());
 
-        int[] rawOutput = new int[newWidth * newHeight];
+		int[] rawOutput = new int[newWidth * newHeight];
 
-        // YD compensates for the x loop by subtracting the width back out
-        int YD = (image.getHeight() / newHeight) * image.getWidth() - image.getWidth();
-        int YR = image.getHeight() % newHeight;
-        int XD = image.getWidth() / newWidth;
-        int XR = image.getWidth() % newWidth;
-        int outOffset = 0;
-        int inOffset = 0;
+		// YD compensates for the x loop by subtracting the width back out
+		int YD = (image.getHeight() / newHeight) * image.getWidth() - image.getWidth();
+		int YR = image.getHeight() % newHeight;
+		int XD = image.getWidth() / newWidth;
+		int XR = image.getWidth() % newWidth;
+		int outOffset = 0;
+		int inOffset = 0;
 
-        for (int y = newHeight, YE = 0; y > 0; y--) {
-            for (int x = newWidth, XE = 0; x > 0; x--) {
-                rawOutput[outOffset++] = rawInput[inOffset];
-                inOffset += XD;
-                XE += XR;
-                if (XE >= newWidth) {
-                    XE -= newWidth;
-                    inOffset++;
-                }
-            }
-            inOffset += YD;
-            YE += YR;
-            if (YE >= newHeight) {
-                YE -= newHeight;
-                inOffset += image.getWidth();
-            }
-        }
-        return createRGBImage(rawOutput, newWidth, newHeight, true);
+		for (int y = newHeight, YE = 0; y > 0; y--) {
+			for (int x = newWidth, XE = 0; x > 0; x--) {
+				rawOutput[outOffset++] = rawInput[inOffset];
+				inOffset += XD;
+				XE += XR;
+				if (XE >= newWidth) {
+					XE -= newWidth;
+					inOffset++;
+				}
+			}
+			inOffset += YD;
+			YE += YR;
+			if (YE >= newHeight) {
+				YE -= newHeight;
+				inOffset += image.getWidth();
+			}
+		}
+		return createRGBImage(rawOutput, newWidth, newHeight, true);
 
-    }
+	}
 
 	public static Image createImage(String source) throws IOException {
 		InputStream is = Platform.getResource(source);
@@ -134,11 +133,6 @@ public class Image {
 					y2 += a;
 				}
 			}
-//			int scale = 7;
-//			Bitmap image = img.getImage();
-//			image = Bitmap.createScaledBitmap(image, w / scale, h / scale, true);
-//			image = Bitmap.createScaledBitmap(image, w, h, true);
-//			img.setImage(image);
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
