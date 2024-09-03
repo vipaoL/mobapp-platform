@@ -134,17 +134,18 @@ public class Graphics implements IGraphics {
 
     @Override
     public void fillTriangle(int x1, int y1, int x2, int y2, int x3, int y3) {
+		Paint.Style prevStrokeStyle = p.getStyle();
         p.setStyle(Paint.Style.FILL);
+
         Path path = new Path();
-        path.setFillType(Path.FillType.EVEN_ODD); // TODO
         path.moveTo(x1, y1);
         path.lineTo(x2, y2);
         path.lineTo(x3, y3);
         path.lineTo(x1, y1);
         path.close();
-
         c.drawPath(path, p);
-        p.setStyle(Paint.Style.STROKE);
+
+        p.setStyle(prevStrokeStyle);
     }
 
     @Override
@@ -164,7 +165,7 @@ public class Graphics implements IGraphics {
 
     @Override
     public void setFont(int face, int style, int size) {
-        currentFont = new Font(size); // TODO
+        currentFont = new Font(face, style, size);
     }
 
     @Override
