@@ -40,12 +40,32 @@ public class Font implements IFont {
         this.p = p;
     }
 
-    protected Paint getPaint() {
-        return p;
-    }
-
     public static Font getFont(int face, int style, int size) {
         return new Font(face, style, size);
+    }
+
+    public static Font getDefaultFont() {
+        return new Font(SIZE_MEDIUM);
+    }
+
+    public static int defaultFontStringWidth(String str) {
+        return getDefaultFont().stringWidth(str);
+    }
+
+    public static int defaultFontSubstringWidth(String str, int offset, int len) {
+        return getDefaultFont().substringWidth(str, offset, len);
+    }
+
+    public static int getDefaultFontHeight() {
+        return getDefaultFont().getHeight();
+    }
+
+    public static int getDefaultFontSize() {
+        return getDefaultFont().getSize();
+    }
+
+    protected Paint getPaint() {
+        return p;
     }
 
     public int getFace() {
@@ -76,26 +96,6 @@ public class Font implements IFont {
         return bounds.width();
     }
 
-    public static Font getDefaultFont() {
-        return new Font(SIZE_MEDIUM);
-    }
-
-    public static int defaultFontStringWidth(String str) {
-        return getDefaultFont().stringWidth(str);
-    }
-
-    public static int defaultFontSubstringWidth(String str, int offset, int len) {
-        return getDefaultFont().substringWidth(str, offset, len);
-    }
-
-    public static int getDefaultFontHeight() {
-        return getDefaultFont().getHeight();
-    }
-
-    public static int getDefaultFontSize() {
-        return getDefaultFont().getSize();
-    }
-
     public int[][] getLineBounds(String text, int w, int padding) {
         Vector lineBoundsVector = new Vector(text.length() / 5);
         int charOffset = 0;
@@ -115,7 +115,7 @@ public class Font implements IFont {
                     maxSymsInCurrLine = lineLength;
 
                     if (charOffset + lineLength < text.length()) {
-                        if (text.charAt(charOffset+lineLength) == '\n') {
+                        if (text.charAt(charOffset + lineLength) == '\n') {
                             lineBoundsVector.addElement(new int[]{charOffset, lineLength});
                             charOffset = charOffset + lineLength + 1;
                             lineBreakSymFound = true;
