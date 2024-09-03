@@ -2,7 +2,7 @@ package mobileapplication3.platform.ui;
 
 import java.util.Vector;
 
-public class Font {
+public class Font implements IFont {
 	public static final int
 		STYLE_PLAIN = 0,
 		STYLE_BOLD = 1,

@@ -9,9 +9,6 @@ import javax.microedition.media.Manager;
 import javax.microedition.media.MediaException;
 import javax.microedition.media.Player;
 
-import mobileapplication3.game.DebugMenu;
-import mobileapplication3.game.Main;
-
 /**
  *
  * @author vipaol
@@ -25,12 +22,12 @@ public class Sound {
             load("resource://a.mid", false);
         }
         
-        if (midiPlayer != null & DebugMenu.music) {
+        if (midiPlayer != null) {
             try {
                 midiPlayer.start();
             } catch (MediaException ex) {
                 ex.printStackTrace();
-                Main.showAlert("Can't play music (" + ex.toString() + ")");
+                Platform.showError("Can't play music (" + ex.toString() + ")");
             }
         }
     }
@@ -41,11 +38,11 @@ public class Sound {
             return true;
         } catch (IllegalArgumentException ex) {
             if (!supressAlert) {
-                Main.showAlert("Can't load music (" + ex.toString() + "). No music found, " + guide, 10000);
+            	Platform.showError("Can't load music (" + ex.toString() + "). No music found, " + guide);
             }
         } catch (Exception ex) {
             if (!supressAlert) {
-                Main.showAlert("Can't load music (" + ex.toString() + "). Maybe your device doesn't support it. If it does, " + guide, 10000);
+            	Platform.showError("Can't load music (" + ex.toString() + "). Maybe your device doesn't support it. If it does, " + guide);
             }
             ex.printStackTrace();
         }

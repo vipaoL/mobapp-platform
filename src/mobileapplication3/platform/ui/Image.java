@@ -1,17 +1,50 @@
 package mobileapplication3.platform.ui;
 
 import java.io.IOException;
+import java.util.Random;
 
-public class Image {
+public class Image implements IImage {
 	javax.microedition.lcdui.Image image;
 	
 	public Image(javax.microedition.lcdui.Image image) {
 		this.image = image;
 	}
-	
+
 	public static Image createImage(int width, int height) {
 		return new Image(javax.microedition.lcdui.Image.createImage(width, height));
 	}
+	
+	public static void blurImg(Image img) {
+        try {
+            Graphics g = img.getGraphics();
+            int x0 = 0, y0 = 0;
+            int w = img.getWidth();
+            int h = img.getHeight();
+            int x1 = 0, y1 = 0, x2 = 0, y2 = 0;
+            int a = 3;
+            int offset = new Random().nextInt(a);
+            x0 += offset;
+            for (int i = -offset; i < (w + h) / a; i++) {
+                g.setColor(0x110033);
+                g.drawLine(x1 + x0, y1 + y0, x2 + x0, y2 + y0);
+                g.drawLine(x1 + x0, h - (y1 + y0), x2 + x0, h - (y2 + y0));
+
+                if (y1 < h) {
+                    y1 += a;
+                } else {
+                    x1 += a;
+                }
+
+                if (x2 < w) {
+                    x2 += a;
+                } else {
+                    y2 += a;
+                }
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
 	
 	public Graphics getGraphics() {
 		return new Graphics(image.getGraphics());
@@ -28,16 +61,6 @@ public class Image {
 	public int getHeight() {
 		return image.getHeight();
 	}
-
-//	public static Image createRGBImage(int[] rgb, int width, int height, boolean processAlpha) {
-//		// TODO Auto-generated method stub
-//		return null;
-//	}
-//
-//	public void getRGB(int[] rgbData, int offset, int scanlength, int x, int y, int width, int height) {
-//		// TODO Auto-generated method stub
-//		
-//	}
 	
 	public Image scale(int newWidth, int newHeight) {
         int[] rawInput = new int[image.getHeight() * image.getWidth()];
@@ -77,5 +100,13 @@ public class Image {
 
 	public static Image createImage(String source) throws IOException {
 		return new Image(javax.microedition.lcdui.Image.createImage(source));
+	}
+
+	public void getRGB(int[] rgbData, int offset, int scanlength, int x, int y, int width, int height) {
+		image.getRGB(rgbData, offset, scanlength, x, y, width, height);
+	}
+
+	public void blur() {
+		blurImg(this);
 	}
 }

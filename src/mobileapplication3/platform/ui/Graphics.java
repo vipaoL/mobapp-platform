@@ -1,6 +1,6 @@
 package mobileapplication3.platform.ui;
 
-public class Graphics {
+public class Graphics implements IGraphics {
 	public static final int HCENTER = 1;
 	public static final int VCENTER = 2;
 	public static final int LEFT = 4;
@@ -134,10 +134,17 @@ public class Graphics {
 	public int getColor() {
 		return g.getColor();
 	}
+	
+	public void drawLine(int x1, int y1, int x2, int y2, int thickness, int zoomOut, boolean drawThickness) {
+		drawLine(x1, y1, x2, y2, thickness, zoomOut, drawThickness, true);
+	}
 
-	public void drawLine(int x1, int y1, int x2, int y2, int thickness, int zoomOut, boolean drawThickness, boolean rounding, boolean markSkeleton) {
-	    if (thickness > 2) {
-	        int t2 = thickness/2;
+	public void drawLine(int x1, int y1, int x2, int y2, int thickness, int zoomOut, boolean drawThickness, boolean zoomThickness) {
+	    drawLine(x1, y1, x2, y2, thickness, zoomOut, drawThickness, zoomThickness, true, true);
+	}
+
+	public void drawLine(int x1, int y1, int x2, int y2, int thickness, int zoomOut, boolean drawThickness, boolean zoomThickness, boolean rounding, boolean markSkeleton) {
+	    if (thickness > 0) {
 	        int dx = x2 - x1;
 	        int dy = y2 - y1;
 	        int l = (int) Math.sqrt(dx*dx+dy*dy);
@@ -148,8 +155,8 @@ public class Graphics {
 	        }
 	        
 	        // normal vector
-	        int nx = dy*t2 * 1000 / zoomOut / l;
-	        int ny = dx*t2 * 1000 / zoomOut / l;
+	        int nx = dy*thickness * 500 / zoomOut / l;
+	        int ny = dx*thickness * 500 / zoomOut / l;
 	        
 	        if (nx == 0 && ny == 0) {
 	            g.drawLine(x1, y1, x2, y2);
@@ -160,8 +167,8 @@ public class Graphics {
 	        g.fillTriangle(x1-nx, y1+ny, x2-nx, y2+ny, x1+nx, y1-ny);
 	        g.fillTriangle(x2-nx, y2+ny, x2+nx, y2-ny, x1+nx, y1-ny);
 	        if (rounding) {
-	            int r = t2 * 1000 / zoomOut;
-	            int d = r * 2;
+	            int r = thickness * 500 / zoomOut;
+	            int d = thickness * 1000 / zoomOut;
 	            g.fillArc(x1-r, y1-r, d, d, 0, 360);
 	            g.fillArc(x2-r, y2-r, d, d, 0, 360);
 	        }
@@ -174,10 +181,6 @@ public class Graphics {
 	    } else {
 	        g.drawLine(x1, y1, x2, y2);
 	    }
-	}
-
-	public void drawLine(int x1, int y1, int x2, int y2, int thickness, int zoomOut, boolean drawThickness) {
-	    drawLine(x1, y1, x2, y2, thickness, zoomOut, drawThickness, true, true);
 	}
 
 	public void drawTriangle(int x1, int y1, int x2, int y2, int x3, int y3, boolean fill) {
@@ -197,7 +200,7 @@ public class Graphics {
 	    int arrowY = (y2*5 + y1) / 6;
 	    int arrowSideVecX = dy / 8;
 	    int arrowSideVecY = -dx / 8;
-	    drawLine(x1, y1, arrowX, arrowY, thickness, zoomOut, drawThickness, false, false);
+	    drawLine(x1, y1, arrowX, arrowY, thickness, zoomOut, drawThickness, true, false, false);
 	    drawTriangle(x2, y2, arrowX + arrowSideVecX, arrowY + arrowSideVecY, arrowX - arrowSideVecX, arrowY - arrowSideVecY, drawThickness);
 	}
 }
