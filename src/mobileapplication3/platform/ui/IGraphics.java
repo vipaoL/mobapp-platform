@@ -11,9 +11,17 @@ public interface IGraphics {
 
     void drawArc(int x, int y, int width, int height, int startAngle, int arcAngle);
 
+    void drawArrow(int x1, int y1, int x2, int y2, int thickness, int zoomOut, boolean fill);
+
     void drawImage(Image img, int x, int y, int anchor);
 
     void drawLine(int x1, int y1, int x2, int y2);
+
+    void drawLine(int x1, int y1, int x2, int y2, int thickness, int zoomOut, boolean drawThickness, boolean zoomThickness, boolean rounding, boolean markSkeleton);
+
+    void drawLine(int x1, int y1, int x2, int y2, int thickness, int zoomOut, boolean drawThickness);
+
+    void drawLine(int x1, int y1, int x2, int y2, int thickness, int zoomOut, boolean drawThickness, boolean zoomThickness);
 
     void drawRect(int x, int y, int width, int height);
 
@@ -22,6 +30,8 @@ public interface IGraphics {
     void drawString(String str, int x, int y, int anchor);
 
     void drawSubstring(String str, int offset, int len, int x, int y, int anchor);
+
+    void drawTriangle(int x1, int y1, int x2, int y2, int x3, int y3, boolean fill);
 
     void fillArc(int x, int y, int width, int height, int startAngle, int arcAngle);
 
@@ -68,14 +78,4 @@ public interface IGraphics {
     int getColor();
 
     void setColor(int RGB);
-
-    void drawLine(int x1, int y1, int x2, int y2, int thickness, int zoomOut, boolean drawThickness, boolean zoomThickness, boolean rounding, boolean markSkeleton);
-
-    void drawLine(int x1, int y1, int x2, int y2, int thickness, int zoomOut, boolean drawThickness);
-
-    void drawLine(int x1, int y1, int x2, int y2, int thickness, int zoomOut, boolean drawThickness, boolean zoomThickness);
-
-    void drawTriangle(int x1, int y1, int x2, int y2, int x3, int y3, boolean fill);
-
-    void drawArrow(int x1, int y1, int x2, int y2, int thickness, int zoomOut, boolean drawThickness);
 }

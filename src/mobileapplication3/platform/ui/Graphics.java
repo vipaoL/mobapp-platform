@@ -42,6 +42,18 @@ public class Graphics implements IGraphics {
     }
 
     @Override
+    public void drawArrow(int x1, int y1, int x2, int y2, int thickness, int zoomOut, boolean drawThickness) {
+        int dx = x2 - x1;
+        int dy = y2 - y1;
+        int arrowX = (x2 * 5 + x1) / 6;
+        int arrowY = (y2 * 5 + y1) / 6;
+        int arrowSideVecX = dy / 8;
+        int arrowSideVecY = -dx / 8;
+        drawLine(x1, y1, arrowX, arrowY, thickness, zoomOut, drawThickness, true, false, false);
+        drawTriangle(x2, y2, arrowX + arrowSideVecX, arrowY + arrowSideVecY, arrowX - arrowSideVecX, arrowY - arrowSideVecY, drawThickness);
+    }
+
+    @Override
     public void drawImage(Image img, int x, int y, int anchor) {
         if (img != null && img.getImage() != null) {
             int w = img.getWidth();
@@ -68,6 +80,47 @@ public class Graphics implements IGraphics {
     }
 
     @Override
+    public void drawLine(int x1, int y1, int x2, int y2, int thickness, int zoomOut, boolean drawThickness) {
+        drawLine(x1, y1, x2, y2, thickness, zoomOut, drawThickness, true, true, false);
+    }
+
+    @Override
+    public void drawLine(int x1, int y1, int x2, int y2, int thickness, int zoomOut, boolean drawThickness, boolean zoomThickness) {
+        drawLine(x1, y1, x2, y2, thickness, zoomOut, drawThickness, zoomThickness, true, false);
+    }
+
+    @Override
+    public void drawLine(int x1, int y1, int x2, int y2, int thickness, int zoomOut, boolean drawThickness, boolean zoomThickness, boolean rounding, boolean markSkeleton) {
+        p.setStrokeCap(Paint.Cap.ROUND);
+        p.setStyle(Paint.Style.FILL_AND_STROKE);
+        if (drawThickness) {
+            if (zoomThickness) {
+                p.setStrokeWidth(thickness * 1000f / zoomOut);
+            } else {
+                p.setStrokeWidth(thickness);
+            }
+        } else {
+            p.setStrokeWidth(1);
+        }
+
+        float startX = x1 + 0.5f;
+        float startY = y1 + 0.5f;
+        float stopX = x2 + 0.5f;
+        float stopY = y2 + 0.5f;
+
+        c.drawLine(startX, startY, stopX, stopY, p);
+
+        if (markSkeleton && drawThickness && thickness * 1000 / zoomOut > 8) {
+            int prevCol = getColor();
+            setColor(0xff0000);
+            p.setStrokeWidth(1);
+            p.setStrokeCap(Paint.Cap.BUTT);
+            c.drawLine(startX, startY, stopX, stopY, p);
+            setColor(prevCol);
+        }
+    }
+
+    @Override
     public void drawRect(int x, int y, int width, int height) {
         drawRoundRect(x, y, width, height, 0, 0, false);
     }
@@ -83,7 +136,7 @@ public class Graphics implements IGraphics {
         } else {
             p.setStyle(Paint.Style.STROKE);
         }
-		p.setStrokeWidth(1);
+        p.setStrokeWidth(1);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && arcWidth > 0 && arcHeight > 0) {
             c.drawRoundRect(x + 0.5f, y + 0.5f, x + width + 0.5f, y + height + 0.5f, arcWidth / 2f, arcHeight / 2f, p);
@@ -119,6 +172,17 @@ public class Graphics implements IGraphics {
     }
 
     @Override
+    public void drawTriangle(int x1, int y1, int x2, int y2, int x3, int y3, boolean fill) {
+        if (!fill) {
+            drawLine(x1, y1, x2, y2);
+            drawLine(x2, y2, x3, y3);
+            drawLine(x1, y1, x3, y3);
+        } else {
+            fillTriangle(x1, y1, x2, y2, x3, y3);
+        }
+    }
+
+    @Override
     public void fillArc(int x, int y, int width, int height, int startAngle, int arcAngle) {
         drawArc(x, y, width, height, startAngle, arcAngle, true);
     }
@@ -136,7 +200,7 @@ public class Graphics implements IGraphics {
     @Override
     public void fillTriangle(int x1, int y1, int x2, int y2, int x3, int y3) {
         p.setStyle(Paint.Style.FILL_AND_STROKE);
-		p.setStrokeWidth(1);
+        p.setStrokeWidth(1);
 
         Path path = new Path();
         path.moveTo(x1, y1);
@@ -245,69 +309,5 @@ public class Graphics implements IGraphics {
     @Override
     public void setColor(int RGB) {
         p.setColor(RGB + 0xff000000);
-    }
-
-    @Override
-    public void drawLine(int x1, int y1, int x2, int y2, int thickness, int zoomOut, boolean drawThickness, boolean zoomThickness, boolean rounding, boolean markSkeleton) {
-        p.setStrokeCap(Paint.Cap.ROUND);
-		p.setStyle(Paint.Style.FILL_AND_STROKE);
-        if (drawThickness) {
-            if (zoomThickness) {
-                p.setStrokeWidth(thickness * 1000f / zoomOut);
-            } else {
-                p.setStrokeWidth(thickness);
-            }
-        } else {
-            p.setStrokeWidth(1);
-        }
-
-        float startX = x1 + 0.5f;
-        float startY = y1 + 0.5f;
-        float stopX = x2 + 0.5f;
-        float stopY = y2 + 0.5f;
-
-        c.drawLine(startX, startY, stopX, stopY, p);
-
-        if (markSkeleton && drawThickness && thickness * 1000 / zoomOut > 8) {
-            int prevCol = getColor();
-            setColor(0xff0000);
-            p.setStrokeWidth(1);
-            p.setStrokeCap(Paint.Cap.BUTT);
-            c.drawLine(startX, startY, stopX, stopY, p);
-            setColor(prevCol);
-        }
-    }
-
-    @Override
-    public void drawLine(int x1, int y1, int x2, int y2, int thickness, int zoomOut, boolean drawThickness) {
-        drawLine(x1, y1, x2, y2, thickness, zoomOut, drawThickness, true, true, false);
-    }
-
-    @Override
-    public void drawLine(int x1, int y1, int x2, int y2, int thickness, int zoomOut, boolean drawThickness, boolean zoomThickness) {
-        drawLine(x1, y1, x2, y2, thickness, zoomOut, drawThickness, zoomThickness, true, false);
-    }
-
-    @Override
-    public void drawTriangle(int x1, int y1, int x2, int y2, int x3, int y3, boolean fill) {
-        if (!fill) {
-            drawLine(x1, y1, x2, y2);
-            drawLine(x2, y2, x3, y3);
-            drawLine(x1, y1, x3, y3);
-        } else {
-            fillTriangle(x1, y1, x2, y2, x3, y3);
-        }
-    }
-
-    @Override
-    public void drawArrow(int x1, int y1, int x2, int y2, int thickness, int zoomOut, boolean drawThickness) {
-        int dx = x2 - x1;
-        int dy = y2 - y1;
-        int arrowX = (x2 * 5 + x1) / 6;
-        int arrowY = (y2 * 5 + y1) / 6;
-        int arrowSideVecX = dy / 8;
-        int arrowSideVecY = -dx / 8;
-        drawLine(x1, y1, arrowX, arrowY, thickness, zoomOut, drawThickness, true, false, false);
-        drawTriangle(x2, y2, arrowX + arrowSideVecX, arrowY + arrowSideVecY, arrowX - arrowSideVecX, arrowY - arrowSideVecY, drawThickness);
     }
 }
