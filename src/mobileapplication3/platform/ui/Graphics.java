@@ -102,18 +102,18 @@ public class Graphics {
 		Paint p = currentFont.getPaint();
 		p.setStyle(Paint.Style.FILL);
 		p.setColor(this.p.getColor());
-		Rect textBounds = new Rect();
-		p.getTextBounds(str, offset, offset + len, textBounds);
-		int textW = substringWidth(str, offset, len);
+        int textW = substringWidth(str, offset, len);
 		int textH = currentFont.getHeight();
-//		textW = textBounds.width();
-//		textH = textBounds.height();
-		y += textH;
+        y += textH;
 		if ((anchor & HCENTER) != 0) {
 			x -= textW/2;
+		} else if ((anchor & RIGHT) != 0) {
+			x -= textW;
 		}
 		if ((anchor & VCENTER) != 0) {
 			y -= textH/2;
+		} else if ((anchor & BOTTOM) != 0) {
+			y -= textH;
 		}
 		c.drawText(str, offset, offset + len, x, y, p);
 	}
