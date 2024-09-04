@@ -140,7 +140,7 @@ public class Graphics implements IGraphics {
 	}
 
 	public void drawLine(int x1, int y1, int x2, int y2, int thickness, int zoomOut, boolean drawThickness, boolean zoomThickness) {
-	    drawLine(x1, y1, x2, y2, thickness, zoomOut, drawThickness, zoomThickness, true, true);
+	    drawLine(x1, y1, x2, y2, thickness, zoomOut, drawThickness, zoomThickness, true, false); // TODO
 	}
 
 	public void drawLine(int x1, int y1, int x2, int y2, int thickness, int zoomOut, boolean drawThickness, boolean zoomThickness, boolean rounding, boolean markSkeleton) {

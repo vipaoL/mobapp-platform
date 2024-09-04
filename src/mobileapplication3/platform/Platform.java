@@ -10,13 +10,12 @@ import javax.microedition.lcdui.AlertType;
 import javax.microedition.lcdui.Display;
 import javax.microedition.lcdui.Displayable;
 import javax.microedition.lcdui.Image;
-import javax.microedition.midlet.MIDlet;
 import javax.microedition.rms.RecordStoreException;
 
 public class Platform {
-	private static MIDlet midletInst = null;
+	private static MobappMIDlet midletInst = null;
 	
-	public static void init(MIDlet inst) {
+	public static void init(MobappMIDlet inst) {
 		midletInst = inst;
 	}
 
@@ -37,8 +36,8 @@ public class Platform {
     }
 	
 	public static void showError(Throwable ex) {
+		Logger.log(ex);
 		showError(ex.toString());
-		ex.printStackTrace();
 	}
 
 	public static void showError(Exception ex) {
@@ -100,6 +99,6 @@ public class Platform {
 	}
 
 	public static void exit() {
-		System.exit(0);
+		midletInst.destroyApp(true);
 	}
 }
