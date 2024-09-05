@@ -26,6 +26,7 @@ public class RootContainer extends GameCanvas implements IContainer {
     public int w, h;
     private static RootContainer inst = null;
     private UISettings uiSettings;
+    private boolean wasDownEvent = false;
 
     public RootContainer(IUIComponent rootUIComponent, UISettings uiSettings) {
     	super(false);
@@ -44,6 +45,7 @@ public class RootContainer extends GameCanvas implements IContainer {
 	}
 
     public static RootContainer setRootUIComponent(IUIComponent rootUIComponent) {
+    	inst.wasDownEvent = false;
         if (inst.rootUIComponent != null) {
             inst.rootUIComponent.setParent(null);
             inst.rootUIComponent.setFocused(false);
@@ -92,6 +94,7 @@ public class RootContainer extends GameCanvas implements IContainer {
     }
     
     private void handleKeyPressed(int keyCode, int count) {
+    	wasDownEvent = true;
         if (rootUIComponent != null) {
             rootUIComponent.setVisible(true);
             if (rootUIComponent.keyPressed(keyCode, count)) {
@@ -105,7 +108,7 @@ public class RootContainer extends GameCanvas implements IContainer {
     }
     
     private void handleKeyReleased(int keyCode, int count) {
-        if (rootUIComponent != null) {
+        if (rootUIComponent != null && wasDownEvent) {
             rootUIComponent.setVisible(true);
             if (rootUIComponent.keyReleased(keyCode, count)) {
                 repaint();
@@ -117,7 +120,7 @@ public class RootContainer extends GameCanvas implements IContainer {
         if (getGameAction(keyCode) == Canvas.FIRE) {
             return;
         }
-        if (rootUIComponent != null) {
+        if (rootUIComponent != null && wasDownEvent) {
             if (rootUIComponent.keyRepeated(keyCode, pressedCount)) {
                 repaint();
             }
@@ -125,6 +128,7 @@ public class RootContainer extends GameCanvas implements IContainer {
     }
     
     protected void pointerPressed(int x, int y) {
+    	wasDownEvent = true;
         if (rootUIComponent != null) {
             rootUIComponent.setVisible(true);
             if (rootUIComponent.pointerPressed(x, y)) {
@@ -134,7 +138,7 @@ public class RootContainer extends GameCanvas implements IContainer {
     }
     
     protected void pointerDragged(int x, int y) {
-        if (rootUIComponent != null) {
+        if (rootUIComponent != null && wasDownEvent) {
             if (rootUIComponent.pointerDragged(x, y)) {
                 repaint();
             }
@@ -142,7 +146,7 @@ public class RootContainer extends GameCanvas implements IContainer {
     }
     
     protected void pointerReleased(int x, int y) {
-        if (rootUIComponent != null) {
+        if (rootUIComponent != null && wasDownEvent) {
             if (rootUIComponent.pointerReleased(x, y)) {
                 repaint();
             }
