@@ -3,7 +3,7 @@ package mobileapplication3.platform.ui;
 import java.io.IOException;
 import java.util.Random;
 
-public class Image implements IImage {
+public final class Image implements IImage {
 	javax.microedition.lcdui.Image image;
 	
 	public Image(javax.microedition.lcdui.Image image) {

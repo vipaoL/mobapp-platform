@@ -1,6 +1,6 @@
 package mobileapplication3.platform.ui;
 
-public class Graphics implements IGraphics {
+public final class Graphics implements IGraphics {
 	public static final int HCENTER = 1;
 	public static final int VCENTER = 2;
 	public static final int LEFT = 4;
