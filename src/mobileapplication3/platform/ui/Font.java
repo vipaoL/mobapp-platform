@@ -61,6 +61,9 @@ public class Font implements IFont {
 	}
 
 	public int stringWidth(String str) {
+		if (str == null || str.equals("")) {
+			return 0;
+		}
 		return font.stringWidth(str);
 	}
 	
