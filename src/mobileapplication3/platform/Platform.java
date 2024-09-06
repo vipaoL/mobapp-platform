@@ -41,6 +41,7 @@ public class Platform {
 	}
 
 	public static void showError(Exception ex) {
+		ex.printStackTrace();
 		showError(ex.toString());
 	}
 
