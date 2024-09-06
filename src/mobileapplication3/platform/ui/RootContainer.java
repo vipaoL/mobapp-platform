@@ -64,12 +64,22 @@ public class RootContainer extends GameCanvas implements IContainer {
 		return uiSettings;
 	}
 
+    public final void repaintt() {
+    	if (rootUIComponent == null || !rootUIComponent.repaintOnlyOnFlushGraphics()) {
+    		super.repaint();
+    	}
+    }
+
     public void paint(Graphics g) {
     	if (bgColor >= 0) {
     		g.fillRect(0, 0, w, h);
     	}
+
         if (rootUIComponent != null) {
             rootUIComponent.paint(new mobileapplication3.platform.ui.Graphics(g));
+        } else {
+        	g.setColor(0xaaaaaa);
+        	g.drawString("Nothing to draw. " + rootUIComponent, w/2, h, Graphics.BOTTOM | Graphics.HCENTER);
         }
     }
     
@@ -98,7 +108,7 @@ public class RootContainer extends GameCanvas implements IContainer {
         if (rootUIComponent != null) {
             rootUIComponent.setVisible(true);
             if (rootUIComponent.keyPressed(keyCode, count)) {
-                repaint();
+                repaintt();
             }
         }
     }
@@ -111,7 +121,7 @@ public class RootContainer extends GameCanvas implements IContainer {
         if (rootUIComponent != null && wasDownEvent) {
             rootUIComponent.setVisible(true);
             if (rootUIComponent.keyReleased(keyCode, count)) {
-                repaint();
+                repaintt();
             }
         }
     }
@@ -122,7 +132,7 @@ public class RootContainer extends GameCanvas implements IContainer {
         }
         if (rootUIComponent != null && wasDownEvent) {
             if (rootUIComponent.keyRepeated(keyCode, pressedCount)) {
-                repaint();
+                repaintt();
             }
         }
     }
@@ -132,7 +142,7 @@ public class RootContainer extends GameCanvas implements IContainer {
         if (rootUIComponent != null) {
             rootUIComponent.setVisible(true);
             if (rootUIComponent.pointerPressed(x, y)) {
-                repaint();
+                repaintt();
             }
         }
     }
@@ -140,7 +150,7 @@ public class RootContainer extends GameCanvas implements IContainer {
     protected void pointerDragged(int x, int y) {
         if (rootUIComponent != null && wasDownEvent) {
             if (rootUIComponent.pointerDragged(x, y)) {
-                repaint();
+                repaintt();
             }
         }
     }
@@ -148,7 +158,7 @@ public class RootContainer extends GameCanvas implements IContainer {
     protected void pointerReleased(int x, int y) {
         if (rootUIComponent != null && wasDownEvent) {
             if (rootUIComponent.pointerReleased(x, y)) {
-                repaint();
+                repaintt();
             }
         }
     }
@@ -158,7 +168,7 @@ public class RootContainer extends GameCanvas implements IContainer {
     	this.h = h;
         if (rootUIComponent != null) {
             rootUIComponent.setSize(w, h);
-            repaint();
+            repaintt();
         }
     }
 
@@ -166,7 +176,7 @@ public class RootContainer extends GameCanvas implements IContainer {
         kbHelper.show();
         if (rootUIComponent != null) {
             rootUIComponent.setVisible(true);
-            repaint();
+            repaintt();
         }
         sizeChanged(getWidth(), getHeight());
     }
@@ -175,7 +185,7 @@ public class RootContainer extends GameCanvas implements IContainer {
         kbHelper.hide();
         if (rootUIComponent != null) {
             rootUIComponent.setVisible(false);
-            repaint();
+            repaintt();
         }
     }
     
