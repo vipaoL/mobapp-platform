@@ -56,16 +56,15 @@ public class Settings {
         if (str == null) {
             return;
         }
-        
+
         String[] keyValueCouples = Utils.split(str.substring(0, str.length() - 1), "" + SEP);
-        //settingsKeysVals = new String[(keyValueCouples.length) * 2];
         for (int i = 0; i < keyValueCouples.length; i++) {
             int splitterIndex = keyValueCouples[i].indexOf(' ');
             String key = keyValueCouples[i].substring(0, splitterIndex);
             String value = keyValueCouples[i].substring(splitterIndex + 1);
             for (int j = 0; j < settingsKeysVals.length / 2; j++) {
                 if (key.equals(settingsKeysVals[j*2])) {
-                    settingsKeysVals[i*2 + 1] = value;
+                    settingsKeysVals[j*2 + 1] = value;
                 }
             }
         }
@@ -75,8 +74,7 @@ public class Settings {
         if (settingsKeysVals == null) {
             loadFromRMS();
         }
-        
-        //assert ((settingsKeysVals.length % 2) == 0);
+
         StringBuffer sb = new StringBuffer(settingsKeysVals.length*5);
         for (int i = 0; i < settingsKeysVals.length / 2; i++) {
             sb.append(settingsKeysVals[i*2]);
