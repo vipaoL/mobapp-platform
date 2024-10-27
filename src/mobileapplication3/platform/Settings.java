@@ -14,18 +14,18 @@ public class Settings {
             TRUE = "1",
             FALSE = "0",
             UNDEF = "";
-    
+
     private static final char SEP = '\n';
-    
+
     private String recordStoreName;
     private String[] settingsKeysVals;
     private String[] keys;
-    
+
     public Settings(String[] keys, String recordStoreName) {
     	this.keys = keys;
     	this.recordStoreName = recordStoreName;
     }
-    
+
     public void saveToRMS() {
         try {
         	RecordStores.writeStringToStore(getCurrentSettingsAsStr(), recordStoreName);
@@ -33,12 +33,12 @@ public class Settings {
         	Platform.showError("Can't save settings to RMS: " + ex.toString());
         }
     }
-    
+
     public void resetSettings() {
     	RecordStores.deleteStore(recordStoreName);
     	loadDefaults();
     }
-    
+
     public void loadDefaults() {
     	settingsKeysVals = new String[keys.length * 2];
     	for (int i = 0; i < keys.length; i++) {
@@ -46,11 +46,11 @@ public class Settings {
 			settingsKeysVals[i*2 + 1] = UNDEF;
 		}
     }
-    
+
     public void loadFromRMS() {
         loadFromString(RecordStores.readStringFromStore(recordStoreName));
     }
-    
+
     public void loadFromString(String str) {
         loadDefaults();
         if (str == null) {
@@ -69,7 +69,7 @@ public class Settings {
             }
         }
     }
-    
+
     public String getCurrentSettingsAsStr() {
         if (settingsKeysVals == null) {
             loadFromRMS();
@@ -89,7 +89,7 @@ public class Settings {
         if (settingsKeysVals == null) {
             loadFromRMS();
         }
-        
+
         for (int i = 0; i < settingsKeysVals.length / 2; i++) {
             if (settingsKeysVals[i*2].equals(key)) {
                 settingsKeysVals[i*2 + 1] = value;
@@ -97,19 +97,23 @@ public class Settings {
                 return true;
             }
         }
-        
+
         return false;
     }
-    
+
     public boolean set(String key, boolean value) {
         return set(key, toStr(value));
     }
-    
+
+    public boolean set(String key, int value) {
+        return set(key, String.valueOf(value));
+    }
+
     public String getStr(String key) {
         if (settingsKeysVals == null) {
             loadFromRMS();
         }
-        
+
         for (int i = 0; i < settingsKeysVals.length / 2; i++) {
             if (settingsKeysVals[i*2].equals(key)) {
             	String value = settingsKeysVals[i*2 + 1];
@@ -121,26 +125,26 @@ public class Settings {
         }
         return null;
     }
-    
+
     public boolean toggleBool(String key) {
         boolean newValue = !getBool(key);
         set(key, newValue);
         return newValue;
     }
-    
+
     public boolean getBool(String key) {
     	return TRUE.equals(getStr(key));
     }
-    
+
     public boolean getBool(String key, boolean defaultValue) {
     	String value = getStr(key);
-    	if (value == null || "".equals(value)) {
+    	if (value == null || UNDEF.equals(value)) {
     		set(key, defaultValue);
     		return TRUE.equals(getStr(key));
     	}
         return TRUE.equals(value);
     }
-    
+
     public int getInt(String key) {
     	String value = getStr(key);
     	if (UNDEF.equals(value)) {
@@ -148,7 +152,16 @@ public class Settings {
     	}
     	return Integer.parseInt(value);
     }
-    
+
+    public int getInt(String key, int defaultValue) {
+    	String value = getStr(key);
+    	if (UNDEF.equals(value)) {
+    		set(key, defaultValue);
+    		return getInt(key);
+    	}
+    	return Integer.parseInt(value);
+	}
+
     private String toStr(boolean b) {
         return b ? "1" : "0";
     }
