@@ -32,8 +32,10 @@ public class RecordStores {
         } catch(Exception e) { }
     }
     
-    public static void writeStringToStore(String settings, String recordStoreName) throws UnsupportedEncodingException, RecordStoreException {
-		writeBytesToStore(settings.getBytes("UTF-8"), recordStoreName);
+    public static void writeStringToStore(String str, String recordStoreName) throws UnsupportedEncodingException, RecordStoreException {
+    	if (str != null) {
+    		writeBytesToStore(str.getBytes("UTF-8"), recordStoreName);
+    	}
     }
     
     public static String readStringFromStore(String recordStoreName) {
