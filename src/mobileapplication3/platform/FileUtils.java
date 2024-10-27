@@ -58,10 +58,15 @@ public class FileUtils {
     
     public static DataInputStream fileToDataInputStream(String path) {
         try {
+        	if (!path.startsWith(PREFIX)) {
+        		path = PREFIX + path;
+        	}
+        	Logger.log("opening fc: " + path);
             FileConnection fc = (FileConnection) Connector.open(path, Connector.READ);
+            Logger.log("opening stream");
             return fc.openDataInputStream();
         } catch (IOException ex) {
-            ex.printStackTrace();
+            Logger.log(ex);
         }
         return null;
     }
@@ -105,7 +110,7 @@ public class FileUtils {
     }
     
     public static String getParent(String path) {
-    	for (int i = path.length() - 2; i > PREFIX.length(); i++) {
+    	for (int i = path.length() - 2; i > PREFIX.length(); i--) {
     		if (path.charAt(i) == SEP) {
     			return path.substring(0, i + 1);
     		}
