@@ -24,6 +24,10 @@ public class Logger {
     private static boolean logToStdout = false;
 
     public static void enableOnScreenLog(int screenHeight) {
+    	System.out.println("enabling log. screen h: " + screenHeight);
+    	if (screenHeight <= 0) {
+    		throw new IllegalArgumentException("can't enable log: h=" + screenHeight);
+    	}
         isOnScreenLogEnabled = true;
         int n = screenHeight / Math.max(1, Font.getFont(Font.FACE_MONOSPACE, Font.STYLE_BOLD, Font.SIZE_SMALL).getHeight());
         if (n < 5) {
