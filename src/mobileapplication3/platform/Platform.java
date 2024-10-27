@@ -14,7 +14,7 @@ import javax.microedition.rms.RecordStoreException;
 
 public class Platform {
 	private static MobappMIDlet midletInst = null;
-	
+
 	public static void init(MobappMIDlet inst) {
 		midletInst = inst;
 	}
@@ -34,33 +34,47 @@ public class Platform {
         }
     	setCurrent(new Alert("Error!", message, alertImage, AlertType.ERROR));
     }
-	
+
 	public static void showError(Throwable ex) {
 		Logger.log(ex);
 		showError(ex.toString());
 	}
 
-	public static void showError(Exception ex) {
-		ex.printStackTrace();
-		showError(ex.toString());
+	public static void showError(String message, Throwable ex) {
+		message += " " + ex;
+		Logger.log(ex);
+		showError(message);
 	}
 
 	public static void vibrate(int ms) {
         getDisplay().vibrate(ms);
     }
-	
+
 	public static void storeShorts(short[] data, String storageName) throws RecordStoreException {
 		RecordStores.writeShorts(data, storageName);
 	}
-	
+
 	public static DataInputStream readStore(String storageName) {
 		return RecordStores.openDataInputStream(storageName);
 	}
-	
+
 	public static void clearStore(String storageName) {
 		RecordStores.deleteStore(storageName);
 	}
-	
+
+	public static void storeString(String data, String storageName) {
+		try {
+			RecordStores.writeStringToStore(data, storageName);
+		} catch (Exception ex) {
+			Logger.log(ex);
+			showError("Can't write string " + data + " to " + storageName, ex);
+		}
+	}
+
+	public static String readStoreAsString(String storageName) {
+		return RecordStores.readStringFromStore(storageName);
+	}
+
 	public static void setCurrent(Displayable d) {
 		Display display = getDisplay();
         if (d instanceof Alert) {
@@ -73,7 +87,7 @@ public class Platform {
         	display.setCurrent(d);
         }
     }
-	
+
 	private static Display getDisplay() {
 		return Display.getDisplay(midletInst);
 	}
@@ -90,7 +104,7 @@ public class Platform {
 			return false;
 		}
 	}
-	
+
 	public static InputStream getResource(String path) {
 		return midletInst.getClass().getResourceAsStream(path);
 	}
