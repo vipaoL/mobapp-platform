@@ -36,10 +36,20 @@ public final class Graphics implements IGraphics {
 	}
 
 	public void drawString(String str, int x, int y, int anchor) {
+		if ((anchor & VCENTER) != 0) {
+			anchor -= VCENTER;
+			anchor |= TOP;
+			y -= getFontHeight() / 2;
+		}
 		g.drawString(str, x, y, anchor);
 	}
 
 	public void drawSubstring(String str, int offset, int len, int x, int y, int anchor) {
+		if ((anchor & VCENTER) != 0) {
+			anchor -= VCENTER;
+			anchor |= TOP;
+			y -= getFontHeight() / 2;
+		}
 		g.drawSubstring(str, offset, len, x, y, anchor);
 	}
 
