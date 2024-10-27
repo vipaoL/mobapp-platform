@@ -64,7 +64,7 @@ public class Mathh {
             return sinus(t - 270);
         }
     }
-    
+
     public static int arctg(int x, int y) {
         if (x == 0) {
             if (y > 0) {
@@ -95,7 +95,7 @@ public class Mathh {
         }
         return ang;
     }
-    
+
     public static int search(int[] nums, int target) {
         int l = 0;
         int r = nums.length - 1;
@@ -111,41 +111,46 @@ public class Mathh {
             }
         }
         return mid;
-  }
-    
+    }
+
     public static int distance(int x1, int y1, int x2, int y2) {
         int dx = x1 - x2;
         int dy = y1 - y2;
         return (int) Math.sqrt(dx * dx + dy * dy);
     }
+
     public static boolean strictIneq(int leftBound, int a, int rightBound) {
         return ((leftBound < a) & (a < rightBound));
     }
-    
+
+    public static boolean nonStrictIneq(int leftBound, int a, int rightBound) {
+        return ((leftBound <= a) & (a <= rightBound));
+    }
+
     public static int constrain(int leftBound, int a, int rightBound) {
         return Math.min(Math.max(leftBound, a), rightBound);
     }
-    
+
     public static boolean isPointOnArc(int a, int startAngle, int arcAngle) {
 		if (Math.abs(arcAngle) >= 360) {
 			return true;
 		}
-		
+
 		if (arcAngle < 0) {
 			arcAngle = -arcAngle;
 			startAngle = -startAngle;
 			a = -a;
 		}
-		
+
 		a = normalizeAngle(a);
 		startAngle = normalizeAngle(startAngle);
 		if (a < startAngle) {
 			a += 360;
 		}
-		
+
 		return a >= startAngle && a <= startAngle + arcAngle;
 	}
-	
+
 	public static int normalizeAngle(int a) {
     	a %= 360;
 		if (a < 0) {
@@ -153,7 +158,7 @@ public class Mathh {
 		}
         return a;
     }
-	
+
 	public static short calcDistance(int dx, int dy) {
         if (dy == 0) {
             return (short) Math.abs(dx);
@@ -162,5 +167,15 @@ public class Mathh {
         } else {
             return (short) Math.sqrt((double) (dx*dx + dy*dy));
         }
+    }
+
+	public static int sign(int a) {
+        if (a > 0) {
+            return 1;
+        }
+        if (a < 0) {
+            return -1;
+        }
+        return 0;
     }
 }
