@@ -156,8 +156,9 @@ public class Graphics implements IGraphics {
         p.setStyle(Paint.Style.FILL);
         p.setColor(this.p.getColor());
         int textW = substringWidth(str, offset, len);
-        int textH = currentFont.getHeight();
-        y += textH;
+        int textH = (int) (p.descent() - p.ascent());
+        y -= (int) ((p.descent() + p.ascent()) / 2);
+        y += textH / 2;
         if ((anchor & HCENTER) != 0) {
             x -= textW / 2;
         } else if ((anchor & RIGHT) != 0) {
