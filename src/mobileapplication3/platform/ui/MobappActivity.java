@@ -16,10 +16,9 @@ public abstract class MobappActivity extends Activity {
         super.onCreate(savedInstanceState);
         try {
             Platform.init(this);
-            IUIComponent rootUIComponent = getRootUIComponent();
-            UISettings uiSettings = getUISettings();
-            RootContainer rootContainer = new RootContainer(this, rootUIComponent, uiSettings);
-            setRootContainer(rootContainer);
+            setRootContainer(new RootContainer(this));
+            RootContainer.setUiSettings(getUISettings());
+            RootContainer.setRootUIComponent(getRootUIComponent());
         } catch(Exception ex) {
             ex.printStackTrace();
             Platform.showError(ex);

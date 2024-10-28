@@ -15,7 +15,10 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 
+import mobileapplication3.platform.Logger;
+import mobileapplication3.platform.Platform;
 import mobileapplication3.ui.IContainer;
+import mobileapplication3.ui.IPopupFeedback;
 import mobileapplication3.ui.IUIComponent;
 import mobileapplication3.ui.Keys;
 import mobileapplication3.ui.UISettings;
@@ -24,10 +27,12 @@ import mobileapplication3.ui.UISettings;
  *
  * @author vipaol
  */
-public class RootContainer extends SurfaceView implements IContainer, SurfaceHolder.Callback {
+public class RootContainer extends SurfaceView implements IContainer, IPopupFeedback, SurfaceHolder.Callback {
+
     private IUIComponent rootUIComponent = null;
     private KeyboardHelper kbHelper;
     public static boolean displayKbHints = false;
+    public static boolean enableOnScreenLog = false;
     private int bgColor = 0x000000;
     public int w, h;
     private static RootContainer inst = null;
@@ -38,23 +43,47 @@ public class RootContainer extends SurfaceView implements IContainer, SurfaceHol
     private boolean wasDownEvent = false;
     private boolean surfaceCreated = false;
     private boolean isLocked = false;
+    private int lastPointerX, lastPointerY;
+    private int pressedX, pressedY;
 
-    public RootContainer(Context context, IUIComponent rootUIComponent, UISettings uiSettings) {
+    public RootContainer(Context context) {
         super(context);
         getHolder().addCallback(this);
-        this.uiSettings = uiSettings;
         inst = this;
         kbHelper = new KeyboardHelper();
         displayKbHints = false;//!hasPointerEvents();
         surfaceHolder = getHolder();
-        setRootUIComponent(rootUIComponent);
     }
 
-    public void init() {
-    	if (rootUIComponent != null) {
-    		rootUIComponent.init();
+    public static RootContainer getInst() {
+        if (inst == null) {
+            throw new IllegalStateException("inst is null. Call constructor first");
+        }
+        return inst;
+    }
+
+    public static void init() {
+        enableOnScreenLog = inst.uiSettings == null || inst.uiSettings.enableOnScreenLog();
+        if (enableOnScreenLog) {
+            if (inst.h > 0) {
+                Logger.enableOnScreenLog(inst.h);
+            }
+        } else {
+            Logger.disableOnScreenLog();
+        }
+
+    	if (inst.rootUIComponent != null) {
+    		inst.rootUIComponent.init();
     	}
 	}
+
+    public static RootContainer setUISettings(UISettings uiSettings) {
+        getInst().uiSettings = uiSettings;
+        if (uiSettings != null) {
+            uiSettings.onChange();
+        }
+        return inst;
+    }
 
     public static RootContainer setRootUIComponent(IUIComponent rootUIComponent) {
         inst.wasDownEvent = false;
@@ -66,23 +95,21 @@ public class RootContainer extends SurfaceView implements IContainer, SurfaceHol
         
         if (rootUIComponent != null) {
             inst.rootUIComponent = rootUIComponent.setParent(inst).setVisible(true);
-            try {
-                rootUIComponent.setSize(inst.getWidth(), inst.getHeight());
-            } catch (Exception ignored) { }
             rootUIComponent.init();
+            rootUIComponent.setSize(inst.getWidth(), inst.getHeight());
 		    rootUIComponent.setFocused(true);
             if (!rootUIComponent.repaintOnlyOnFlushGraphics() && repaintThread == null) {
                 repaintThread = new Thread(new Runnable() {
                     @Override
                     public void run() {
-                        while (!rootUIComponent.repaintOnlyOnFlushGraphics()) {
+                        while (!inst.rootUIComponent.repaintOnlyOnFlushGraphics()) {
                             try {
+                                Thread.yield();
                                 Thread.sleep(200);
-                            } catch (InterruptedException e) {
-                                throw new RuntimeException(e);
-                            }
+                            } catch (InterruptedException ignored) { }
                             inst.repaint();
                         }
+                        repaintThread = null;
                     }
                 });
                 repaintThread.start();
@@ -104,14 +131,31 @@ public class RootContainer extends SurfaceView implements IContainer, SurfaceHol
         }
     }
 
+    @Override
     public UISettings getUISettings() {
 		return uiSettings;
 	}
 
+    @Override
+    public boolean isOnScreen() {
+        return true;
+    }
+
+    public static RootContainer setUiSettings(UISettings uiSettings) {
+        getInst().uiSettings = uiSettings;
+        return getInst();
+    }
+
     protected synchronized void paint() {
-        if (rootUIComponent != null && surfaceCreated) {
+        if (surfaceCreated) {
             Graphics g = getUGraphics();
-            rootUIComponent.paint(g);
+            if (rootUIComponent != null) {
+                rootUIComponent.paint(g);
+            } else {
+                g.setColor(0xaaaaaa);
+                g.drawString("Nothing to draw. " + rootUIComponent, w/2, h, Graphics.BOTTOM | Graphics.HCENTER);
+            }
+            Logger.paint(g);
             flushGraphics();
         }
     }
@@ -154,7 +198,7 @@ public class RootContainer extends SurfaceView implements IContainer, SurfaceHol
 		this.bgColor = bgColor;
 	}
     
-    public static int getGameActionn(int keyCode) {
+    public static int getAction(int keyCode) {
         switch (keyCode) {
             case Keys.KEY_UP:
             case Keys.KEY_NUM2:
@@ -187,13 +231,19 @@ public class RootContainer extends SurfaceView implements IContainer, SurfaceHol
     public void keyPressed(int keyCode) {
         keyCode = convertKeyCode(keyCode);
         kbHelper.keyPressed(keyCode);
+        wasDownEvent = true;
     }
     
     private void handleKeyPressed(int keyCode, int count) {
-        wasDownEvent = true;
         if (rootUIComponent != null) {
             rootUIComponent.setVisible(true);
             if (rootUIComponent.keyPressed(keyCode, count)) {
+                if (!displayKbHints) {
+                    displayKbHints = true;
+                    if (uiSettings != null) {
+                        uiSettings.onChange();
+                    }
+                }
                 repaint();
             }
         }
@@ -215,7 +265,7 @@ public class RootContainer extends SurfaceView implements IContainer, SurfaceHol
     }
     
     protected void handleKeyRepeated(int keyCode, int pressedCount) {
-        if (getGameActionn(keyCode) == Keys.FIRE) {
+        if (getAction(keyCode) == Keys.FIRE) {
             return;
         }
         if (rootUIComponent != null && wasDownEvent) {
@@ -226,7 +276,8 @@ public class RootContainer extends SurfaceView implements IContainer, SurfaceHol
     }
 
     protected void pointerPressed(int x, int y) {
-        wasDownEvent = true;
+        lastPointerX = x;
+        lastPointerY = y;
         if (rootUIComponent != null) {
             rootUIComponent.setVisible(true);
             if (rootUIComponent.pointerPressed(x, y)) {
@@ -236,8 +287,31 @@ public class RootContainer extends SurfaceView implements IContainer, SurfaceHol
     }
     
     protected void pointerDragged(int x, int y) {
+        if (lastPointerX == x && lastPointerY == y) {
+            return;
+        }
+
         if (rootUIComponent != null && wasDownEvent) {
             if (rootUIComponent.pointerDragged(x, y)) {
+                repaint();
+            }
+        }
+
+        lastPointerX = x;
+        lastPointerY = y;
+    }
+
+    protected void pointerReleased(int x, int y) {
+        if (rootUIComponent != null && wasDownEvent) {
+            if (rootUIComponent.pointerReleased(x, y)) {
+                repaint();
+            }
+        }
+    }
+
+    protected void pointerClicked(int x, int y) {
+        if (rootUIComponent != null && wasDownEvent) {
+            if (rootUIComponent.pointerClicked(x, y)) {
                 repaint();
             }
         }
@@ -247,13 +321,23 @@ public class RootContainer extends SurfaceView implements IContainer, SurfaceHol
     public boolean onTouchEvent(MotionEvent e) {
         switch (e.getAction()) {
             case MotionEvent.ACTION_DOWN:
-                pointerPressed(Math.round(e.getX()), Math.round(e.getY()));
+                pressedX = Math.round(e.getX());
+                pressedY = Math.round(e.getY());
+                pointerPressed(pressedX, pressedY);
+                wasDownEvent = true;
                 break;
             case MotionEvent.ACTION_MOVE:
                 pointerDragged(Math.round(e.getX()), Math.round(e.getY()));
                 break;
             case MotionEvent.ACTION_UP:
-                pointerReleased(Math.round(e.getX()), Math.round(e.getY()));
+                int releasedX = Math.round(e.getX());
+                int releasedY = Math.round(e.getY());
+                int d = Math.abs(releasedX - pressedX) + Math.abs(releasedY - pressedY);
+                if (d <= 20) {
+                    pointerClicked(releasedX, releasedY);
+                }
+                pointerReleased(releasedX, releasedY);
+                wasDownEvent = false;
                 break;
             default:
                 return false;
@@ -261,21 +345,15 @@ public class RootContainer extends SurfaceView implements IContainer, SurfaceHol
         return true;
     }
 
-    protected void pointerReleased(int x, int y) {
-        if (rootUIComponent != null && wasDownEvent) {
-            if (rootUIComponent.pointerReleased(x, y)) {
-                repaint();
-            }
-        }
-        wasDownEvent = false;
-    }
-
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
-        System.out.println(w + " " + h);
-        super.onSizeChanged(w, h, oldw, oldh);
         this.w = w;
         this.h = h;
+
+        if (enableOnScreenLog) {
+            Logger.enableOnScreenLog(h);
+        }
+
         if (rootUIComponent != null) {
             rootUIComponent.setSize(w, h);
             repaint();
@@ -373,6 +451,11 @@ public class RootContainer extends SurfaceView implements IContainer, SurfaceHol
         }
     }
 
+    @Override
+    public void closePopup() {
+        Platform.exit();
+    }
+
     private class KeyboardHelper {
         private Object tillPressed = new Object();
         private int lastKey, pressCount;
@@ -407,7 +490,7 @@ public class RootContainer extends SurfaceView implements IContainer, SurfaceHol
                             
                             pressCount = 1;
                         }
-                    } catch (InterruptedException e) { }
+                    } catch (InterruptedException ignored) { }
                 }
             };
             repeatThread.start();
