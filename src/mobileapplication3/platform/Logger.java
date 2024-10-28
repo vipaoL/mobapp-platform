@@ -21,7 +21,7 @@ public class Logger {
     private static int logMessageDelay = 0;
     private static String[] onScreenLog = new String[1];
     private static int onScreenLogOffset = 0;
-    private static boolean logToStdout = false;
+    private static boolean logToStdout = true;
 
     public static void enableOnScreenLog(int screenHeight) {
     	System.out.println("enabling log. screen h: " + screenHeight);
