@@ -49,6 +49,14 @@ public class Platform {
 		}
 	}
 
+	public static void storeString(String str, String storageName) {
+		FileUtils.saveStringToFile(str, getStoragePath(storageName));
+	}
+
+	public static String readStoreAsString(String storageName) {
+		return FileUtils.readStringFromFile(getStoragePath(storageName));
+	}
+
 	public static void storeShorts(short[] data, String storageName) throws IOException {
 		FileUtils.saveShortArrayToFile(data, getStoragePath(storageName));
 	}
@@ -98,10 +106,10 @@ public class Platform {
 			path = path.substring(1);
 		}
 		try {
-			Log.d("Getting asset: ", path);
+			Logger.log("Getting asset: " + path);
 			return getActivityInst().getAssets().open(path);
 		} catch (Exception ex) {
-			Log.d("Could not load resource", path + " (" + ex.toString() + ")");
+			Logger.log("Could not load resource " + path + " (" + ex.toString() + ")");
 			return null;
 		}
 	}
