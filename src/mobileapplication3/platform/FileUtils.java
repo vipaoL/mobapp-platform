@@ -24,6 +24,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Enumeration;
 import java.util.Vector;
 
@@ -39,13 +40,10 @@ public class FileUtils {
     private static final short[] TESTDATA = new short[]{0, 1, 2, 3};
     
     public static void saveShortArrayToFile(short[] arr, String path) throws IOException, SecurityException {
-        File file = new File(path);
-
         ByteArrayOutputStream buf = new ByteArrayOutputStream(arr.length*2);
         DataOutputStream dos = new DataOutputStream(buf);
         for (int i = 0; i < arr.length; i++) {
             dos.writeShort(arr[i]);
-
         }
 
         dos.flush();
@@ -58,6 +56,48 @@ public class FileUtils {
         fos.write(data);
         fos.close();
         fos.close();
+    }
+
+    public static void saveStringToFile(String data, String path) {
+        Logger.log("writing " + data + " to " + path);
+        try {
+            DataOutputStream dos = new DataOutputStream(new FileOutputStream(path));
+            if (data != null) {
+                dos.write(data.getBytes());
+            }
+            dos.flush();
+            dos.close();
+        } catch (Exception ex) {
+            Logger.log(ex);
+            Platform.showError(ex);
+            // TODO
+        }
+    }
+
+    public static String readStringFromFile(String path) {
+        Logger.log("reading string from " + path);
+        try {
+            File file = new File(path);
+            int length = (int) file.length();
+
+            byte[] bytes = new byte[length];
+
+            FileInputStream in = new FileInputStream(file);
+            try {
+                in.read(bytes);
+            } finally {
+                in.close();
+            }
+
+            return new String(bytes);
+        } catch (FileNotFoundException ex) {
+            return null;
+        } catch (Exception ex) {
+            Logger.log(ex);
+            Platform.showError(ex);
+            // TODO
+        }
+        return null;
     }
     
     public static DataInputStream fileToDataInputStream(String path) {
