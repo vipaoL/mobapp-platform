@@ -91,7 +91,7 @@ public class Graphics implements IGraphics {
 
     @Override
     public void drawLine(int x1, int y1, int x2, int y2, int thickness, int zoomOut, boolean drawThickness, boolean zoomThickness, boolean rounding, boolean markSkeleton) {
-        p.setStrokeCap(Paint.Cap.ROUND);
+        p.setStrokeCap(rounding ? Paint.Cap.ROUND : Paint.Cap.BUTT);
         p.setStyle(Paint.Style.FILL_AND_STROKE);
         if (drawThickness) {
             if (zoomThickness) {
