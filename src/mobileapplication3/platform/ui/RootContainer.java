@@ -40,11 +40,12 @@ public class RootContainer extends SurfaceView implements IContainer, IPopupFeed
     private SurfaceHolder surfaceHolder;
     private Canvas c;
     private static Thread repaintThread = null;
-    private boolean wasDownEvent = false;
+    private boolean wasDownEvent = false, wasDragged = false;
     private boolean surfaceCreated = false;
     private boolean isLocked = false;
     private int lastPointerX, lastPointerY;
     private int pressedX, pressedY;
+    private long pressedTime;
 
     public RootContainer(Context context) {
         super(context);
@@ -291,14 +292,20 @@ public class RootContainer extends SurfaceView implements IContainer, IPopupFeed
             return;
         }
 
+        lastPointerX = x;
+        lastPointerY = y;
         if (rootUIComponent != null && wasDownEvent) {
             if (rootUIComponent.pointerDragged(x, y)) {
                 repaint();
             }
         }
 
-        lastPointerX = x;
-        lastPointerY = y;
+        if (!wasDragged) {
+            int d = Math.abs(x - pressedX) + Math.abs(y - pressedY);
+            if (d > 4) {
+                wasDragged = true;
+            }
+        }
     }
 
     protected void pointerReleased(int x, int y) {
@@ -323,6 +330,7 @@ public class RootContainer extends SurfaceView implements IContainer, IPopupFeed
             case MotionEvent.ACTION_DOWN:
                 pressedX = Math.round(e.getX());
                 pressedY = Math.round(e.getY());
+                pressedTime = System.currentTimeMillis();
                 pointerPressed(pressedX, pressedY);
                 wasDownEvent = true;
                 break;
@@ -332,12 +340,12 @@ public class RootContainer extends SurfaceView implements IContainer, IPopupFeed
             case MotionEvent.ACTION_UP:
                 int releasedX = Math.round(e.getX());
                 int releasedY = Math.round(e.getY());
-                int d = Math.abs(releasedX - pressedX) + Math.abs(releasedY - pressedY);
-                if (d <= 20) {
+                if (!wasDragged && System.currentTimeMillis() - pressedTime < 1000) {
                     pointerClicked(releasedX, releasedY);
                 }
                 pointerReleased(releasedX, releasedY);
                 wasDownEvent = false;
+                wasDragged = false;
                 break;
             default:
                 return false;
