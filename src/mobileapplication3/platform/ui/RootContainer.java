@@ -31,9 +31,10 @@ public class RootContainer extends GameCanvas implements IContainer, IPopupFeedb
     private int bgColor = 0x000000;
     public int w, h;
     protected UISettings uiSettings;
-    private boolean wasDownEvent = false;
+    private boolean wasDownEvent = false, wasDragged = false;
     private int lastPointerX, lastPointerY;
     private int pressedX, pressedY;
+    private long pressedTime;
 
     private RootContainer() {
     	super(false);
@@ -189,6 +190,7 @@ public class RootContainer extends GameCanvas implements IContainer, IPopupFeedb
     protected void pointerPressed(int x, int y) {
     	lastPointerX = pressedX = x;
         lastPointerY = pressedY = y;
+        pressedTime = System.currentTimeMillis();
         if (rootUIComponent != null) {
             rootUIComponent.setVisible(true);
             if (rootUIComponent.pointerPressed(x, y)) {
@@ -210,6 +212,13 @@ public class RootContainer extends GameCanvas implements IContainer, IPopupFeedb
                 repaintt();
             }
         }
+        
+        if (!wasDragged) {
+	        int d = Math.abs(x - pressedX) + Math.abs(y - pressedY);
+	        if (d > 4) {
+	        	wasDragged = true;
+	        }
+        }
     }
     
     protected void pointerReleased(int x, int y) {
@@ -219,8 +228,7 @@ public class RootContainer extends GameCanvas implements IContainer, IPopupFeedb
 	                repaintt();
 	            }
 
-	            int d = Math.abs(x - pressedX) + Math.abs(y - pressedY);
-                if (d <= 20) {
+                if (!wasDragged && System.currentTimeMillis() - pressedTime < 1000) {
                 	if (rootUIComponent.pointerClicked(x, y)) {
                 		repaintt();
                 	}
@@ -230,6 +238,7 @@ public class RootContainer extends GameCanvas implements IContainer, IPopupFeedb
     		Logger.log(ex);
     	}
         wasDownEvent = false;
+        wasDragged = false;
     }
     
     protected void sizeChanged(int w, int h) {
