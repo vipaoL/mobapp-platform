@@ -81,9 +81,6 @@ public class Font implements IFont {
     }
 
     public int getHeight() {
-        Rect bounds = new Rect();
-        String str = "Mobapp Editor";
-        p.getTextBounds(str, 0, str.length() - 1, bounds);
         Paint.FontMetrics fm = p.getFontMetrics();
         return (int) (fm.descent - fm.ascent);
     }
