@@ -174,8 +174,8 @@ public class RootContainer extends SurfaceView implements IContainer, IPopupFeed
             c = null;
         }
 
-        if (bgColor >= 0) {
-            c.drawColor(0xff000000);
+        if (bgColor >= 0 && c != null) {
+            c.drawColor(0xff000000 + bgColor);
         }
         return new Graphics(c);
     }
