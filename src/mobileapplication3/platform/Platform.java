@@ -39,6 +39,12 @@ public class Platform {
 		ex.printStackTrace();
 	}
 
+	public static void showError(String message, Throwable ex) {
+		message += " " + ex;
+		Logger.log(ex);
+		showError(message);
+	}
+
 	public static void vibrate(int ms) {
 		Vibrator v = (Vibrator) activityInst.getSystemService(Context.VIBRATOR_SERVICE);
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
