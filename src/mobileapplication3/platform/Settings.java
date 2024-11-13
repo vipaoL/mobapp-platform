@@ -19,7 +19,7 @@ public class Settings {
             FALSE = "0",
             UNDEF = "";
 
-    private SharedPreferences prefs;
+    private final SharedPreferences prefs;
     
     public Settings(String[] keys, String storeName) {
         prefs = Platform.getActivityInst().getSharedPreferences(storeName, Context.MODE_PRIVATE);

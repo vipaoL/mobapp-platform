@@ -9,7 +9,6 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
-import android.util.Log;
 import android.widget.Toast;
 
 import java.io.DataInputStream;
