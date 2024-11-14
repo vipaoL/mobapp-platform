@@ -129,4 +129,12 @@ public class Utils {
         return ret;
     }
 
+    public static boolean isArrContain(short[] arr, short a) {
+        for (int i = 0; i < arr.length; i++) {
+            if (arr[i] == a) {
+                return true;
+            }
+        }
+        return false;
+    }
 }
