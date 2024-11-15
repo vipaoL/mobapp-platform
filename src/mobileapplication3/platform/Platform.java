@@ -9,6 +9,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
+import android.util.Log;
 import android.widget.Toast;
 
 import java.io.DataInputStream;
@@ -25,6 +26,7 @@ public class Platform {
 	}
 
 	public static void showError(String message) {
+		Log.e("Showing toast", message);
 		activityInst.runOnUiThread(new Runnable() {
 			@Override
 			public void run() {
