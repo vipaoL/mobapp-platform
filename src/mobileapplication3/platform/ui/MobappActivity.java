@@ -1,8 +1,10 @@
 package mobileapplication3.platform.ui;
 
 import android.app.Activity;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.KeyEvent;
+import android.view.View;
 
 import mobileapplication3.platform.Platform;
 import mobileapplication3.ui.IUIComponent;
@@ -22,6 +24,23 @@ public abstract class MobappActivity extends Activity {
         } catch(Exception ex) {
             ex.printStackTrace();
             Platform.showError(ex);
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        enableFullScreen();
+    }
+
+    protected void enableFullScreen() {
+        View decorView = this.getWindow().getDecorView();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+            if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+            } else {
+                decorView.setSystemUiVisibility(View.GONE);
+            }
         }
     }
 
