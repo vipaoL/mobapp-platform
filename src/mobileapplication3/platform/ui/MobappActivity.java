@@ -22,7 +22,6 @@ public abstract class MobappActivity extends Activity {
             RootContainer.setUiSettings(getUISettings());
             RootContainer.setRootUIComponent(getRootUIComponent());
         } catch(Exception ex) {
-            ex.printStackTrace();
             Platform.showError(ex);
         }
     }

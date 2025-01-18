@@ -25,6 +25,17 @@ public class Platform {
 		activityInst = inst;
 	}
 
+	public static void showError(String message, Throwable ex) {
+		message += " " + ex;
+		Logger.log(ex);
+		showError(message);
+	}
+
+	public static void showError(Throwable ex) {
+		Log.e("mobapp error", "error", ex);
+		showError(ex.toString());
+	}
+
 	public static void showError(String message) {
 		Log.e("Showing toast", message);
 		activityInst.runOnUiThread(new Runnable() {
@@ -33,25 +44,13 @@ public class Platform {
 				Toast.makeText(activityInst, "Error: " + message, Toast.LENGTH_LONG).show();
 			}
 		});
-    }
-
-	public static void showError(Throwable ex) {
-		showError(ex.toString());
-		ex.printStackTrace();
-	}
-
-	public static void showError(String message, Throwable ex) {
-		message += " " + ex;
-		Logger.log(ex);
-		showError(message);
 	}
 
 	public static void vibrate(int ms) {
 		Vibrator v = (Vibrator) activityInst.getSystemService(Context.VIBRATOR_SERVICE);
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
 			v.vibrate(VibrationEffect.createOneShot(ms, VibrationEffect.DEFAULT_AMPLITUDE));
-		} else {
-			//deprecated in API 26
+		} else { //deprecated in API 26 (Oreo)
 			v.vibrate(ms);
 		}
 	}
@@ -93,7 +92,7 @@ public class Platform {
 			return getActivityInst().getPackageManager()
 					.getPackageInfo(getActivityInst().getPackageName(), 0).versionName;
 		} catch (Exception ex) {
-			ex.printStackTrace();
+			Log.e("mobapp error", "Can't get app version", ex);
 			return null;
 		}
 	}
