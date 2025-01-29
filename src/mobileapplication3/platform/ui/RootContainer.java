@@ -478,23 +478,23 @@ public class RootContainer extends SurfaceView implements IContainer, IPopupFeed
             repeatThread = new Thread() {
                 public void run() {
                     try {
-                        while(true) {
-                            if(!pressState) {
+                        while (true) {
+                        	// Wait until a key is pressed
+                            if (!pressState) {
                                 synchronized(tillPressed) {
                                     tillPressed.wait();
                                 }
                             }
-                            
-                            int k = lastKey;
-                            Thread.sleep(200);
-                            while (!isLastEventOld()) {
-                                Thread.sleep(200);
-                            }
-                            
-                            while(pressState && lastKey == k) {
-                                handleKeyRepeated(k, pressCount);
-                                Thread.sleep(100);
-                            }
+
+                            // The thread is interrupted when the key is released
+                            try {
+                            	// Wait a delay and repeat
+                            	Thread.sleep(500);
+	                            while (true) {
+	                                handleKeyRepeated(lastKey, pressCount);
+	                                Thread.sleep(150);
+	                            }
+                            } catch (InterruptedException ex) { }
                             
                             pressCount = 1;
                         }
@@ -533,6 +533,7 @@ public class RootContainer extends SurfaceView implements IContainer, IPopupFeed
             } else {
                 pressCount = 0;
             }
+            repeatThread.interrupt();
             handleKeyReleased(k, pressCount);
         }
         
