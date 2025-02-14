@@ -131,6 +131,10 @@ public class Mathh {
         return Math.min(Math.max(leftBound, a), rightBound);
     }
 
+    public static double constrain(double leftBound, double a, double rightBound) {
+        return Math.min(Math.max(leftBound, a), rightBound);
+    }
+
     public static boolean isPointOnArc(int a, int startAngle, int arcAngle) {
 		if (Math.abs(arcAngle) >= 360) {
 			return true;
