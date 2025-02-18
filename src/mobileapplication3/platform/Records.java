@@ -5,10 +5,19 @@ import android.content.SharedPreferences;
 
 public class Records {
     private final static String PREF_NAME = "records";
+    public static final String OLD_PREF_NAME = "Records";
 
-    public static int[] getRecords(String storeName) {
-        SharedPreferences prefs = Platform.getActivityInst().getSharedPreferences(storeName, Context.MODE_PRIVATE);
+    public static int[] getRecords() {
+        SharedPreferences prefs = Platform.getActivityInst().getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
         String recordsString = prefs.getString(PREF_NAME, "");
+
+        // ------- migrate "Records" to "records"
+        if (recordsString.equals("")) {
+            SharedPreferences oldPrefs = Platform.getActivityInst().getSharedPreferences(OLD_PREF_NAME, Context.MODE_PRIVATE);
+            recordsString = oldPrefs.getString(PREF_NAME, "");
+        }
+        // -------
+
         if (recordsString.equals("")) {
             return new int[0];
         }
@@ -20,8 +29,8 @@ public class Records {
         return records;
     }
 
-    public static void saveRecord(String storeName, int value, int maxStoreSize) {
-        insertRecord(storeName, value, findIndexToInsertRecord(getRecords(storeName), value), maxStoreSize);
+    public static void saveRecord(int value, int maxStoreSize) {
+        insertRecord(value, findIndexToInsertRecord(getRecords(), value), maxStoreSize);
     }
 
     private static int findIndexToInsertRecord(int[] records, int value) {
@@ -34,12 +43,12 @@ public class Records {
         return i;
     }
 
-    private static void insertRecord(String storeName, int value, int i, int maxStoreSize) {
+    private static void insertRecord(int value, int i, int maxStoreSize) {
         if (i >= maxStoreSize) {
             return;
         }
 
-        int[] oldRecords = getRecords(storeName);
+        int[] oldRecords = getRecords();
         int[] records = new int[oldRecords.length == maxStoreSize ? oldRecords.length : oldRecords.length + 1];
         System.arraycopy(oldRecords, 0, records, 0, oldRecords.length);
         if (i < records.length) {
@@ -48,7 +57,7 @@ public class Records {
             }
         }
         records[i] = value;
-        SharedPreferences prefs = Platform.getActivityInst().getSharedPreferences(storeName, Context.MODE_PRIVATE);
+        SharedPreferences prefs = Platform.getActivityInst().getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
         StringBuilder toSave = new StringBuilder();
         for (int a : records) {
             toSave.append(a);
