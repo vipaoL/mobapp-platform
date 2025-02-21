@@ -173,7 +173,7 @@ public class Mathh {
         }
     }
 
-	public static int sign(int a) {
+    public static int sign(int a) {
         if (a > 0) {
             return 1;
         }

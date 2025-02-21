@@ -1,20 +1,50 @@
 package mobileapplication3.platform.ui;
 
+import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Random;
 
-public final class Image implements IImage {
-	javax.microedition.lcdui.Image image;
-	
-	public Image(javax.microedition.lcdui.Image image) {
-		this.image = image;
-	}
+import mobileapplication3.platform.Logger;
+import mobileapplication3.platform.Platform;
 
-	public static Image createImage(int width, int height) {
-		return new Image(javax.microedition.lcdui.Image.createImage(width, height));
-	}
-	
-	public static void blurImg(Image img) {
+import javax.imageio.ImageIO;
+
+public class Image implements IImage {
+    private BufferedImage image;
+
+    public Image(BufferedImage image) {
+        if (image == null) {
+            Logger.log("got null image");
+        }
+        this.image = image;
+    }
+
+    public static Image createImage(int width, int height) {
+        return new Image(new BufferedImage(width, height, BufferedImage.TYPE_USHORT_565_RGB));
+    }
+
+    public static Image createRGBImage(int[] rgb, int width, int height, boolean processAlpha) {
+        BufferedImage image = new BufferedImage(width, height, processAlpha ? BufferedImage.TYPE_INT_ARGB : BufferedImage.TYPE_USHORT_565_RGB);
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                image.setRGB(x, y, rgb[y * width + x]);
+            }
+        }
+        return new Image(image);
+    }
+
+    public static Image createImage(String source) throws IOException {
+        try {
+            Logger.log("reading resourse \"" + source + "\"");
+            return new Image(ImageIO.read(Platform.getResource(source)));
+        } catch (NullPointerException | IllegalArgumentException | IOException ex) {
+            Logger.log(ex);
+            throw new IOException("can't read image");
+        }
+    }
+
+    public static void blurImg(Image img) {
         try {
             Graphics g = img.getGraphics();
             int x0 = 0, y0 = 0;
@@ -45,26 +75,40 @@ public final class Image implements IImage {
             ex.printStackTrace();
         }
     }
-	
-	public Graphics getGraphics() {
-		return new Graphics(image.getGraphics());
-	}
-	
-	public javax.microedition.lcdui.Image getImage() {
-		return image;
-	}
 
-	public int getWidth() {
-		return image.getWidth();
-	}
+    public Graphics getGraphics() {
+        return new Graphics(image.getGraphics());
+    }
 
-	public int getHeight() {
-		return image.getHeight();
-	}
-	
-	public Image scale(int newWidth, int newHeight) {
+    public BufferedImage getImage() {
+        return image;
+    }
+
+    public void setImage(BufferedImage image) {
+        this.image = image;
+    }
+
+    public int getWidth() {
+        return image.getWidth();
+    }
+
+    public int getHeight() {
+        return image.getHeight();
+    }
+
+    public void getRGB(int[] rgbData, int offset, int scanlength, int x, int y, int width, int height) {
+        if (image != null) {
+            image.getRGB(0, 0, getWidth(), getHeight(), rgbData, 0, getWidth());
+        }
+    }
+
+    public Image scale(int newWidth, int newHeight) {
+        if (image == null) {
+            return null;
+        }
+
         int[] rawInput = new int[image.getHeight() * image.getWidth()];
-        image.getRGB(rawInput, 0, image.getWidth(), 0, 0, image.getWidth(), image.getHeight());
+        getRGB(rawInput, 0, image.getWidth(), 0, 0, image.getWidth(), image.getHeight());
 
         int[] rawOutput = new int[newWidth * newHeight];
 
@@ -93,20 +137,11 @@ public final class Image implements IImage {
                 inOffset += image.getWidth();
             }
         }
-        rawInput = null;
-        return new Image(javax.microedition.lcdui.Image.createRGBImage(rawOutput, newWidth, newHeight, true));
+        return createRGBImage(rawOutput, newWidth, newHeight, true);
 
     }
 
-	public static Image createImage(String source) throws IOException {
-		return new Image(javax.microedition.lcdui.Image.createImage(source));
-	}
-
-	public void getRGB(int[] rgbData, int offset, int scanlength, int x, int y, int width, int height) {
-		image.getRGB(rgbData, offset, scanlength, x, y, width, height);
-	}
-
-	public void blur() {
-		blurImg(this);
-	}
+    public void blur() {
+        blurImg(this);
+    }
 }

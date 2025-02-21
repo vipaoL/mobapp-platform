@@ -1,216 +1,252 @@
 package mobileapplication3.platform.ui;
 
+import java.awt.*;
+
 public final class Graphics implements IGraphics {
-	public static final int HCENTER = 1;
-	public static final int VCENTER = 2;
-	public static final int LEFT = 4;
-	public static final int RIGHT = 8;
-	public static final int TOP = 16;
-	public static final int BOTTOM = 32;
-	public static final int BASELINE = 64;
+    public static final int HCENTER = 1;
+    public static final int VCENTER = 2;
+    public static final int LEFT = 4;
+    public static final int RIGHT = 8;
+    public static final int TOP = 16;
+    public static final int BOTTOM = 32;
+    public static final int BASELINE = 64;
 
-	private javax.microedition.lcdui.Graphics g;
-	
-	public Graphics(javax.microedition.lcdui.Graphics g) {
-		this.g = g;
-	}
+    private Font currentFont = Font.getDefaultFont();
 
-	public void drawArc(int x, int y, int width, int height, int startAngle, int arcAngle) {
-		g.drawArc(x, y, width, height, startAngle, arcAngle);
-	}
+    private java.awt.Graphics2D g;
 
-	public void drawImage(Image img, int x, int y, int anchor) {
-		g.drawImage(img.getImage(), x, y, anchor);
-	}
+    public Graphics(java.awt.Graphics g) {
+        if (g == null) {
+            throw new NullPointerException();
+        }
+        this.g = (Graphics2D) g;
+        setFont(currentFont);
+    }
 
-	public void drawLine(int x1, int y1, int x2, int y2) {
-		g.drawLine(x1, y1, x2, y2);
-	}
+    public void drawArc(int x, int y, int width, int height, int startAngle, int arcAngle) {
+        g.drawArc(x, y, width, height, startAngle, arcAngle);
+    }
 
-	public void drawRect(int x, int y, int width, int height) {
-		g.drawRect(x, y, width, height);
-	}
+    public void drawImage(Image img, int x, int y, int anchor) {
+        if (img == null || img.getImage() == null) {
+            throw new NullPointerException("Can't draw null image");
+        } else {
+            int w = img.getWidth();
+            int h = img.getHeight();
+            if ((anchor & HCENTER) != 0) {
+                x -= w / 2;
+            } else if ((anchor & RIGHT) != 0) {
+                x -= w;
+            }
 
-	public void drawRoundRect(int x, int y, int width, int height, int arcWidth, int arcHeight) {
-		g.drawRoundRect(x, y, width, height, arcWidth, arcHeight);
-	}
+            if ((anchor & VCENTER) != 0) {
+                y -= h / 2;
+            } else if ((anchor & BOTTOM) != 0) {
+                y -= h;
+            }
 
-	public void drawString(String str, int x, int y, int anchor) {
-		if ((anchor & VCENTER) != 0) {
-			anchor -= VCENTER;
-			anchor |= TOP;
-			y -= getFontHeight() / 2;
-		}
-		g.drawString(str, x, y, anchor);
-	}
+            g.drawImage(img.getImage(), x, y, null);
+        }
+    }
 
-	public void drawSubstring(String str, int offset, int len, int x, int y, int anchor) {
-		if ((anchor & VCENTER) != 0) {
-			anchor -= VCENTER;
-			anchor |= TOP;
-			y -= getFontHeight() / 2;
-		}
-		g.drawSubstring(str, offset, len, x, y, anchor);
-	}
+    public void drawLine(int x1, int y1, int x2, int y2) {
+        g.setStroke(new BasicStroke());
+        g.drawLine(x1, y1, x2, y2);
+    }
 
-	public void fillArc(int x, int y, int width, int height, int startAngle, int arcAngle) {
-		g.fillArc(x, y, width, height, startAngle, arcAngle);
-	}
+    public void drawRect(int x, int y, int width, int height) {
+        g.drawRect(x, y, width, height);
+    }
 
-	public void fillRect(int x, int y, int width, int height) {
-		g.fillRect(x, y, width, height);
-	}
+    public void drawRoundRect(int x, int y, int width, int height, int arcWidth, int arcHeight) {
+        g.drawRoundRect(x, y, width, height, arcWidth, arcHeight);
+    }
 
-	public void fillRoundRect(int x, int y, int width, int height, int arcWidth, int arcHeight) {
-		g.fillRoundRect(x, y, width, height, arcWidth, arcHeight);
-	}
+    public void drawString(String str, int x, int y, int anchor) {
+        drawSubstring(str, 0, str.length(), x, y, anchor);
+    }
 
-	public void fillTriangle(int x1, int y1, int x2, int y2, int x3, int y3) {
-		g.fillTriangle(x1, y1, x2, y2, x3, y3);
-	}
+    public void drawSubstring(String str, int offset, int len, int x, int y, int anchor) {
+        int w = substringWidth(str, offset, len);
+        int h = getFontHeight();
+        FontMetrics metrics = g.getFontMetrics(g.getFont());
+        if ((anchor & HCENTER) != 0) {
+            x -= w / 2;
+        } else if ((anchor & RIGHT) != 0) {
+            x -= w;
+        }
 
-	public void setClip(int x, int y, int width, int height) {
-		g.setClip(x, y, width, height);
-	}
+        if ((anchor & VCENTER) != 0) {
+            y -= h / 2;
+        } else if ((anchor & BOTTOM) != 0) {
+            y -= h;
+        }
+        g.drawString(str.substring(offset, offset + len), x, y + metrics.getAscent());
+    }
 
-	public void setColor(int RGB) {
-		g.setColor(RGB);
-	}
+    public void fillArc(int x, int y, int width, int height, int startAngle, int arcAngle) {
+        g.fillArc(x, y, width, height, startAngle, arcAngle);
+    }
 
-	public void setColor(int red, int green, int blue) {
-		g.setColor(red, green, blue);
-	}
-	
-	public void setFontSize(int size) {
-		g.setFont(javax.microedition.lcdui.Font.getFont(getFontFace(), getFontStyle(), size));
-	}
+    public void fillRect(int x, int y, int width, int height) {
+        g.fillRect(x, y, width, height);
+    }
 
-	public void setFont(int face, int style, int size) {
-		g.setFont(javax.microedition.lcdui.Font.getFont(face, style, size));
-	}
-	
-	public void setFont(Font font) {
-		g.setFont(font.getFont());
-	}
-	
-	public Font getFont() {
-		return new Font(g.getFont());
-	}
+    public void fillRoundRect(int x, int y, int width, int height, int arcWidth, int arcHeight) {
+        g.fillRoundRect(x, y, width, height, arcWidth, arcHeight);
+    }
 
-	public int getFontFace() {
-		return g.getFont().getFace();
-	}
+    public void fillTriangle(int x1, int y1, int x2, int y2, int x3, int y3) {
+        g.fillPolygon(new int[]{x1, x2, x3}, new int[]{y1, y2, y3}, 3);
+    }
 
-	public int getFontStyle() {
-		return g.getFont().getStyle();
-	}
+    public void setClip(int x, int y, int width, int height) {
+        g.setClip(x, y, width, height);
+    }
 
-	public int getFontSize() {
-		return g.getFont().getSize();
-	}
+    public void setColor(int RGB) {
+        g.setColor(new Color(RGB));
+    }
 
-	public int getFontHeight() {
-		return g.getFont().getHeight();
-	}
+    public void setColor(int red, int green, int blue) {
+        g.setColor(new Color(red, green, blue));
+    }
 
-	public int stringWidth(String str) {
-		return g.getFont().stringWidth(str);
-	}
+    @Override
+    public void setFont(int face, int style, int size) {
+        setFont(new Font(face, style, size));
+    }
 
-	public int substringWidth(String str, int offset, int len) {
-		return g.getFont().substringWidth(str, offset, len);
-	}
+    @Override
+    public Font getFont() {
+        return currentFont;
+    }
 
-	public int getFontHeight(int face, int style, int size) {
-		return javax.microedition.lcdui.Font.getFont(face, style, size).getHeight();
-	}
+    @Override
+    public void setFont(Font font) {
+        currentFont = font;
+        g.setFont(currentFont.getAwtFont());
+    }
 
-	public int getClipWidth() {
-		return g.getClipWidth();
-	}
+    @Override
+    public int getFontFace() {
+        return currentFont.getFace();
+    }
 
-	public int getClipHeight() {
-		return g.getClipHeight();
-	}
+    @Override
+    public int getFontStyle() {
+        return currentFont.getStyle();
+    }
 
-	public int getClipX() {
-		return g.getClipX();
-	}
+    @Override
+    public int getFontSize() {
+        return currentFont.getSize();
+    }
 
-	public int getClipY() {
-		return g.getClipY();
-	}
+    @Override
+    public void setFontSize(int size) {
+        currentFont = new Font(size);
+    }
 
-	public int getColor() {
-		return g.getColor();
-	}
-	
-	public void drawLine(int x1, int y1, int x2, int y2, int thickness, int zoomOut, boolean drawThickness) {
-		drawLine(x1, y1, x2, y2, thickness, zoomOut, drawThickness, true);
-	}
+    @Override
+    public int getFontHeight() {
+        return currentFont.getHeight();
+    }
 
-	public void drawLine(int x1, int y1, int x2, int y2, int thickness, int zoomOut, boolean drawThickness, boolean zoomThickness) {
-	    drawLine(x1, y1, x2, y2, thickness, zoomOut, drawThickness, zoomThickness, true, false); // TODO
-	}
+    @Override
+    public int stringWidth(String str) {
+        return currentFont.stringWidth(str);
+    }
 
-	public void drawLine(int x1, int y1, int x2, int y2, int thickness, int zoomOut, boolean drawThickness, boolean zoomThickness, boolean rounding, boolean markSkeleton) {
-	    if (thickness > 0) {
-	        int dx = x2 - x1;
-	        int dy = y2 - y1;
-	        int l = (int) Math.sqrt(dx*dx+dy*dy);
-	        
-	        if (l == 0 || !drawThickness) {
-	            g.drawLine(x1, y1, x2, y2);
-	            return;
-	        }
-	        
-	        // normal vector
-	        int nx = dy*thickness * 500 / zoomOut / l;
-	        int ny = dx*thickness * 500 / zoomOut / l;
-	        
-	        if (nx == 0 && ny == 0) {
-	            g.drawLine(x1, y1, x2, y2);
-	            return;
-	        }
-	        
-	        // draw bold line with two triangles (splitting by diagonal)
-	        g.fillTriangle(x1-nx, y1+ny, x2-nx, y2+ny, x1+nx, y1-ny);
-	        g.fillTriangle(x2-nx, y2+ny, x2+nx, y2-ny, x1+nx, y1-ny);
-	        if (rounding) {
-	            int r = thickness * 500 / zoomOut;
-	            int d = thickness * 1000 / zoomOut;
-	            g.fillArc(x1-r, y1-r, d, d, 0, 360);
-	            g.fillArc(x2-r, y2-r, d, d, 0, 360);
-	        }
-	        if (markSkeleton && thickness * 1000 / zoomOut > 8) {
-	            int prevCol = g.getColor();
-	            g.setColor(0xff0000);
-	            g.drawLine(x1, y1, x2, y2);
-	            g.setColor(prevCol);
-	        }
-	    } else {
-	        g.drawLine(x1, y1, x2, y2);
-	    }
-	}
+    @Override
+    public int substringWidth(String str, int offset, int len) {
+        return currentFont.substringWidth(str, offset, len);
+    }
 
-	public void drawTriangle(int x1, int y1, int x2, int y2, int x3, int y3, boolean fill) {
-		if (!fill) {
-	        g.drawLine(x1, y1, x2, y2);
-	        g.drawLine(x2, y2, x3, y3);
-	        g.drawLine(x1, y1, x3, y3);
-	    } else {
-	    	g.fillTriangle(x1, y1, x2, y2, x3, y3);
-	    }
-	}
+    @Override
+    public int getFontHeight(int face, int style, int size) {
+        return currentFont.getHeight();
+    }
 
-	public void drawArrow(int x1, int y1, int x2, int y2, int thickness, int zoomOut, boolean drawThickness) {
-	    int dx = x2 - x1;
-	    int dy = y2 - y1;
-	    int arrowX = (x2*5 + x1) / 6;
-	    int arrowY = (y2*5 + y1) / 6;
-	    int arrowSideVecX = dy / 8;
-	    int arrowSideVecY = -dx / 8;
-	    drawLine(x1, y1, arrowX, arrowY, thickness, zoomOut, drawThickness, true, false, false);
-	    drawTriangle(x2, y2, arrowX + arrowSideVecX, arrowY + arrowSideVecY, arrowX - arrowSideVecX, arrowY - arrowSideVecY, drawThickness);
-	}
+    public int getClipWidth() {
+        try {
+            return g.getClipBounds().width;
+        } catch (NullPointerException ex) {
+            return RootContainer.getInst().w;
+        }
+    }
+
+    public int getClipHeight() {
+        try {
+            return g.getClipBounds().height;
+        } catch (NullPointerException ex) {
+            return RootContainer.getInst().h;
+        }
+    }
+
+    public int getClipX() {
+        try {
+            return g.getClipBounds().x;
+        } catch (NullPointerException ex) {
+            return 0;
+        }
+    }
+
+    public int getClipY() {
+        try {
+            return g.getClipBounds().y;
+        } catch (NullPointerException ex) {
+            return 0;
+        }
+    }
+
+    public int getColor() {
+        return g.getColor().getRGB();
+    }
+
+    public void drawLine(int x1, int y1, int x2, int y2, int thickness, int zoomOut, boolean drawThickness) {
+        drawLine(x1, y1, x2, y2, thickness, zoomOut, drawThickness, true);
+    }
+
+    public void drawLine(int x1, int y1, int x2, int y2, int thickness, int zoomOut, boolean drawThickness, boolean zoomThickness) {
+        drawLine(x1, y1, x2, y2, thickness, zoomOut, drawThickness, zoomThickness, true, false); // TODO
+    }
+
+    public void drawLine(int x1, int y1, int x2, int y2, int thickness, int zoomOut, boolean drawThickness, boolean zoomThickness, boolean rounding, boolean markSkeleton) {
+        if (drawThickness) {
+            g.setStroke(new BasicStroke(thickness * 1000f / zoomOut, rounding ? BasicStroke.CAP_ROUND : BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND));
+        } else {
+            g.setStroke(new BasicStroke(1));
+        }
+        g.drawLine(x1, y1, x2, y2);
+
+        if (markSkeleton && drawThickness && thickness * 1000 / zoomOut > 8) {
+            int prevCol = getColor();
+            setColor(0xff0000);
+            g.setStroke(new BasicStroke());
+            g.drawLine(x1, y1, x2, y2);
+            setColor(prevCol);
+        }
+    }
+
+    public void drawTriangle(int x1, int y1, int x2, int y2, int x3, int y3, boolean fill) {
+        if (!fill) {
+            g.drawLine(x1, y1, x2, y2);
+            g.drawLine(x2, y2, x3, y3);
+            g.drawLine(x1, y1, x3, y3);
+        } else {
+            fillTriangle(x1, y1, x2, y2, x3, y3);
+        }
+    }
+
+    public void drawArrow(int x1, int y1, int x2, int y2, int thickness, int zoomOut, boolean drawThickness) {
+        int dx = x2 - x1;
+        int dy = y2 - y1;
+        int arrowX = (x2*5 + x1) / 6;
+        int arrowY = (y2*5 + y1) / 6;
+        int arrowSideVecX = dy / 8;
+        int arrowSideVecY = -dx / 8;
+        drawLine(x1, y1, arrowX, arrowY, thickness, zoomOut, drawThickness, true, false, false);
+        drawTriangle(x2, y2, arrowX + arrowSideVecX, arrowY + arrowSideVecY, arrowX - arrowSideVecX, arrowY - arrowSideVecY, drawThickness);
+    }
 }
