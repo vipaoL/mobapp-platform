@@ -24,13 +24,13 @@ public class Font implements IFont {
         this.size = size;
         switch (size) {
             case SIZE_SMALL:
-                size = 16;
+                size = 8;
                 break;
             case SIZE_MEDIUM:
-                size = 24;
+                size = 12;
                 break;
             case SIZE_LARGE:
-                size = 32;
+                size = 16;
                 break;
         }
         font = new java.awt.Font(null, java.awt.Font.PLAIN, size);

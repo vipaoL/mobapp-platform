@@ -105,11 +105,23 @@ public final class Graphics implements IGraphics {
     }
 
     public void setColor(int RGB) {
-        g.setColor(new Color(RGB));
+        Color color = new Color(RGB);
+        if (color.getRed() > 80 || color.getGreen() > 80 || color.getBlue() > 80) {
+            color = Color.WHITE;
+        } else {
+            color = Color.BLACK;
+        }
+        g.setColor(color);
     }
 
     public void setColor(int red, int green, int blue) {
-        g.setColor(new Color(red, green, blue));
+        Color color = new Color(red, green, blue);
+        if (color.getRed() > 80 || color.getGreen() > 80 || color.getBlue() > 80) {
+            color = Color.WHITE;
+        } else {
+            color = Color.BLACK;
+        }
+        g.setColor(color);
     }
 
     @Override

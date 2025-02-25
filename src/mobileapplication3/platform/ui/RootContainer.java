@@ -13,10 +13,10 @@ import mobileapplication3.ui.IUIComponent;
 import mobileapplication3.ui.Keys;
 import mobileapplication3.ui.UISettings;
 
-import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferStrategy;
+import java.awt.image.BufferedImage;
 import java.util.HashSet;
 
 /**
@@ -24,6 +24,7 @@ import java.util.HashSet;
  * @author vipaol
  */
 public class RootContainer extends Canvas implements IContainer, IPopupFeedback, KeyListener {
+    public static final int CURSOR_HIDE_DELAY = 5000;
     private final Toolkit toolkit = Toolkit.getDefaultToolkit();
     private java.awt.Graphics g = null;
     private BufferStrategy bufferStrategy = null;
@@ -31,7 +32,7 @@ public class RootContainer extends Canvas implements IContainer, IPopupFeedback,
     private final KeyboardHelper kbHelper;
     public static boolean displayKbHints = false;
     public static boolean enableOnScreenLog = false;
-    public int w, h;
+    public int w = 128, h = 64;
     private static RootContainer inst = null;
     private UISettings uiSettings;
     private static Thread repaintThread = null;
@@ -40,6 +41,8 @@ public class RootContainer extends Canvas implements IContainer, IPopupFeedback,
     private int pressedX, pressedY;
     private long pressedTime;
     private final HashSet<Integer> pressedKeys = new HashSet<>();
+    private long lastMouseEvent;
+    private Thread mouseHider = null;
 
     public RootContainer() {
         inst = this;
@@ -59,6 +62,7 @@ public class RootContainer extends Canvas implements IContainer, IPopupFeedback,
             @Override
             public void mouseDragged(MouseEvent e) {
                 pointerDragged(e.getX(), e.getY());
+                hideCursorAfterDelay();
             }
 
             @Override
@@ -71,6 +75,11 @@ public class RootContainer extends Canvas implements IContainer, IPopupFeedback,
                 pointerReleased(releasedX, releasedY);
                 wasDownEvent = false;
                 wasDragged = false;
+            }
+
+            @Override
+            public void mouseMoved(MouseEvent e) {
+                hideCursorAfterDelay();
             }
         };
         addMouseListener(mouseAdapter);
@@ -92,6 +101,37 @@ public class RootContainer extends Canvas implements IContainer, IPopupFeedback,
                 onShow();
             }
         });
+        hideCursorAfterDelay();
+    }
+
+    private void hideCursorAfterDelay() {
+        lastMouseEvent = System.currentTimeMillis();
+        setCursor(Cursor.getDefaultCursor());
+        if (mouseHider == null) {
+            mouseHider = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    int t;
+                    try {
+                        while ((t = (int) (System.currentTimeMillis() - lastMouseEvent)) < CURSOR_HIDE_DELAY) {
+                            Thread.yield();
+                            Thread.sleep(CURSOR_HIDE_DELAY - t);
+                        }
+                        if (Thread.currentThread() == mouseHider) {
+                            setBlankCursor();
+                        }
+                    } catch (InterruptedException e) { }
+                    mouseHider = null;
+                }
+            });
+            mouseHider.start();
+        }
+    }
+
+    private void setBlankCursor() {
+        BufferedImage transparentImage = new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB);
+        Cursor blankCursor = toolkit.createCustomCursor(transparentImage, new Point(0, 0), "");
+        setCursor(blankCursor);
     }
 
     @Override
@@ -193,6 +233,9 @@ public class RootContainer extends Canvas implements IContainer, IPopupFeedback,
     }
 
     protected synchronized void paint() {
+        if (w == 0 || h == 0) {
+            onSizeChanged(getWidth(), getHeight(), 0, 0);
+        }
         Graphics g = getUGraphics();
         if (g == null) {
             Logger.log("got null Graphics, skipping paint");
@@ -382,6 +425,9 @@ public class RootContainer extends Canvas implements IContainer, IPopupFeedback,
     }
 
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+        if (w == 0 || h == 0) {
+            return;
+        }
         this.w = w;
         this.h = h;
 
