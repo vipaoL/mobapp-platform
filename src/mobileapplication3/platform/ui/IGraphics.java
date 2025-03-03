@@ -6,6 +6,8 @@ public interface IGraphics {
 
     void drawArc(int x, int y, int width, int height, int startAngle, int arcAngle);
 
+    void drawArc(int x, int y, int width, int height, int startAngle, int arcAngle, int thickness, int zoomOut, boolean drawThickness, boolean zoomThickness, boolean rounding);
+
     void drawArrow(int x1, int y1, int x2, int y2, int thickness, int zoomOut, boolean fill);
 
     void drawImage(Image img, int x, int y, int anchor);
