@@ -22,16 +22,25 @@ public class Graphics implements IGraphics {
 
     @Override
     public void drawArc(int x, int y, int width, int height, int startAngle, int arcAngle) {
-        drawArc(x, y, width, height, startAngle, arcAngle, false);
+        drawArc(x, y, width, height, startAngle, arcAngle, false, true, 1);
     }
 
-    private void drawArc(int x, int y, int width, int height, int startAngle, int arcAngle, boolean fill) {
+    public void drawArc(int x, int y, int width, int height, int startAngle, int arcAngle, int thickness, int zoomOut, boolean drawThickness, boolean zoomThickness, boolean rounding) {
+        float strokeWidth = 1;
+        if (drawThickness) {
+            strokeWidth = thickness * (zoomThickness ? (1000f / zoomOut) : 1);
+        }
+        drawArc(x, y, width, height, startAngle, arcAngle, false, rounding, strokeWidth);
+    }
+
+    private void drawArc(int x, int y, int width, int height, int startAngle, int arcAngle, boolean fill, boolean rounding, float strokeWidth) {
+        p.setStrokeCap(rounding ? Paint.Cap.ROUND : Paint.Cap.BUTT);
         if (fill) {
             p.setStyle(Paint.Style.FILL_AND_STROKE);
         } else {
             p.setStyle(Paint.Style.STROKE);
         }
-        p.setStrokeWidth(1);
+        p.setStrokeWidth(strokeWidth);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             c.drawArc(x, y, x + width, y + height, startAngle, arcAngle, false, p);
@@ -185,7 +194,7 @@ public class Graphics implements IGraphics {
 
     @Override
     public void fillArc(int x, int y, int width, int height, int startAngle, int arcAngle) {
-        drawArc(x, y, width, height, startAngle, arcAngle, true);
+        drawArc(x, y, width, height, startAngle, arcAngle, true, false, 1);
     }
 
     @Override
