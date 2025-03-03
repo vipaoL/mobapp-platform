@@ -24,7 +24,16 @@ public final class Graphics implements IGraphics {
     }
 
     public void drawArc(int x, int y, int width, int height, int startAngle, int arcAngle) {
-        g.drawArc(x, y, width, height, startAngle, arcAngle);
+        drawArc(x, y, width, height, startAngle, arcAngle, 1, 1000, false, false, false);
+    }
+
+    public void drawArc(int x, int y, int width, int height, int startAngle, int arcAngle, int thickness, int zoomOut, boolean drawThickness, boolean zoomThickness, boolean rounding) {
+        if (drawThickness) {
+            g.setStroke(new BasicStroke(thickness * (zoomThickness ? (1000f / zoomOut) : 1), rounding ? BasicStroke.CAP_ROUND : BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND));
+        } else {
+            g.setStroke(new BasicStroke(1));
+        }
+        g.drawArc(x, y, width, height, -startAngle, -arcAngle);
     }
 
     public void drawImage(Image img, int x, int y, int anchor) {
@@ -85,7 +94,7 @@ public final class Graphics implements IGraphics {
     }
 
     public void fillArc(int x, int y, int width, int height, int startAngle, int arcAngle) {
-        g.fillArc(x, y, width, height, startAngle, arcAngle);
+        g.fillArc(x, y, width, height, -startAngle, -arcAngle);
     }
 
     public void fillRect(int x, int y, int width, int height) {
@@ -214,7 +223,7 @@ public final class Graphics implements IGraphics {
 
     public void drawLine(int x1, int y1, int x2, int y2, int thickness, int zoomOut, boolean drawThickness, boolean zoomThickness, boolean rounding, boolean markSkeleton) {
         if (drawThickness) {
-            g.setStroke(new BasicStroke(thickness * 1000f / zoomOut, rounding ? BasicStroke.CAP_ROUND : BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND));
+            g.setStroke(new BasicStroke(thickness * (zoomThickness ? (1000f / zoomOut) : 1), rounding ? BasicStroke.CAP_ROUND : BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND));
         } else {
             g.setStroke(new BasicStroke(1));
         }
