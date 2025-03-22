@@ -43,6 +43,7 @@ public class RootContainer extends SurfaceView implements IContainer, IPopupFeed
     private boolean wasDownEvent = false, wasDragged = false;
     private boolean surfaceCreated = false;
     private boolean isLocked = false;
+    private boolean initDeferred = false;
     private int lastPointerX, lastPointerY;
     private int pressedX, pressedY;
     private long pressedTime;
@@ -73,9 +74,7 @@ public class RootContainer extends SurfaceView implements IContainer, IPopupFeed
             Logger.disableOnScreenLog();
         }
 
-    	if (inst.rootUIComponent != null) {
-    		inst.rootUIComponent.init();
-    	}
+    	inst.initRootComponent();
 	}
 
     public static RootContainer setUISettings(UISettings uiSettings) {
@@ -93,12 +92,10 @@ public class RootContainer extends SurfaceView implements IContainer, IPopupFeed
             //inst.rootUIComponent.setParent(null);
             inst.rootUIComponent.setFocused(false);
         }
-        
+
         if (rootUIComponent != null) {
-            inst.rootUIComponent = rootUIComponent.setParent(inst).setVisible(true);
-            rootUIComponent.init();
-            rootUIComponent.setSize(inst.getWidth(), inst.getHeight());
-		    rootUIComponent.setFocused(true);
+            inst.rootUIComponent = rootUIComponent;
+            inst.initRootComponent();
             if (!rootUIComponent.repaintOnlyOnFlushGraphics() && repaintThread == null) {
                 repaintThread = new Thread(new Runnable() {
                     @Override
@@ -123,6 +120,19 @@ public class RootContainer extends SurfaceView implements IContainer, IPopupFeed
             }
         }
         return inst;
+    }
+
+    private void initRootComponent() {
+        if (rootUIComponent != null) {
+            if (surfaceCreated) {
+                rootUIComponent.setParent(inst).setVisible(true);
+                rootUIComponent.init();
+                rootUIComponent.setSize(getWidth(), getHeight());
+                rootUIComponent.setFocused(true);
+            } else {
+                initDeferred = true;
+            }
+        }
     }
 
     @Override
@@ -150,13 +160,15 @@ public class RootContainer extends SurfaceView implements IContainer, IPopupFeed
     protected synchronized void paint() {
         if (surfaceCreated) {
             Graphics g = getUGraphics();
-            if (rootUIComponent != null) {
-                rootUIComponent.paint(g);
-            } else {
-                g.setColor(0xaaaaaa);
-                g.drawString("Nothing to draw. " + rootUIComponent, w/2, h, Graphics.BOTTOM | Graphics.HCENTER);
+            if (g != null) {
+                if (rootUIComponent != null) {
+                    rootUIComponent.paint(g);
+                } else {
+                    g.setColor(0xaaaaaa);
+                    g.drawString("Nothing to draw. " + rootUIComponent, w / 2, h, Graphics.BOTTOM | Graphics.HCENTER);
+                }
+                Logger.paint(g);
             }
-            Logger.paint(g);
             flushGraphics();
         }
     }
@@ -176,6 +188,9 @@ public class RootContainer extends SurfaceView implements IContainer, IPopupFeed
 
         if (bgColor >= 0 && c != null) {
             c.drawColor(0xff000000 + bgColor);
+        }
+        if (c == null) {
+            return null;
         }
         return new Graphics(c);
     }
@@ -401,6 +416,9 @@ public class RootContainer extends SurfaceView implements IContainer, IPopupFeed
     @Override
     public void surfaceCreated(SurfaceHolder surfaceHolder) {
         surfaceCreated = true;
+        if (initDeferred) {
+            initRootComponent();
+        }
     }
 
     @Override
