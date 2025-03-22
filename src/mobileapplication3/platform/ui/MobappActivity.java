@@ -20,7 +20,17 @@ public abstract class MobappActivity extends Activity {
             Platform.init(this);
             setRootContainer(new RootContainer(this));
             RootContainer.setUiSettings(getUISettings());
-            RootContainer.setRootUIComponent(getRootUIComponent());
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+
+                    }
+                    RootContainer.setRootUIComponent(getRootUIComponent());
+                }
+            }).start();
         } catch(Exception ex) {
             Platform.showError(ex);
         }

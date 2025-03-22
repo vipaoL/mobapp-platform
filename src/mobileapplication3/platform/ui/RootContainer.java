@@ -129,11 +129,11 @@ public class RootContainer extends SurfaceView implements IContainer, IPopupFeed
             if (surfaceCreated) {
                 rootUIComponent.setParent(inst).setVisible(true);
                 rootUIComponent.init();
-                Logger.log("setting size: " + getWidth() + " " + getHeight());
-                Logger.log("*sleeping 5000 ms*");
-                try {
-                    Thread.sleep(5000);
-                } catch (InterruptedException e) { }
+//                Logger.log("setting size: " + getWidth() + " " + getHeight());
+//                Logger.log("*sleeping 5000 ms*");
+//                try {
+//                    Thread.sleep(5000);
+//                } catch (InterruptedException e) { }
                 Logger.log("setting size: " + getWidth() + " " + getHeight());
                 rootUIComponent.setSize(getWidth(), getHeight());
                 rootUIComponent.setFocused(true);
