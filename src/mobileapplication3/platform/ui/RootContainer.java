@@ -123,12 +123,21 @@ public class RootContainer extends SurfaceView implements IContainer, IPopupFeed
     }
 
     private void initRootComponent() {
+        Logger.log("initRootComponent");
+        Logger.log("surfaceCreated=" + surfaceCreated);
         if (rootUIComponent != null) {
             if (surfaceCreated) {
                 rootUIComponent.setParent(inst).setVisible(true);
                 rootUIComponent.init();
+                Logger.log("setting size: " + getWidth() + " " + getHeight());
+                Logger.log("*sleeping 5000 ms*");
+                try {
+                    Thread.sleep(5000);
+                } catch (InterruptedException e) { }
+                Logger.log("setting size: " + getWidth() + " " + getHeight());
                 rootUIComponent.setSize(getWidth(), getHeight());
                 rootUIComponent.setFocused(true);
+                initDeferred = false;
             } else {
                 initDeferred = true;
             }
@@ -370,6 +379,15 @@ public class RootContainer extends SurfaceView implements IContainer, IPopupFeed
 
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+        Logger.log("onSizeChanged(" + w + ", " + h + ", " + oldw + ", " + oldh + ")");
+        if (w == 0 || h == 0) {
+            try {
+                throw new IllegalArgumentException("trying to set a zero dimension: w=" + w + " h=" + h);
+            } catch (IllegalArgumentException ex) {
+                Platform.showError(ex);
+            }
+            return;
+        }
         this.w = w;
         this.h = h;
 
@@ -416,6 +434,8 @@ public class RootContainer extends SurfaceView implements IContainer, IPopupFeed
     @Override
     public void surfaceCreated(SurfaceHolder surfaceHolder) {
         surfaceCreated = true;
+        Logger.log("surfaceCreated");
+        Logger.log("initDeferred=" + initDeferred);
         if (initDeferred) {
             initRootComponent();
         }
