@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package mobileapplication3.platform;
 
 import mobileapplication3.platform.ui.Font;
@@ -13,8 +8,6 @@ import mobileapplication3.platform.ui.Graphics;
  * @author vipaol
  */
 public class Logger {
-
-    // enable or disable on-screen log on start
     private static boolean isOnScreenLogEnabled = false;
     private static boolean isOnScreenLogInited = false;
     private static int lastWroteI = 0;
@@ -24,12 +17,16 @@ public class Logger {
     private static boolean logToStdout = false;
 
     public static void enableOnScreenLog(int screenHeight) {
-    	System.out.println("enabling log. screen h: " + screenHeight);
-    	if (screenHeight <= 0) {
-    		throw new IllegalArgumentException("can't enable log: h=" + screenHeight);
-    	}
+        System.out.println("enabling log. screen h: " + screenHeight);
+        if (screenHeight <= 0) {
+            throw new IllegalArgumentException("can't enable log: h=" + screenHeight);
+        }
         isOnScreenLogEnabled = true;
-        String[] newLog = new String[screenHeight / Font.getFont(Font.FACE_MONOSPACE, Font.STYLE_BOLD, Font.SIZE_SMALL).getHeight()];
+        int n = screenHeight / Math.max(1, Font.getFont(Font.FACE_MONOSPACE, Font.STYLE_BOLD, Font.SIZE_SMALL).getHeight());
+        if (n < 5) {
+            n = 5;
+        }
+        String[] newLog = new String[n];
         if (onScreenLog != null) {
             System.out.println(Math.min(onScreenLog.length, newLog.length));
             int minL = Math.min(onScreenLog.length, newLog.length);
@@ -53,13 +50,11 @@ public class Logger {
             onScreenLogOffset = 0;
         }
     }
-    
-    
-    
+
     public static boolean isOnScreenLogEnabled() {
         return isOnScreenLogEnabled;
     }
-    
+
     public static void logToStdout(boolean enable) {
         logToStdout = enable;
     }
@@ -73,21 +68,24 @@ public class Logger {
             return false;
         }
 
-        if (onScreenLog[lastWroteI] == null) {
-            return false;
+        try {
+            if (onScreenLog[lastWroteI] == null) {
+                return false;
+            }
+            if (onScreenLog[lastWroteI].equals(prevMsg)) {
+                onScreenLog[lastWroteI] = newMsg;
+                return true;
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
         }
-        if (onScreenLog[lastWroteI].equals(prevMsg)) {
-            onScreenLog[lastWroteI] = newMsg;
-            return true;
-        } else {
-            return false;
-        }
+        return false;
     }
-    
+
     public static void log(Throwable ex) {
-		ex.printStackTrace();
-		log(ex.toString());
-	}
+        ex.printStackTrace();
+        log(ex.toString());
+    }
 
     /*public static void logErr(String text, int value) {
     }*/
@@ -107,28 +105,32 @@ public class Logger {
         if (logToStdout) {
             System.out.println(text);
         }
-        if (isOnScreenLogEnabled) {
-            if (onScreenLog[onScreenLogOffset] != null) {
-                for (int i = 0; i < onScreenLog.length - 1; i++) {
-                    onScreenLog[i] = onScreenLog[i + 1];
+        try {
+            if (isOnScreenLogEnabled) {
+                if (onScreenLog[onScreenLogOffset] != null) {
+                    for (int i = 0; i < onScreenLog.length - 1; i++) {
+                        onScreenLog[i] = onScreenLog[i + 1];
+                    }
+                }
+                onScreenLog[onScreenLogOffset] = text;
+                lastWroteI = onScreenLogOffset;
+                if (onScreenLogOffset < onScreenLog.length - 1) {
+                    onScreenLogOffset++;
+                }
+                try {
+                    // slowing for log readability
+                    if (logMessageDelay > 0) {
+                        Thread.sleep(logMessageDelay);
+                    }
+                } catch (InterruptedException ex) {
+                    ex.printStackTrace();
                 }
             }
-            onScreenLog[onScreenLogOffset] = text;
-            lastWroteI = onScreenLogOffset;
-            if (onScreenLogOffset < onScreenLog.length - 1) {
-                onScreenLogOffset++;
-            }
-            try {
-                // slowing for log readability
-                if (logMessageDelay > 0) {
-                    Thread.sleep(logMessageDelay);
-                }
-            } catch (InterruptedException ex) {
-                ex.printStackTrace();
-            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
         }
     }
-    
+
     public static void paint(Graphics g) {
         if (isOnScreenLogEnabled) {
             g.setColor(150, 255, 150);
@@ -151,5 +153,5 @@ public class Logger {
     public static void setLogMessageDelay(int ms) {
         logMessageDelay = ms;
     }
-    
+
 }
