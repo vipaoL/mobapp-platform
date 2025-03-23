@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package mobileapplication3.platform;
 
 /**
@@ -17,38 +12,34 @@ public class Settings {
 
     private static final char SEP = '\n';
 
-    private String recordStoreName;
+    private final String storeName;
     private String[] settingsKeysVals;
-    private String[] keys;
+    private final String[] keys;
 
-    public Settings(String[] keys, String recordStoreName) {
-    	this.keys = keys;
-    	this.recordStoreName = recordStoreName;
+    public Settings(String[] keys, String storeName) {
+        this.keys = keys;
+        this.storeName = "mobapp-settings-" + storeName;
     }
 
-    public void saveToRMS() {
-        try {
-        	RecordStores.writeStringToStore(getCurrentSettingsAsStr(), recordStoreName);
-        } catch (Exception ex) {
-        	Platform.showError("Can't save settings to RMS: " + ex.toString());
-        }
+    public void saveToDisk() {
+        Platform.storeString(getCurrentSettingsAsStr(), storeName);
     }
 
     public void resetSettings() {
-    	RecordStores.deleteStore(recordStoreName);
-    	loadDefaults();
+        loadDefaults();
+        saveToDisk();
     }
 
     public void loadDefaults() {
-    	settingsKeysVals = new String[keys.length * 2];
-    	for (int i = 0; i < keys.length; i++) {
-			settingsKeysVals[i*2] = keys[i];
-			settingsKeysVals[i*2 + 1] = UNDEF;
-		}
+        settingsKeysVals = new String[keys.length * 2];
+        for (int i = 0; i < keys.length; i++) {
+            settingsKeysVals[i*2] = keys[i];
+            settingsKeysVals[i*2 + 1] = UNDEF;
+        }
     }
 
-    public void loadFromRMS() {
-        loadFromString(RecordStores.readStringFromStore(recordStoreName));
+    public void loadFromDisk() {
+        loadFromString(Platform.readStoreAsString(storeName));
     }
 
     public void loadFromString(String str) {
@@ -72,7 +63,7 @@ public class Settings {
 
     public String getCurrentSettingsAsStr() {
         if (settingsKeysVals == null) {
-            loadFromRMS();
+            loadFromDisk();
         }
 
         StringBuffer sb = new StringBuffer(settingsKeysVals.length*5);
@@ -87,13 +78,14 @@ public class Settings {
 
     public boolean set(String key, String value) {
         if (settingsKeysVals == null) {
-            loadFromRMS();
+            loadDefaults();
+            loadFromDisk();
         }
 
         for (int i = 0; i < settingsKeysVals.length / 2; i++) {
             if (settingsKeysVals[i*2].equals(key)) {
                 settingsKeysVals[i*2 + 1] = value;
-                saveToRMS();
+                saveToDisk();
                 return true;
             }
         }
@@ -102,28 +94,37 @@ public class Settings {
     }
 
     public boolean set(String key, boolean value) {
-        return set(key, toStr(value));
-    }
-
-    public boolean set(String key, int value) {
-        return set(key, String.valueOf(value));
+        return set(key, value ? TRUE : FALSE);
     }
 
     public String getStr(String key) {
         if (settingsKeysVals == null) {
-            loadFromRMS();
+            loadDefaults();
+            loadFromDisk();
         }
 
         for (int i = 0; i < settingsKeysVals.length / 2; i++) {
             if (settingsKeysVals[i*2].equals(key)) {
-            	String value = settingsKeysVals[i*2 + 1];
-            	if (value.equals(null)) {
-            		value = UNDEF;
-            	}
+                String value = settingsKeysVals[i*2 + 1];
+                if (value.equals(null)) {
+                    value = UNDEF;
+                }
                 return value;
             }
         }
         return null;
+    }
+
+    public String getStr(String key, String defValue) {
+        if (settingsKeysVals == null) {
+            loadFromDisk();
+        }
+        String value = getStr(key);
+        if (UNDEF.equals(value)) {
+            value = defValue;
+            set(key, value);
+        }
+        return value;
     }
 
     public boolean toggleBool(String key) {
@@ -137,32 +138,16 @@ public class Settings {
     }
 
     public boolean getBool(String key, boolean defaultValue) {
-    	String value = getStr(key);
-    	if (value == null || UNDEF.equals(value)) {
-    		set(key, defaultValue);
-    		return TRUE.equals(getStr(key));
-    	}
-        return TRUE.equals(value);
+        return TRUE.equals(getStr(key, toStr(defaultValue)));
     }
 
-    public int getInt(String key) {
-    	String value = getStr(key);
-    	if (UNDEF.equals(value)) {
-    		return 0;
-    	}
+    public int getInt(String key, int defaultValue) throws IllegalArgumentException {
+    	String value = getStr(key, String.valueOf(defaultValue));
+        set(key, String.valueOf(value));
     	return Integer.parseInt(value);
     }
-
-    public int getInt(String key, int defaultValue) {
-    	String value = getStr(key);
-    	if (UNDEF.equals(value)) {
-    		set(key, defaultValue);
-    		return getInt(key);
-    	}
-    	return Integer.parseInt(value);
-	}
 
     private String toStr(boolean b) {
-        return b ? "1" : "0";
+        return b ? TRUE : FALSE;
     }
 }
