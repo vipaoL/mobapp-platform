@@ -1,13 +1,4 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package mobileapplication3.platform;
-
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 
 /**
  *
@@ -25,10 +16,9 @@ public class Settings {
     private String[] settingsKeysVals;
     private final String[] keys;
 
-
     public Settings(String[] keys, String storeName) {
         this.keys = keys;
-        this.storeName = "mobapp-settings-" + storeName + ".txt";
+        this.storeName = "mobapp-settings-" + storeName;
     }
 
     public void saveToDisk() {
@@ -102,7 +92,7 @@ public class Settings {
 
         return false;
     }
-    
+
     public boolean set(String key, boolean value) {
         return set(key, value ? TRUE : FALSE);
     }
@@ -136,27 +126,27 @@ public class Settings {
         }
         return value;
     }
-    
+
     public boolean toggleBool(String key) {
         boolean newValue = !getBool(key);
         set(key, newValue);
         return newValue;
     }
-    
+
     public boolean getBool(String key) {
-    	return TRUE.equals(getStr(key));
+        return TRUE.equals(getStr(key));
     }
-    
+
     public boolean getBool(String key, boolean defaultValue) {
         return TRUE.equals(getStr(key, toStr(defaultValue)));
     }
-    
+
     public int getInt(String key, int defaultValue) throws IllegalArgumentException {
-    	String value = getStr(key, String.valueOf(defaultValue));
+        String value = getStr(key, String.valueOf(defaultValue));
         set(key, String.valueOf(value));
-    	return Integer.parseInt(value);
+        return Integer.parseInt(value);
     }
-    
+
     private String toStr(boolean b) {
         return b ? TRUE : FALSE;
     }
