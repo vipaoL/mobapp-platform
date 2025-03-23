@@ -36,7 +36,7 @@ public class Platform {
 		showError(ex.toString());
 	}
 
-	public static void showError(String message) {
+	public static void showError(final String message) {
 		Log.e("Showing toast", message);
 		activityInst.runOnUiThread(new Runnable() {
 			@Override
@@ -78,12 +78,18 @@ public class Platform {
 	}
 
 	public static String getAppProperty(String key) {
-		try (InputStream is = getActivityInst().getAssets().open("app.properties")) {
+		InputStream is = null;
+		try {
+			is = getActivityInst().getAssets().open("app.properties");
 			Properties props = new Properties();
 			props.load(is);
 			return props.getProperty(key);
 		} catch (Exception ex) {
 			return null;
+		} finally {
+			try {
+				is.close();
+			} catch (Exception ignored) { }
 		}
 	}
 

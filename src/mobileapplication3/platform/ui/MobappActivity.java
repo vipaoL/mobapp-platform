@@ -69,7 +69,7 @@ public abstract class MobappActivity extends Activity {
         return false;
     }
 
-    public void setRootContainer(RootContainer newRootContainer) {
+    public void setRootContainer(final RootContainer newRootContainer) {
         rootContainer = newRootContainer;
         runOnUiThread(new Runnable() {
             @Override
