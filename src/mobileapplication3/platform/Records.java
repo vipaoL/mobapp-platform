@@ -4,11 +4,13 @@ public class Records {
     private final static String STORE_NAME = "records";
 
     public static int[] getRecords() {
-        String recordsString = Platform.readStoreAsString(STORE_NAME + ".txt");
+        String recordsString = Platform.readStoreAsString(STORE_NAME);
+
         if (recordsString == null || recordsString.equals("")) {
             return new int[0];
         }
-        String[] valuesStrings = recordsString.split(" ");
+
+        String[] valuesStrings = Utils.split(recordsString, " ");
         int[] records = new int[valuesStrings.length];
         for (int i = 0; i < valuesStrings.length; i++) {
             records[i] = Integer.parseInt(valuesStrings[i]);
@@ -36,7 +38,6 @@ public class Records {
         }
 
         int[] oldRecords = getRecords();
-        Logger.log(Utils.arrayToString(oldRecords));
         int[] records = new int[oldRecords.length == maxStoreSize ? oldRecords.length : oldRecords.length + 1];
         System.arraycopy(oldRecords, 0, records, 0, oldRecords.length);
         if (i < records.length) {
@@ -45,11 +46,12 @@ public class Records {
             }
         }
         records[i] = value;
-        StringBuilder toSave = new StringBuilder();
-        for (int a : records) {
+        StringBuffer toSave = new StringBuffer();
+        for (int j = 0; j < records.length; j++) {
+            int a = records[j];
             toSave.append(a);
             toSave.append(" ");
         }
-        Platform.storeString(toSave.toString(), STORE_NAME + ".txt");
+        Platform.storeString(toSave.toString(), STORE_NAME);
     }
 }
