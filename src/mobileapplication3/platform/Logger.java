@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package mobileapplication3.platform;
 
 import mobileapplication3.platform.ui.Font;
@@ -13,21 +8,19 @@ import mobileapplication3.platform.ui.Graphics;
  * @author vipaol
  */
 public class Logger {
-
-    // enable or disable on-screen log on start
     private static boolean isOnScreenLogEnabled = false;
     private static boolean isOnScreenLogInited = false;
     private static int lastWroteI = 0;
     private static int logMessageDelay = 0;
     private static String[] onScreenLog = new String[1];
     private static int onScreenLogOffset = 0;
-    private static boolean logToStdout = true;
+    private static boolean logToStdout = false;
 
     public static void enableOnScreenLog(int screenHeight) {
-    	System.out.println("enabling log. screen h: " + screenHeight);
-    	if (screenHeight <= 0) {
-    		throw new IllegalArgumentException("can't enable log: h=" + screenHeight);
-    	}
+        System.out.println("enabling log. screen h: " + screenHeight);
+        if (screenHeight <= 0) {
+            throw new IllegalArgumentException("can't enable log: h=" + screenHeight);
+        }
         isOnScreenLogEnabled = true;
         int n = screenHeight / Math.max(1, Font.getFont(Font.FACE_MONOSPACE, Font.STYLE_BOLD, Font.SIZE_SMALL).getHeight());
         if (n < 5) {
@@ -57,13 +50,11 @@ public class Logger {
             onScreenLogOffset = 0;
         }
     }
-    
-    
-    
+
     public static boolean isOnScreenLogEnabled() {
         return isOnScreenLogEnabled;
     }
-    
+
     public static void logToStdout(boolean enable) {
         logToStdout = enable;
     }
@@ -139,7 +130,7 @@ public class Logger {
             ex.printStackTrace();
         }
     }
-    
+
     public static void paint(Graphics g) {
         if (isOnScreenLogEnabled) {
             g.setColor(150, 255, 150);
@@ -162,5 +153,5 @@ public class Logger {
     public static void setLogMessageDelay(int ms) {
         logMessageDelay = ms;
     }
-    
+
 }
