@@ -7,7 +7,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
-import android.os.VibrationEffect;
 import android.os.Vibrator;
 import android.util.Log;
 import android.widget.Toast;
@@ -19,6 +18,7 @@ import java.io.InputStream;
 import java.util.Properties;
 
 public class Platform {
+	public static final int SDK_INT = getAndroidAPIVersion();
 	private static Activity activityInst = null;
 
 	public static void init(Activity inst) {
@@ -41,17 +41,21 @@ public class Platform {
 		activityInst.runOnUiThread(new Runnable() {
 			@Override
 			public void run() {
-				Toast.makeText(activityInst, "Error: " + message, Toast.LENGTH_LONG).show();
+				try {
+					Toast.makeText(activityInst, "Error: " + message, Toast.LENGTH_LONG).show();
+				} catch (RuntimeException e) {
+					Logger.log("Can't show toast: \"" + message + "\"");
+				}
 			}
 		});
 	}
 
 	public static void vibrate(int ms) {
-		Vibrator v = (Vibrator) activityInst.getSystemService(Context.VIBRATOR_SERVICE);
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-			v.vibrate(VibrationEffect.createOneShot(ms, VibrationEffect.DEFAULT_AMPLITUDE));
-		} else { //deprecated in API 26 (Oreo)
-			v.vibrate(ms);
+		if (SDK_INT >= Build.VERSION_CODES.O) {
+			ModernAndroidUtils.vibrate(ms);
+		} else {
+			//deprecated in API 26 (Oreo)
+			((Vibrator) activityInst.getSystemService(Context.VIBRATOR_SERVICE)).vibrate(ms);
 		}
 	}
 
@@ -134,9 +138,9 @@ public class Platform {
 		return activityInst.getFilesDir();
 	}
 
-	public static File getExternalFilesDir() {
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.FROYO) {
-			return activityInst.getExternalFilesDir(null);
+    public static File getExternalFilesDir() {
+		if (SDK_INT >= Build.VERSION_CODES.FROYO) {
+			return ModernAndroidUtils.getExternalFilesDir();
 		} else {
 			return null;
 		}
@@ -148,5 +152,13 @@ public class Platform {
 
 	public static void exit() {
 		System.exit(0);
+	}
+
+	private static int getAndroidAPIVersion() {
+		try {
+			return ModernAndroidUtils.getAndroidAPIVersion();
+		} catch (VerifyError ex) {
+			return Integer.parseInt(Build.VERSION.SDK);
+		}
 	}
 }

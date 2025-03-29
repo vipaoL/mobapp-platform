@@ -4,22 +4,22 @@ import android.app.Activity;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.KeyEvent;
-import android.view.View;
 
+import mobileapplication3.platform.ModernAndroidUtils;
 import mobileapplication3.platform.Platform;
 import mobileapplication3.ui.IUIComponent;
 import mobileapplication3.ui.UISettings;
 
 public abstract class MobappActivity extends Activity {
-    protected RootContainer rootContainer;
+    protected RootContainerView rootContainer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         try {
             Platform.init(this);
-            setRootContainer(new RootContainer(this));
-            RootContainer.setUiSettings(getUISettings());
+            setRootContainer(RootContainer.createView(this));
+            RootContainer.setUISettings(getUISettings());
             RootContainer.setRootUIComponent(getRootUIComponent());
         } catch(Exception ex) {
             Platform.showError(ex);
@@ -33,13 +33,8 @@ public abstract class MobappActivity extends Activity {
     }
 
     protected void enableFullScreen() {
-        View decorView = this.getWindow().getDecorView();
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-            if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-                decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
-            } else {
-                decorView.setSystemUiVisibility(View.GONE);
-            }
+        if (Platform.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+            ModernAndroidUtils.enableFullScreen();
         }
     }
 
@@ -69,7 +64,7 @@ public abstract class MobappActivity extends Activity {
         return false;
     }
 
-    public void setRootContainer(final RootContainer newRootContainer) {
+    public void setRootContainer(final RootContainerView newRootContainer) {
         rootContainer = newRootContainer;
         runOnUiThread(new Runnable() {
             @Override

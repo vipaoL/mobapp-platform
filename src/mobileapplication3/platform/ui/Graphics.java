@@ -5,6 +5,9 @@ import android.graphics.Paint;
 import android.graphics.Path;
 import android.os.Build;
 
+import mobileapplication3.platform.ModernAndroidUtils;
+import mobileapplication3.platform.Platform;
+
 public class Graphics implements IGraphics {
 
     private final Canvas c;
@@ -42,8 +45,8 @@ public class Graphics implements IGraphics {
         }
         p.setStrokeWidth(strokeWidth);
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            c.drawArc(x, y, x + width, y + height, startAngle, arcAngle, false, p);
+        if (Platform.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            ModernAndroidUtils.drawArc(x, y, width, height, startAngle, arcAngle, c, p);
         } else {
             c.drawCircle(x + width / 2f, y + height / 2f, width / 2f, p);
             c.drawCircle(x + width / 2f, y + height / 2f, height / 2f, p);
@@ -147,8 +150,8 @@ public class Graphics implements IGraphics {
         }
         p.setStrokeWidth(1);
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && arcWidth > 0 && arcHeight > 0) {
-            c.drawRoundRect(x + 0.5f, y + 0.5f, x + width + 0.5f, y + height + 0.5f, arcWidth / 2f, arcHeight / 2f, p);
+        if (Platform.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && arcWidth > 0 && arcHeight > 0) {
+            ModernAndroidUtils.drawRoundRect(x, y, width, height, arcWidth, arcHeight, c, p);
         } else {
             c.drawRect(x + 0.5f, y + 0.5f, x + width + 0.5f, y + height + 0.5f, p);
         }
