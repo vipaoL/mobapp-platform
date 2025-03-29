@@ -53,6 +53,9 @@ public class FileUtils {
     public static void saveStringToFile(String data, String path) {
         Logger.log("writing " + data + " to " + path);
         try {
+            try {
+                new File(path).getParentFile().mkdirs();
+            } catch (Exception ignored) { }
             DataOutputStream dos = new DataOutputStream(new FileOutputStream(path));
             if (data != null) {
                 dos.write(data.getBytes());
