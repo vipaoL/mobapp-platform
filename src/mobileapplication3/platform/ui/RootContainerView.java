@@ -118,6 +118,7 @@ public abstract class RootContainerView extends SurfaceView implements IContaine
         }
         isLocked = false;
         try {
+            Logger.paint(new Graphics(c));
             surfaceHolder.unlockCanvasAndPost(c);
         } catch (Exception ignored) { }
     }
