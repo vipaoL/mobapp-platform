@@ -14,7 +14,6 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
@@ -32,6 +31,7 @@ public class FileUtils {
     public static final char SEP = '/';
     private static final String[] FOLDERS_ON_EACH_DRIVE = {""};
     private static final short[] TESTDATA = new short[]{0, 1, 2, 3};
+    private static String storagePath = "." + SEP + "Mobapp";
     
     public static void saveShortArrayToFile(short[] arr, String path) throws IOException, SecurityException {
         ByteArrayOutputStream buf = new ByteArrayOutputStream(arr.length*2);
@@ -92,8 +92,8 @@ public class FileUtils {
         };
     }
 
-    public static String getAppStoragePath() { // TODO add a command line argument
-        return "." + SEP + "Mobapp" + SEP;
+    public static String getAppStoragePath() {
+        return getStoragePath() + SEP;
     }
     
     public static String[] list(String path) throws IOException {
@@ -138,5 +138,12 @@ public class FileUtils {
 
         return paths;
     }
-    
+
+    public static String getStoragePath() {
+        return storagePath;
+    }
+
+    public static void setStoragePath(String storagePath) {
+        FileUtils.storagePath = storagePath;
+    }
 }
