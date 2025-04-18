@@ -57,10 +57,10 @@ public class FileUtils {
         try {
             try {
                 Files.createDirectories(Paths.get(path).getParent());
-            } catch (FileAlreadyExistsException e) { }
-            Files.write(Paths.get(path), data.getBytes());
+            } catch (FileAlreadyExistsException ignored) { }
+            Files.write(Paths.get(path), data != null ? data.getBytes() : new byte[0]);
         } catch (Exception ex) {
-            Platform.showError("Can't save settings", ex);
+            Platform.showError("Can't save " + data + " to " + path, ex);
         }
     }
 
@@ -68,8 +68,7 @@ public class FileUtils {
         Logger.log("reading string from " + path);
         try {
             return new String(Files.readAllBytes(Paths.get(path)));
-        } catch (FileNotFoundException | NoSuchFileException ex) {
-            Logger.log(ex);
+        } catch (FileNotFoundException | NoSuchFileException ignored) {
         } catch (Exception ex) {
             ex.printStackTrace();
             Logger.log(ex);
