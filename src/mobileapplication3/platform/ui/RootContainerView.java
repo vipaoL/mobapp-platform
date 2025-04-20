@@ -48,6 +48,7 @@ public abstract class RootContainerView extends SurfaceView implements IContaine
     private static Thread repaintThread = null;
     private boolean wasDownEvent = false, wasDragged = false;
     private boolean surfaceCreated = false;
+    private boolean rootUIComponentPostInitDone = false;
     private boolean isLocked = false;
     private int lastPointerX, lastPointerY;
     private int pressedX, pressedY;
@@ -270,6 +271,11 @@ public abstract class RootContainerView extends SurfaceView implements IContaine
 
         if (rootUIComponent != null) {
             rootUIComponent.setSize(w, h);
+            if (!rootUIComponentPostInitDone) {
+                rootUIComponent.postInit();
+                rootUIComponent.setFocused(true);
+                rootUIComponentPostInitDone = true;
+            }
             repaint();
         }
     }
@@ -364,6 +370,7 @@ public abstract class RootContainerView extends SurfaceView implements IContaine
 
     public void setRootUIComponent(final IUIComponent rootUIComponent) {
         wasDownEvent = false;
+        rootUIComponentPostInitDone = false;
         if (this.rootUIComponent != null) {
             this.rootUIComponent.setVisible(false);
             //this.rootUIComponent.setParent(null);
@@ -375,8 +382,10 @@ public abstract class RootContainerView extends SurfaceView implements IContaine
             rootUIComponent.init();
             if (getWidth() > 0 && getHeight() > 0) {
                 rootUIComponent.setSize(getWidth(), getHeight());
+                rootUIComponent.postInit();
+                rootUIComponent.setFocused(true);
+                rootUIComponentPostInitDone = true;
             }
-            rootUIComponent.setFocused(true);
             if (!rootUIComponent.repaintOnlyOnFlushGraphics() && repaintThread == null) {
                 repaintThread = new Thread(new Runnable() {
                     @Override
