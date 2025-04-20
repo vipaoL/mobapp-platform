@@ -298,40 +298,45 @@ public class RootContainer extends GameCanvas implements IContainer, IPopupFeedb
 	}
 
     private class KeyboardHelper {
+    	private static final boolean DEBUG = false;
         private Object tillPressed = new Object();
         private int lastKey, pressCount;
-        private boolean pressState;
         private Thread repeatThread;
         private long lastEvent;
 
         public void show() {
-            pressState = false;
             pressCount = 1;
             lastKey = 0;
             repeatThread = new Thread() {
                 public void run() {
-                    try {
-                        while (true) {
+                    while (Thread.currentThread() == repeatThread) {
+                    	try {
                         	// Wait until a key is pressed
-                            if (!pressState) {
-                                synchronized(tillPressed) {
-                                    tillPressed.wait();
-                                }
+                        	synchronized(tillPressed) {
+                            	if (DEBUG) Logger.log("kbHelper: idle, waiting notify");
+                                tillPressed.wait();
+                                if (DEBUG) Logger.log("kbHelper: notified");
                             }
 
                             // The thread is interrupted when the key is released
                             try {
+                            	if (DEBUG) Logger.log("kbHelper: sleep 500ms");
                             	// Wait a delay and repeat
                             	Thread.sleep(500);
-	                            while (true) {
+	                            while (Thread.currentThread() == repeatThread && wasDownEvent) {
+	                            	if (DEBUG) Logger.log("repeated " + lastKey + " " + Thread.currentThread());
 	                                handleKeyRepeated(lastKey, pressCount);
 	                                Thread.sleep(150);
 	                            }
-                            } catch (InterruptedException ex) { }
-                            
+                            } catch (InterruptedException ex) {
+                            	if (DEBUG) Logger.log("kbHelper: interrupted. repeat is stopped");
+                            }
+
                             pressCount = 1;
+                    	} catch (InterruptedException e) {
+                        	if (DEBUG) Logger.log("interrupt in wait(), stopping");
                         }
-                    } catch (InterruptedException e) { }
+                    }
                 }
             };
             repeatThread.start();
@@ -339,11 +344,14 @@ public class RootContainer extends GameCanvas implements IContainer, IPopupFeedb
         
         public void hide() {
             if(repeatThread != null) {
-                repeatThread.interrupt();
+            	Thread thread = repeatThread;
+            	repeatThread = null;
+                thread.interrupt();
             }
         }
 
         public void keyPressed(int k) {
+        	if (DEBUG) Logger.logErr("kb: pressed");
             if (!isLastEventOld() && k == lastKey) {
                 pressCount++;
             } else {
@@ -352,20 +360,21 @@ public class RootContainer extends GameCanvas implements IContainer, IPopupFeedb
             
             updateLastEventTime();
             lastKey = k;
-            pressState = true;
             synchronized(tillPressed) {
-                tillPressed.notify();
+            	if (DEBUG) Logger.log("kb: sending notify");
+                tillPressed.notifyAll();
+                if (DEBUG) Logger.log("kb: notify is sent");
             }
             handleKeyPressed(k, pressCount);
         }
 
         public void keyReleased(int k) {
+        	if (DEBUG) Logger.logErr("kb: released");
             updateLastEventTime();
-            if(lastKey == k) {
-                pressState = false;
-            } else {
+            if(k != lastKey) {
                 pressCount = 0;
             }
+            if (DEBUG) Logger.log("kb: sending interrupt");
             repeatThread.interrupt();
             handleKeyReleased(k, pressCount);
         }
