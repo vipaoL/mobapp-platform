@@ -40,6 +40,7 @@ public class RootContainer extends Canvas implements IContainer, IPopupFeedback,
     private int pressedX, pressedY;
     private long pressedTime;
     private final HashSet<Integer> pressedKeys = new HashSet<>();
+    private boolean rootUIComponentPostInitDone = false;
 
     public RootContainer() {
         inst = this;
@@ -141,11 +142,14 @@ public class RootContainer extends Canvas implements IContainer, IPopupFeedback,
         
         if (rootUIComponent != null) {
             inst.rootUIComponent = rootUIComponent.setParent(inst).setVisible(true);
+            inst.rootUIComponentPostInitDone = false;
             rootUIComponent.init();
             if (inst.getWidth() > 0 && inst.getHeight() > 0) {
                 rootUIComponent.setSize(inst.getWidth(), inst.getHeight());
+                rootUIComponent.postInit();
+                rootUIComponent.setFocused(true);
+                inst.rootUIComponentPostInitDone = true;
             }
-		    rootUIComponent.setFocused(true);
             if (!rootUIComponent.repaintOnlyOnFlushGraphics() && repaintThread == null) {
                 repaintThread = new Thread(new Runnable() {
                     @Override
@@ -397,6 +401,11 @@ public class RootContainer extends Canvas implements IContainer, IPopupFeedback,
 
         if (rootUIComponent != null) {
             rootUIComponent.setSize(w, h);
+            if (!rootUIComponentPostInitDone) {
+                rootUIComponent.postInit();
+                rootUIComponent.setFocused(true);
+                rootUIComponentPostInitDone = true;
+            }
             repaint();
         }
     }
