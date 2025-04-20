@@ -20,9 +20,15 @@ import java.util.Properties;
 public class Platform {
 	public static final int SDK_INT = getAndroidAPIVersion();
 	private static Activity activityInst = null;
+	private static Context context = null;
 
 	public static void init(Activity inst) {
 		activityInst = inst;
+		context = activityInst;
+	}
+
+	public static void init(Context c) {
+		context = c;
 	}
 
 	public static void showError(String message, Throwable ex) {
@@ -37,17 +43,21 @@ public class Platform {
 	}
 
 	public static void showError(final String message) {
-		Log.e("Showing toast", message);
-		activityInst.runOnUiThread(new Runnable() {
-			@Override
-			public void run() {
-				try {
-					Toast.makeText(activityInst, "Error: " + message, Toast.LENGTH_LONG).show();
-				} catch (RuntimeException e) {
-					Logger.log("Can't show toast: \"" + message + "\"");
+		Logger.logErr(message);
+		if (activityInst != null) {
+			activityInst.runOnUiThread(new Runnable() {
+				@Override
+				public void run() {
+					try {
+						Toast.makeText(context, "Error: " + message, Toast.LENGTH_LONG).show();
+					} catch (RuntimeException ex) {
+						Logger.logErr("Can't show toast: \"" + message + "\": " + ex);
+					}
 				}
-			}
-		});
+			});
+		} else {
+			Logger.logErr("Can't show toast: activityInst is null");
+		}
 	}
 
 	public static void vibrate(int ms) {
@@ -55,7 +65,7 @@ public class Platform {
 			ModernAndroidUtils.vibrate(ms);
 		} else {
 			//deprecated in API 26 (Oreo)
-			((Vibrator) activityInst.getSystemService(Context.VIBRATOR_SERVICE)).vibrate(ms);
+			((Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE)).vibrate(ms);
 		}
 	}
 
@@ -131,11 +141,11 @@ public class Platform {
 	}
 
 	private static String getStoragePath(String storageName) {
-		return activityInst.getFilesDir().getPath() + SEP + storageName;
+		return context.getFilesDir().getPath() + SEP + storageName;
 	}
 
 	public static File getFilesDir() {
-		return activityInst.getFilesDir();
+		return context.getFilesDir();
 	}
 
     public static File getExternalFilesDir() {
