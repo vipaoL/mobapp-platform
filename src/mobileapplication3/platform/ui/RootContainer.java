@@ -298,48 +298,28 @@ public class RootContainer extends GameCanvas implements IContainer, IPopupFeedb
 	}
 
     private class KeyboardHelper {
-    	private static final boolean DEBUG = false;
-        private Object tillPressed = new Object();
         private int lastKey, pressCount;
         private Thread repeatThread;
         private long lastEvent;
+        private Runnable repeater = new Runnable() {
+            public void run() {
+                // The thread is interrupted when the key is released
+                try {
+                    // Wait a delay and repeat
+                    Thread.sleep(500);
+                    while (Thread.currentThread() == repeatThread && wasDownEvent) {
+                        handleKeyRepeated(lastKey, pressCount);
+                        Thread.sleep(150);
+                    }
+                } catch (InterruptedException ex) { }
+
+                pressCount = 1;
+            }
+		};
 
         public void show() {
             pressCount = 1;
             lastKey = 0;
-            repeatThread = new Thread() {
-                public void run() {
-                    while (Thread.currentThread() == repeatThread) {
-                    	try {
-                        	// Wait until a key is pressed
-                        	synchronized(tillPressed) {
-                            	if (DEBUG) Logger.log("kbHelper: idle, waiting notify");
-                                tillPressed.wait();
-                                if (DEBUG) Logger.log("kbHelper: notified");
-                            }
-
-                            // The thread is interrupted when the key is released
-                            try {
-                            	if (DEBUG) Logger.log("kbHelper: sleep 500ms");
-                            	// Wait a delay and repeat
-                            	Thread.sleep(500);
-	                            while (Thread.currentThread() == repeatThread && wasDownEvent) {
-	                            	if (DEBUG) Logger.log("repeated " + lastKey + " " + Thread.currentThread());
-	                                handleKeyRepeated(lastKey, pressCount);
-	                                Thread.sleep(150);
-	                            }
-                            } catch (InterruptedException ex) {
-                            	if (DEBUG) Logger.log("kbHelper: interrupted. repeat is stopped");
-                            }
-
-                            pressCount = 1;
-                    	} catch (InterruptedException e) {
-                        	if (DEBUG) Logger.log("interrupt in wait(), stopping");
-                        }
-                    }
-                }
-            };
-            repeatThread.start();
         }
         
         public void hide() {
@@ -351,7 +331,6 @@ public class RootContainer extends GameCanvas implements IContainer, IPopupFeedb
         }
 
         public void keyPressed(int k) {
-        	if (DEBUG) Logger.logErr("kb: pressed");
             if (!isLastEventOld() && k == lastKey) {
                 pressCount++;
             } else {
@@ -360,21 +339,16 @@ public class RootContainer extends GameCanvas implements IContainer, IPopupFeedb
             
             updateLastEventTime();
             lastKey = k;
-            synchronized(tillPressed) {
-            	if (DEBUG) Logger.log("kb: sending notify");
-                tillPressed.notifyAll();
-                if (DEBUG) Logger.log("kb: notify is sent");
-            }
             handleKeyPressed(k, pressCount);
+            repeatThread = new Thread(repeater);
+            repeatThread.start();
         }
 
         public void keyReleased(int k) {
-        	if (DEBUG) Logger.logErr("kb: released");
             updateLastEventTime();
             if(k != lastKey) {
                 pressCount = 0;
             }
-            if (DEBUG) Logger.log("kb: sending interrupt");
             repeatThread.interrupt();
             handleKeyReleased(k, pressCount);
         }
