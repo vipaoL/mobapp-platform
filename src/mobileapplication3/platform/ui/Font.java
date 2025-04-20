@@ -5,10 +5,15 @@ import java.awt.image.BufferedImage;
 import java.util.Vector;
 
 import mobileapplication3.platform.Platform;
+import mobileapplication3.platform.PlatformSettings;
 
 import javax.swing.*;
 
 public class Font implements IFont {
+    private static final int
+            SMALL = PlatformSettings.getFontSize() * 3 / 4,
+            MEDIUM = PlatformSettings.getFontSize(),
+            LARGE = PlatformSettings.getFontSize() * 3 / 2;
     private final java.awt.Font font;
     private int size;
 
@@ -24,13 +29,13 @@ public class Font implements IFont {
         this.size = size;
         switch (size) {
             case SIZE_SMALL:
-                size = 16;
+                size = SMALL;
                 break;
             case SIZE_MEDIUM:
-                size = 24;
+                size = MEDIUM;
                 break;
             case SIZE_LARGE:
-                size = 32;
+                size = LARGE;
                 break;
         }
         font = new java.awt.Font(null, java.awt.Font.PLAIN, size);
