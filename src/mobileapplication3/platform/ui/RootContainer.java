@@ -142,7 +142,9 @@ public class RootContainer extends Canvas implements IContainer, IPopupFeedback,
         if (rootUIComponent != null) {
             inst.rootUIComponent = rootUIComponent.setParent(inst).setVisible(true);
             rootUIComponent.init();
-            rootUIComponent.setSize(inst.getWidth(), inst.getHeight());
+            if (inst.getWidth() > 0 && inst.getHeight() > 0) {
+                rootUIComponent.setSize(inst.getWidth(), inst.getHeight());
+            }
 		    rootUIComponent.setFocused(true);
             if (!rootUIComponent.repaintOnlyOnFlushGraphics() && repaintThread == null) {
                 repaintThread = new Thread(new Runnable() {
@@ -382,6 +384,10 @@ public class RootContainer extends Canvas implements IContainer, IPopupFeedback,
     }
 
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+        if (w <= 0 || h <= 0) {
+            return;
+        }
+
         this.w = w;
         this.h = h;
 
