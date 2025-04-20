@@ -257,6 +257,10 @@ public abstract class RootContainerView extends SurfaceView implements IContaine
 
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+        if (w <= 0 || h <= 0) {
+            return;
+        }
+
         this.w = w;
         this.h = h;
 
@@ -369,7 +373,9 @@ public abstract class RootContainerView extends SurfaceView implements IContaine
         if (rootUIComponent != null) {
             this.rootUIComponent = rootUIComponent.setParent(this).setVisible(true);
             rootUIComponent.init();
-            rootUIComponent.setSize(getWidth(), getHeight());
+            if (getWidth() > 0 && getHeight() > 0) {
+                rootUIComponent.setSize(getWidth(), getHeight());
+            }
             rootUIComponent.setFocused(true);
             if (!rootUIComponent.repaintOnlyOnFlushGraphics() && repaintThread == null) {
                 repaintThread = new Thread(new Runnable() {
