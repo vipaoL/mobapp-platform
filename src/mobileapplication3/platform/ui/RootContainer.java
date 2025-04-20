@@ -35,6 +35,7 @@ public class RootContainer extends GameCanvas implements IContainer, IPopupFeedb
     private int lastPointerX, lastPointerY;
     private int pressedX, pressedY;
     private long pressedTime;
+    private boolean rootUIComponentPostInitDone = false;
 
     private RootContainer() {
     	super(false);
@@ -84,12 +85,15 @@ public class RootContainer extends GameCanvas implements IContainer, IPopupFeedb
         }
 
         if (rootUIComponent != null) {
-		    inst.rootUIComponent = rootUIComponent.setParent(inst).setFocused(true);
+		    inst.rootUIComponent = rootUIComponent.setParent(inst).setVisible(true);
+		    inst.rootUIComponentPostInitDone = false;
 		    rootUIComponent.init();
             if (inst.getWidth() > 0 && inst.getHeight() > 0) {
                 rootUIComponent.setSize(inst.getWidth(), inst.getHeight());
+                rootUIComponent.postInit();
+                rootUIComponent.setFocused(true);
+                inst.rootUIComponentPostInitDone = true;
             }
-		    rootUIComponent.setFocused(true);
         }
         inst.repaint();
         return inst;
@@ -257,6 +261,11 @@ public class RootContainer extends GameCanvas implements IContainer, IPopupFeedb
 
         if (rootUIComponent != null) {
             rootUIComponent.setSize(w, h);
+            if (!rootUIComponentPostInitDone) {
+                rootUIComponent.postInit();
+                rootUIComponent.setFocused(true);
+                rootUIComponentPostInitDone = true;
+            }
             repaintt();
         }
     }
