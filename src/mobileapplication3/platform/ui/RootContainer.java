@@ -531,8 +531,6 @@ public class RootContainer extends Canvas implements IContainer, IPopupFeedback,
 	                                Thread.sleep(150);
 	                            }
                             } catch (InterruptedException ex) { }
-                            
-                            pressCount = 1;
                         }
                     } catch (InterruptedException ignored) { }
                 }
