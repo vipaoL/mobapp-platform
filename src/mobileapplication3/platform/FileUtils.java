@@ -32,6 +32,12 @@ public class FileUtils {
     private static final short[] TESTDATA = new short[]{0, 1, 2, 3};
     
     public static void saveShortArrayToFile(short[] arr, String path) throws IOException, SecurityException {
+        File file = new File(path);
+        if (!file.exists()) {
+            if (!file.createNewFile()) {
+                throw new IOException("Can't create file \"" + path + "\"");
+            }
+        }
         ByteArrayOutputStream buf = new ByteArrayOutputStream(arr.length*2);
         DataOutputStream dos = new DataOutputStream(buf);
         for (int i = 0; i < arr.length; i++) {
@@ -44,7 +50,7 @@ public class FileUtils {
         dos.close();
         buf.close();
 
-        OutputStream fos = new FileOutputStream(path);
+        OutputStream fos = new FileOutputStream(file);
         fos.write(data);
         fos.close();
         fos.close();
