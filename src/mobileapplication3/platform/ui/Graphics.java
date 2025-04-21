@@ -29,6 +29,9 @@ public final class Graphics implements IGraphics {
 
     public void drawArc(int x, int y, int width, int height, int startAngle, int arcAngle, int thickness, int zoomOut, boolean drawThickness, boolean zoomThickness, boolean rounding) {
         if (drawThickness) {
+            if (zoomOut < 0) {
+                zoomOut = -zoomOut;
+            }
             g.setStroke(new BasicStroke(thickness * (zoomThickness ? (1000f / zoomOut) : 1), rounding ? BasicStroke.CAP_ROUND : BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND));
         } else {
             g.setStroke(new BasicStroke(1));
@@ -223,6 +226,9 @@ public final class Graphics implements IGraphics {
 
     public void drawLine(int x1, int y1, int x2, int y2, int thickness, int zoomOut, boolean drawThickness, boolean zoomThickness, boolean rounding, boolean markSkeleton) {
         if (drawThickness) {
+            if (zoomOut < 0) {
+                zoomOut = -zoomOut;
+            }
             g.setStroke(new BasicStroke(thickness * (zoomThickness ? (1000f / zoomOut) : 1), rounding ? BasicStroke.CAP_ROUND : BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND));
         } else {
             g.setStroke(new BasicStroke(1));
