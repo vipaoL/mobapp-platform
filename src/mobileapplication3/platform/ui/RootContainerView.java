@@ -463,8 +463,6 @@ public abstract class RootContainerView extends SurfaceView implements IContaine
                                     Thread.sleep(150);
                                 }
                             } catch (InterruptedException ex) { }
-
-                            pressCount = 1;
                         }
                     } catch (InterruptedException ignored) { }
                 }
