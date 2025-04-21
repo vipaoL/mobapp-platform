@@ -68,7 +68,16 @@ public final class Graphics implements IGraphics {
 	}
 
 	public void fillArc(int x, int y, int width, int height, int startAngle, int arcAngle) {
-		g.fillArc(x, y, width, height, -startAngle, -arcAngle);
+		startAngle = -startAngle;
+		arcAngle = -arcAngle;
+		if (arcAngle < 0) {
+			startAngle += arcAngle;
+			arcAngle = -arcAngle;
+		}
+		while (startAngle < 0) {
+			startAngle += 360;
+		}
+		g.fillArc(x, y, width, height, startAngle, arcAngle);
 	}
 
 	public void fillRect(int x, int y, int width, int height) {
