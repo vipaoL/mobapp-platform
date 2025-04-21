@@ -312,8 +312,6 @@ public class RootContainer extends GameCanvas implements IContainer, IPopupFeedb
                         Thread.sleep(150);
                     }
                 } catch (InterruptedException ex) { }
-
-                pressCount = 1;
             }
 		};
 
