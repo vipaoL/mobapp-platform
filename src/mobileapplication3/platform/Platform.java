@@ -77,6 +77,8 @@ public class Platform {
 			Desktop desktop = Desktop.getDesktop();
 			if (desktop.isSupported(Desktop.Action.BROWSE)) {
 				desktop.browse(URI.create(url));
+			} else {
+				Logger.logErr("Desktop.Action.BROWSE is not supported. Could not open " + url);
 			}
 		} catch (IOException ex) {
 			showError(ex);
