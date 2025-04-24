@@ -200,10 +200,12 @@ public final class Graphics implements IGraphics {
 	        g.fillTriangle(x1-nx, y1+ny, x2-nx, y2+ny, x1+nx, y1-ny);
 	        g.fillTriangle(x2-nx, y2+ny, x2+nx, y2-ny, x1+nx, y1-ny);
 	        if (rounding) {
-	            int r = thickness * 500 / zoomOut;
-	            int d = thickness * 1000 / zoomOut;
-	            g.fillArc(x1-r, y1-r, d, d, 0, 360);
-	            g.fillArc(x2-r, y2-r, d, d, 0, 360);
+	            int r = thickness * 400 / zoomOut;
+	            int d = thickness * 500 / zoomOut;
+	            if (r > 0) {
+		            g.fillArc(x1-r + 1, y1-r + 1, d, d, 0, 360);
+		            g.fillArc(x2-r + 1, y2-r + 1, d, d, 0, 360);
+	            }
 	        }
 	        if (markSkeleton && thickness * 1000 / zoomOut > 8) {
 	            int prevCol = g.getColor();
