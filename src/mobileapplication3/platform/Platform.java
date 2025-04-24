@@ -12,6 +12,8 @@ import javax.microedition.lcdui.Displayable;
 import javax.microedition.lcdui.Image;
 import javax.microedition.rms.RecordStoreException;
 
+import mobileapplication3.platform.ui.RootContainer;
+
 public class Platform {
 	private static MobappMIDlet midletInst = null;
 
@@ -79,7 +81,7 @@ public class Platform {
 		Display display = getDisplay();
         if (d instanceof Alert) {
             try {
-            	display.setCurrent((Alert) d, display.getCurrent());
+            	display.setCurrent((Alert) d, RootContainer.getInst());
             } catch (Exception ex) {
 				display.setCurrent(d);
 			}
