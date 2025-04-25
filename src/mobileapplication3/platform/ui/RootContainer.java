@@ -14,6 +14,7 @@ import mobileapplication3.platform.Platform;
 import mobileapplication3.ui.IContainer;
 import mobileapplication3.ui.IPopupFeedback;
 import mobileapplication3.ui.IUIComponent;
+import mobileapplication3.ui.Keys;
 import mobileapplication3.ui.UISettings;
 
 /**
@@ -21,6 +22,7 @@ import mobileapplication3.ui.UISettings;
  * @author vipaol
  */
 public class RootContainer extends GameCanvas implements IContainer, IPopupFeedback {
+    private static final int SE_KEY_BACK = -11;
 
 	private static RootContainer inst = null;
     private IUIComponent rootUIComponent = null;
@@ -145,6 +147,9 @@ public class RootContainer extends GameCanvas implements IContainer, IPopupFeedb
     }
 
     protected void keyPressed(int keyCode) {
+        if (keyCode == SE_KEY_BACK) {
+            keyCode = Keys.KEY_SOFT_RIGHT;
+        }
         kbHelper.keyPressed(keyCode);
     }
 
@@ -169,6 +174,9 @@ public class RootContainer extends GameCanvas implements IContainer, IPopupFeedb
     }
 
     protected void keyReleased(int keyCode) {
+        if (keyCode == SE_KEY_BACK) {
+            keyCode = Keys.KEY_SOFT_RIGHT;
+        }
         kbHelper.keyReleased(keyCode);
     }
 
