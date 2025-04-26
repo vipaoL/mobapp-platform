@@ -476,6 +476,7 @@ public class RootContainer extends Canvas implements IContainer, IPopupFeedback,
                 return Keys.KEY_NUM6;
             case KeyEvent.VK_7:
             case KeyEvent.VK_NUMPAD7:
+            case KeyEvent.VK_R: // HACK, FIXME, TODO
                 return Keys.KEY_NUM7;
             case KeyEvent.VK_8:
             case KeyEvent.VK_NUMPAD8:
