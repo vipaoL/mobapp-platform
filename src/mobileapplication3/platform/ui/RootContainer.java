@@ -18,6 +18,8 @@ import java.awt.event.*;
 import java.awt.image.BufferStrategy;
 import java.util.HashSet;
 
+import static mobileapplication3.ui.IUIComponent.*;
+
 /**
  *
  * @author vipaol
@@ -52,29 +54,65 @@ public class RootContainer extends Canvas implements IContainer, IPopupFeedback,
                 pressedX = e.getX();
                 pressedY = e.getY();
                 pressedTime = System.currentTimeMillis();
-                pointerPressed(pressedX, pressedY);
+                int event;
+                if (e.getButton() == MouseEvent.BUTTON1) {
+                    event = MOUSE_PRIMARY_PRESSED;
+                } else if (e.getButton() == MouseEvent.BUTTON2) {
+                    event = MOUSE_SECONDARY_PRESSED;
+                } else {
+                    event = MOUSE_WHEEL_PRESSED;
+                }
+                if (!mouseEvent(event, pressedX, pressedY)) {
+                    pointerPressed(pressedX, pressedY);
+                }
                 wasDownEvent = true;
             }
 
             @Override
             public void mouseDragged(MouseEvent e) {
-                pointerDragged(e.getX(), e.getY());
+                int event;
+                if (e.getButton() == MouseEvent.BUTTON1) {
+                    event = MOUSE_PRIMARY_DRAGGED;
+                } else if (e.getButton() == MouseEvent.BUTTON2) {
+                    event = MOUSE_SECONDARY_DRAGGED;
+                } else {
+                    event = MOUSE_WHEEL_DRAGGED;
+                }
+                if (!mouseEvent(event, e.getX(), e.getY())) {
+                    pointerDragged(e.getX(), e.getY());
+                }
             }
 
             @Override
             public void mouseReleased(MouseEvent e) {
                 int releasedX = e.getX();
                 int releasedY = e.getY();
-                if (!wasDragged && System.currentTimeMillis() - pressedTime < 1000) {
-                    pointerClicked(releasedX, releasedY);
+                int event;
+                if (e.getButton() == MouseEvent.BUTTON1) {
+                    event = MOUSE_PRIMARY_RELEASED;
+                } else if (e.getButton() == MouseEvent.BUTTON3) {
+                    event = MOUSE_SECONDARY_RELEASED;
+                } else {
+                    event = MOUSE_WHEEL_RELEASED;
                 }
-                pointerReleased(releasedX, releasedY);
+                if (!mouseEvent(event, releasedX, releasedY)) {
+                    if (!wasDragged && System.currentTimeMillis() - pressedTime < 1000) {
+                        pointerClicked(releasedX, releasedY);
+                    }
+                    pointerReleased(releasedX, releasedY);
+                }
                 wasDownEvent = false;
                 wasDragged = false;
+            }
+
+            @Override
+            public void mouseWheelMoved(MouseWheelEvent e) {
+                mouseEvent(e.getWheelRotation() > 0 ? MOUSE_WHEEL_SCROLLED_DOWN : MOUSE_WHEEL_SCROLLED_UP, e.getX(), e.getY());
             }
         };
         addMouseListener(mouseAdapter);
         addMouseMotionListener(mouseAdapter);
+        addMouseWheelListener(mouseAdapter);
         addKeyListener(this);
         addComponentListener(new ComponentAdapter() {
             @Override
@@ -336,6 +374,17 @@ public class RootContainer extends Canvas implements IContainer, IPopupFeedback,
                 repaint();
             }
         }
+    }
+
+    protected boolean mouseEvent(int event, int x, int y) {
+        if (rootUIComponent != null) {
+            rootUIComponent.setVisible(true);
+            if (rootUIComponent.mouseEvent(event, x, y)) {
+                repaint();
+                return true;
+            }
+        }
+        return false;
     }
 
     protected void pointerPressed(int x, int y) {
