@@ -13,7 +13,6 @@ import mobileapplication3.ui.IUIComponent;
 import mobileapplication3.ui.Keys;
 import mobileapplication3.ui.UISettings;
 
-import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferStrategy;
