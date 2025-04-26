@@ -31,7 +31,7 @@ public class FileUtils {
     public static final char SEP = '/';
     private static final String[] FOLDERS_ON_EACH_DRIVE = {""};
     private static final short[] TESTDATA = new short[]{0, 1, 2, 3};
-    private static String storagePath = "." + SEP + "Mobapp";
+    private static String storagePath = System.getProperty("user.dir", ".") + SEP + "Mobapp";
     
     public static void saveShortArrayToFile(short[] arr, String path) throws IOException, SecurityException {
         ByteArrayOutputStream buf = new ByteArrayOutputStream(arr.length*2);
