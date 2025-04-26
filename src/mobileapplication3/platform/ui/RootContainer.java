@@ -428,9 +428,10 @@ public class RootContainer extends Canvas implements IContainer, IPopupFeedback,
         }
     }
 
-    private int convertKeyCode(int androidKeyCode) {
-        switch (androidKeyCode) {
+    private int convertKeyCode(int javaSEKeyCode) { // TODO
+        switch (javaSEKeyCode) {
             case KeyEvent.VK_ENTER:
+            case KeyEvent.VK_SPACE:
                 return Keys.FIRE;
             case KeyEvent.VK_UP:
             case KeyEvent.VK_KP_UP:
