@@ -32,6 +32,7 @@ public class FileUtils {
     private static String[] OTHER_PLACES = null;
     
     public static void saveShortArrayToFile(short[] arr, String path) throws IOException, SecurityException {
+    	Logger.log("Writing to " + path);
         FileConnection fc = (FileConnection) Connector.open(path, Connector.READ_WRITE);
         if (!fc.exists()) {
             fc.create();
@@ -57,6 +58,7 @@ public class FileUtils {
     }
     
     public static DataInputStream fileToDataInputStream(String path) {
+    	Logger.log("Reading from " + path);
         try {
         	if (!path.startsWith(PREFIX)) {
         		path = PREFIX + path;
