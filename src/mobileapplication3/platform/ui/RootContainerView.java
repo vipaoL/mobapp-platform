@@ -11,6 +11,8 @@ import static android.view.KeyEvent.KEYCODE_7;
 import static android.view.KeyEvent.KEYCODE_8;
 import static android.view.KeyEvent.KEYCODE_9;
 import static android.view.KeyEvent.KEYCODE_BACK;
+import static android.view.KeyEvent.KEYCODE_CHANNEL_DOWN;
+import static android.view.KeyEvent.KEYCODE_CHANNEL_UP;
 import static android.view.KeyEvent.KEYCODE_DPAD_CENTER;
 import static android.view.KeyEvent.KEYCODE_DPAD_DOWN;
 import static android.view.KeyEvent.KEYCODE_DPAD_LEFT;
@@ -324,9 +326,11 @@ public abstract class RootContainerView extends SurfaceView implements IContaine
                 return Keys.LEFT;
             case KEYCODE_DPAD_RIGHT:
                 return Keys.RIGHT;
+            case KEYCODE_CHANNEL_UP:
             case KEYCODE_MENU:
             case KEYCODE_SOFT_LEFT:
                 return Keys.KEY_SOFT_LEFT;
+            case KEYCODE_CHANNEL_DOWN:
             case KEYCODE_BACK:
             case KEYCODE_SOFT_RIGHT:
                 return Keys.KEY_SOFT_RIGHT;
