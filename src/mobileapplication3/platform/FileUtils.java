@@ -59,16 +59,20 @@ public class FileUtils {
     
     public static DataInputStream fileToDataInputStream(String path) {
     	Logger.log("Reading from " + path);
+    	FileConnection fc = null;
         try {
         	if (!path.startsWith(PREFIX)) {
         		path = PREFIX + path;
         	}
         	Logger.log("opening fc: " + path);
-            FileConnection fc = (FileConnection) Connector.open(path, Connector.READ);
+            fc = (FileConnection) Connector.open(path, Connector.READ);
             Logger.log("opening stream");
             return fc.openDataInputStream();
         } catch (IOException ex) {
             Logger.log(ex);
+            try {
+            	fc.close();
+            } catch (Exception ignored) { }
         }
         return null;
     }
