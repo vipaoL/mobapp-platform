@@ -20,7 +20,16 @@ public final class Graphics implements IGraphics {
     }
 
 	public void drawArc(int x, int y, int width, int height, int startAngle, int arcAngle, int thickness, int zoomOut, boolean drawThickness, boolean zoomThickness, boolean rounding) {
-		g.drawArc(x, y, width, height, -startAngle, -arcAngle);
+		startAngle = -startAngle;
+		arcAngle = -arcAngle;
+		if (arcAngle < 0) {
+			startAngle += arcAngle;
+			arcAngle = -arcAngle;
+		}
+		while (startAngle < 0) {
+			startAngle += 360;
+		}
+		g.drawArc(x, y, width, height, startAngle, arcAngle);
 		if (drawThickness) {
 			int n = thickness * 1000 / zoomOut;
 			for (int i = 0; i < n - 1; i++) {
@@ -28,7 +37,7 @@ public final class Graphics implements IGraphics {
 	        	if (i % 2 == 0) {
 	        		d = -d;
 	        	}
-	        	g.drawArc(x + d, y + d, width - 2*d, height - 2*d, -startAngle, -arcAngle);
+				g.drawArc(x + d, y + d, width - 2*d, height - 2*d, startAngle, arcAngle);
 			}
 		}
     }
