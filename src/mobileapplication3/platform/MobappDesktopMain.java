@@ -9,6 +9,7 @@ import java.awt.event.WindowEvent;
 public abstract class MobappDesktopMain extends Frame {
     public MobappDesktopMain(String[] args) {
         setSize(1200, 900);
+        parseArgs(args);
         Platform.init(this);
         RootContainer.getInst().setBgColor(0);
         setVisible(true);
@@ -22,4 +23,6 @@ public abstract class MobappDesktopMain extends Frame {
         });
         setLocationRelativeTo(null);
     }
+
+    protected abstract void parseArgs(String[] args);
 }
