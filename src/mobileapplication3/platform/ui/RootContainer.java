@@ -7,15 +7,12 @@ package mobileapplication3.platform.ui;
 
 import mobileapplication3.platform.Logger;
 import mobileapplication3.platform.Platform;
-import mobileapplication3.ui.IContainer;
-import mobileapplication3.ui.IPopupFeedback;
-import mobileapplication3.ui.IUIComponent;
-import mobileapplication3.ui.Keys;
-import mobileapplication3.ui.UISettings;
+import mobileapplication3.ui.*;
 
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferStrategy;
+import java.awt.image.BufferedImage;
 import java.util.HashSet;
 
 import static mobileapplication3.ui.IUIComponent.*;
@@ -25,6 +22,8 @@ import static mobileapplication3.ui.IUIComponent.*;
  * @author vipaol
  */
 public class RootContainer extends Canvas implements IContainer, IPopupFeedback, KeyListener {
+    public static final int CURSOR_HIDE_DELAY = 5000;
+
     private final Toolkit toolkit = Toolkit.getDefaultToolkit();
     private java.awt.Graphics g = null;
     private BufferStrategy bufferStrategy = null;
@@ -40,6 +39,8 @@ public class RootContainer extends Canvas implements IContainer, IPopupFeedback,
     private int lastPointerX, lastPointerY;
     private int pressedX, pressedY;
     private long pressedTime;
+    private long lastMouseEvent;
+    private Thread mouseHider = null;
     private final HashSet<Integer> pressedKeys = new HashSet<>();
     private boolean rootUIComponentPostInitDone = false;
 
@@ -81,6 +82,7 @@ public class RootContainer extends Canvas implements IContainer, IPopupFeedback,
                 if (!mouseEvent(event, e.getX(), e.getY())) {
                     pointerDragged(e.getX(), e.getY());
                 }
+                hideCursorAfterDelay();
             }
 
             @Override
@@ -103,6 +105,11 @@ public class RootContainer extends Canvas implements IContainer, IPopupFeedback,
                 }
                 wasDownEvent = false;
                 wasDragged = false;
+            }
+
+            @Override
+            public void mouseMoved(MouseEvent e) {
+                hideCursorAfterDelay();
             }
 
             @Override
@@ -130,6 +137,38 @@ public class RootContainer extends Canvas implements IContainer, IPopupFeedback,
                 onShow();
             }
         });
+        hideCursorAfterDelay();
+    }
+
+    private void hideCursorAfterDelay() {
+        lastMouseEvent = System.currentTimeMillis();
+        setCursor(Cursor.getDefaultCursor());
+
+        if (mouseHider == null) {
+            mouseHider = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    int t;
+                    try {
+                        while ((t = (int) (System.currentTimeMillis() - lastMouseEvent)) < CURSOR_HIDE_DELAY) {
+                            Thread.yield();
+                            Thread.sleep(CURSOR_HIDE_DELAY - t);
+                        }
+                        if (Thread.currentThread() == mouseHider) {
+                            setBlankCursor();
+                        }
+                    } catch (InterruptedException e) { }
+                    mouseHider = null;
+                }
+            });
+            mouseHider.start();
+        }
+    }
+
+    private void setBlankCursor() {
+        BufferedImage transparentImage = new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB);
+        Cursor blankCursor = toolkit.createCustomCursor(transparentImage, new Point(0, 0), "");
+        setCursor(blankCursor);
     }
 
     @Override
