@@ -1,16 +1,20 @@
 package mobileapplication3.platform;
 
 public class PlatformSettings {
-    private static final int UNDEF = -1, TRUE = 1, FALSE = 0;
+    public static final int UNDEF = -1, TRUE = 1, FALSE = 0;
     private static final String
             STORE_NAME = "platformsettings",
             FONT_SIZE = "fontSize",
             FULLSCREEN_MODE = "fullscreen";
 
     private static Settings settingsInst = null;
-    private static int fontSizeOverride = UNDEF, fullscreenModeOverride = UNDEF;
+    public static int fontSizeOverride = UNDEF, fullscreenModeOverride = UNDEF;
 
     private PlatformSettings() { }
+
+    public static void reset() {
+        getSettingsInst().resetSettings();
+    }
 
     private static Settings getSettingsInst() {
         if (settingsInst == null) {
