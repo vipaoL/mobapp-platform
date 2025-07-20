@@ -4,16 +4,9 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.Vector;
 
-import mobileapplication3.platform.Platform;
 import mobileapplication3.platform.PlatformSettings;
 
-import javax.swing.*;
-
 public class Font implements IFont {
-    private static final int
-            SMALL = PlatformSettings.getFontSize() * 3 / 4,
-            MEDIUM = PlatformSettings.getFontSize(),
-            LARGE = PlatformSettings.getFontSize() * 3 / 2;
     private final java.awt.Font font;
     private int size;
 
@@ -26,16 +19,20 @@ public class Font implements IFont {
     }
 
     public Font(int size) {
+        this(size, PlatformSettings.getFontSize());
+    }
+
+    protected Font(int size, int baseFontSize) {
         this.size = size;
         switch (size) {
             case SIZE_SMALL:
-                size = SMALL;
+                size = baseFontSize * 3 / 4;
                 break;
             case SIZE_MEDIUM:
-                size = MEDIUM;
+                size = baseFontSize;
                 break;
             case SIZE_LARGE:
-                size = LARGE;
+                size = baseFontSize * 3 / 2;
                 break;
         }
         font = new java.awt.Font(null, java.awt.Font.PLAIN, size);
