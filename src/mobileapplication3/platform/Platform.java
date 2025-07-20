@@ -13,8 +13,14 @@ public class Platform {
 
 	public static void init(Frame instObj) {
 		inst = instObj;
+		refreshPlatformSettings();
+	}
+
+	public static void refreshPlatformSettings() {
 		if (PlatformSettings.getFullscreenMode()) {
 			inst.getGraphicsConfiguration().getDevice().setFullScreenWindow(Platform.getAppInst());
+		} else {
+			inst.getGraphicsConfiguration().getDevice().setFullScreenWindow(null);
 		}
 	}
 
