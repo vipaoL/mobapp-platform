@@ -1,5 +1,7 @@
 package mobileapplication3.platform;
 
+import mobileapplication3.platform.ui.Graphics;
+
 import java.awt.*;
 import java.io.DataInputStream;
 import java.io.File;
@@ -22,6 +24,7 @@ public class Platform {
 		} else {
 			inst.getGraphicsConfiguration().getDevice().setFullScreenWindow(null);
 		}
+		Graphics.blackAndWhiteMode = PlatformSettings.getBlackAndWhiteMode();
 	}
 
 	public static void showError(String message, Throwable ex) {

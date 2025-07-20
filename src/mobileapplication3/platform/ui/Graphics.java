@@ -15,6 +15,8 @@ public final class Graphics implements IGraphics {
 
     private java.awt.Graphics2D g;
 
+    public static boolean blackAndWhiteMode = false;
+
     public Graphics(java.awt.Graphics g) {
         if (g == null) {
             throw new NullPointerException();
@@ -117,11 +119,22 @@ public final class Graphics implements IGraphics {
     }
 
     public void setColor(int RGB) {
-        g.setColor(new Color(RGB));
+        setColor(new Color(RGB));
     }
 
     public void setColor(int red, int green, int blue) {
-        g.setColor(new Color(red, green, blue));
+        setColor(new Color(red, green, blue));
+    }
+
+    private void setColor(Color color) {
+        if (blackAndWhiteMode) {
+            if (color.getRed() * 3 + color.getGreen() * 6 + color.getBlue() > 500) {
+                color = Color.WHITE;
+            } else {
+                color = Color.BLACK;
+            }
+        }
+        g.setColor(color);
     }
 
     @Override

@@ -5,10 +5,14 @@ public class PlatformSettings {
     private static final String
             STORE_NAME = "platformsettings",
             FONT_SIZE = "fontSize",
-            FULLSCREEN_MODE = "fullscreen";
+            FULLSCREEN_MODE = "fullscreen",
+            BLACK_AND_WHITE_MODE = "blackAndWhiteMode";
 
     private static Settings settingsInst = null;
-    public static int fontSizeOverride = UNDEF, fullscreenModeOverride = UNDEF;
+    public static int
+            fontSizeOverride = UNDEF,
+            fullscreenModeOverride = UNDEF,
+            blackAndWhiteModeOverride = UNDEF;
 
     private PlatformSettings() { }
 
@@ -19,7 +23,9 @@ public class PlatformSettings {
     private static Settings getSettingsInst() {
         if (settingsInst == null) {
             settingsInst = new Settings(new String[]{
-                    FONT_SIZE, FULLSCREEN_MODE
+                    FONT_SIZE,
+                    FULLSCREEN_MODE,
+                    BLACK_AND_WHITE_MODE
             }, STORE_NAME);
         }
         return settingsInst;
@@ -57,5 +63,23 @@ public class PlatformSettings {
 
     public static void setFullscreenModeOverride(boolean value) {
         fullscreenModeOverride = value ? TRUE : FALSE;
+    }
+
+    ///
+
+    public static boolean getBlackAndWhiteMode() {
+        if (blackAndWhiteModeOverride == UNDEF) {
+            return getSettingsInst().getBool(BLACK_AND_WHITE_MODE, false);
+        } else {
+            return blackAndWhiteModeOverride == TRUE;
+        }
+    }
+
+    public static void setBlackAndWhiteMode(boolean value) {
+        getSettingsInst().set(BLACK_AND_WHITE_MODE, value);
+    }
+
+    public static void setBlackAndWhiteModeOverride(boolean value) {
+        blackAndWhiteModeOverride = value ? TRUE : FALSE;
     }
 }
