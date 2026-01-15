@@ -38,7 +38,7 @@ public class RootContainer {
         if (inst != null) {
             inst.init();
         }
-	}
+    }
 
     public static RootContainerView setUISettings(UISettings uiSettings) {
         getInst().setUiSettings(uiSettings);

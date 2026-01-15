@@ -13,12 +13,12 @@ import java.util.Vector;
  * @author vipaol
  */
 public class FileUtils {
-    
+
     public static final String PREFIX = "";
     public static final char SEP = '/';
     private static final String[] FOLDERS_ON_EACH_DRIVE = {""};
     private static final short[] TESTDATA = new short[]{0, 1, 2, 3};
-    
+
     public static void saveShortArrayToFile(short[] arr, String path) throws IOException, SecurityException {
         File file = new File(path);
         if (!file.exists()) {
@@ -88,7 +88,7 @@ public class FileUtils {
         }
         return null;
     }
-    
+
     public static DataInputStream fileToDataInputStream(String path) {
         try {
             return new DataInputStream(new FileInputStream(path));
@@ -96,7 +96,7 @@ public class FileUtils {
             return null;
         }
     }
-    
+
     public static String[] getRoots() {
         return new String[]{
                 //Environment.getExternalStorageDirectory().getPath() + SEP,
@@ -104,17 +104,17 @@ public class FileUtils {
                 String.valueOf(Platform.getExternalFilesDir()) + SEP
         };
     }
-    
+
     public static String[] list(String path) throws IOException {
         return new File(path).list();
     }
-    
+
     public static String[] enumToArray(Enumeration en) {
         Vector tmp = new Vector(5);
         while (en.hasMoreElements()) {
             tmp.addElement(en.nextElement());
         }
-        
+
         String[] arr = new String[tmp.size()];
         for (int i = 0; i < tmp.size(); i++) {
             arr[i] = (String) tmp.elementAt(i);
@@ -126,7 +126,7 @@ public class FileUtils {
         File f = new File(path);
         f.mkdirs();
     }
-    
+
     public static void checkFolder(String path) throws IOException {
         path = path + "test.mgstruct";
 
@@ -147,5 +147,5 @@ public class FileUtils {
 
         return paths;
     }
-    
+
 }
