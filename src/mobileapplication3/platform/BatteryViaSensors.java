@@ -2,13 +2,12 @@
 
 package mobileapplication3.platform;
 
-import java.io.IOException;
-
 import javax.microedition.io.Connector;
 import javax.microedition.sensor.Data;
 import javax.microedition.sensor.SensorConnection;
 import javax.microedition.sensor.SensorInfo;
 import javax.microedition.sensor.SensorManager;
+import java.io.IOException;
 
 public class BatteryViaSensors {
 	public int getBatteryLevel() {

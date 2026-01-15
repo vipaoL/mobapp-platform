@@ -2,17 +2,12 @@
 
 package mobileapplication3.platform;
 
-import java.io.ByteArrayOutputStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.util.Enumeration;
-import java.util.Vector;
-
 import javax.microedition.io.Connector;
 import javax.microedition.io.file.FileConnection;
 import javax.microedition.io.file.FileSystemRegistry;
+import java.io.*;
+import java.util.Enumeration;
+import java.util.Vector;
 
 /**
  *

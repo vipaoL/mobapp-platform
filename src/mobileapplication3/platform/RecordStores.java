@@ -2,13 +2,12 @@
 
 package mobileapplication3.platform;
 
-import java.io.ByteArrayInputStream;
-import java.io.DataInputStream;
-import java.io.UnsupportedEncodingException;
-
 import javax.microedition.rms.RecordStore;
 import javax.microedition.rms.RecordStoreException;
 import javax.microedition.rms.RecordStoreNotFoundException;
+import java.io.ByteArrayInputStream;
+import java.io.DataInputStream;
+import java.io.UnsupportedEncodingException;
 
 /**
  *

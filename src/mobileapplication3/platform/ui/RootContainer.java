@@ -2,17 +2,13 @@
 
 package mobileapplication3.platform.ui;
 
+import mobileapplication3.platform.Logger;
+import mobileapplication3.platform.Platform;
+import mobileapplication3.ui.*;
+
 import javax.microedition.lcdui.Canvas;
 import javax.microedition.lcdui.Graphics;
 import javax.microedition.lcdui.game.GameCanvas;
-
-import mobileapplication3.platform.Logger;
-import mobileapplication3.platform.Platform;
-import mobileapplication3.ui.IContainer;
-import mobileapplication3.ui.IPopupFeedback;
-import mobileapplication3.ui.IUIComponent;
-import mobileapplication3.ui.Keys;
-import mobileapplication3.ui.UISettings;
 
 /**
  *

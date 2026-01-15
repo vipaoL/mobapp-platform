@@ -2,9 +2,9 @@
 
 package mobileapplication3.platform;
 
-import javax.microedition.midlet.MIDlet;
-
 import mobileapplication3.platform.ui.RootContainer;
+
+import javax.microedition.midlet.MIDlet;
 
 public abstract class MobappMIDlet extends MIDlet {
 

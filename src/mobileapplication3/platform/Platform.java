@@ -2,19 +2,14 @@
 
 package mobileapplication3.platform;
 
+import mobileapplication3.platform.ui.RootContainer;
+
+import javax.microedition.io.ConnectionNotFoundException;
+import javax.microedition.lcdui.*;
+import javax.microedition.rms.RecordStoreException;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-
-import javax.microedition.io.ConnectionNotFoundException;
-import javax.microedition.lcdui.Alert;
-import javax.microedition.lcdui.AlertType;
-import javax.microedition.lcdui.Display;
-import javax.microedition.lcdui.Displayable;
-import javax.microedition.lcdui.Image;
-import javax.microedition.rms.RecordStoreException;
-
-import mobileapplication3.platform.ui.RootContainer;
 
 public class Platform {
 	private static MobappMIDlet midletInst = null;
