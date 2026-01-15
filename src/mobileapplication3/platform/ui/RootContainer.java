@@ -192,10 +192,10 @@ public class RootContainer extends Canvas implements IContainer, IPopupFeedback,
             Logger.disableOnScreenLog();
         }
 
-    	if (inst.rootUIComponent != null) {
-    		inst.rootUIComponent.init();
-    	}
-	}
+        if (inst.rootUIComponent != null) {
+            inst.rootUIComponent.init();
+        }
+    }
 
     public static RootContainer setUISettings(UISettings uiSettings) {
         getInst().uiSettings = uiSettings;
@@ -212,7 +212,7 @@ public class RootContainer extends Canvas implements IContainer, IPopupFeedback,
             //inst.rootUIComponent.setParent(null);
             inst.rootUIComponent.setFocused(false);
         }
-        
+
         if (rootUIComponent != null) {
             inst.rootUIComponent = rootUIComponent.setParent(inst).setVisible(true);
             inst.rootUIComponentPostInitDone = false;
@@ -251,8 +251,8 @@ public class RootContainer extends Canvas implements IContainer, IPopupFeedback,
 
     @Override
     public UISettings getUISettings() {
-		return uiSettings;
-	}
+        return uiSettings;
+    }
 
     @Override
     public boolean isOnScreen() {
@@ -314,15 +314,15 @@ public class RootContainer extends Canvas implements IContainer, IPopupFeedback,
         }
         toolkit.sync();
     }
-    
+
     public int getBgColor() {
-		return getBackground().getRGB();
-	}
-    
+        return getBackground().getRGB();
+    }
+
     public void setBgColor(int bgColor) {
         setBackground(new Color(bgColor));
-	}
-    
+    }
+
     public static int getAction(int keyCode) {
         switch (keyCode) {
             case Keys.KEY_UP:
@@ -375,7 +375,7 @@ public class RootContainer extends Canvas implements IContainer, IPopupFeedback,
         keyCode = convertKeyCode(keyCode);
         kbHelper.keyReleased(keyCode);
     }
-    
+
     private void handleKeyPressed(int keyCode, int count) {
         if (rootUIComponent != null) {
             rootUIComponent.setVisible(true);
@@ -400,7 +400,7 @@ public class RootContainer extends Canvas implements IContainer, IPopupFeedback,
         }
         wasDownEvent = false;
     }
-    
+
     protected void handleKeyRepeated(int keyCode, int pressedCount) {
         if (getAction(keyCode) == Keys.FIRE) {
             return;
@@ -433,7 +433,7 @@ public class RootContainer extends Canvas implements IContainer, IPopupFeedback,
             }
         }
     }
-    
+
     protected void pointerDragged(int x, int y) {
         if (lastPointerX == x && lastPointerY == y) {
             return;
@@ -503,7 +503,7 @@ public class RootContainer extends Canvas implements IContainer, IPopupFeedback,
         }
         repaint();
     }
-    
+
     protected void onHide() {
         kbHelper.hide();
         if (rootUIComponent != null) {
@@ -601,7 +601,7 @@ public class RootContainer extends Canvas implements IContainer, IPopupFeedback,
                 public void run() {
                     try {
                         while (true) {
-                        	// Wait until a key is pressed
+                            // Wait until a key is pressed
                             if (!pressState) {
                                 synchronized(tillPressed) {
                                     tillPressed.wait();
@@ -610,12 +610,12 @@ public class RootContainer extends Canvas implements IContainer, IPopupFeedback,
 
                             // The thread is interrupted when the key is released
                             try {
-                            	// Wait a delay and repeat
-                            	Thread.sleep(500);
-	                            while (true) {
-	                                handleKeyRepeated(lastKey, pressCount);
-	                                Thread.sleep(150);
-	                            }
+                                // Wait a delay and repeat
+                                Thread.sleep(500);
+                                while (true) {
+                                    handleKeyRepeated(lastKey, pressCount);
+                                    Thread.sleep(150);
+                                }
                             } catch (InterruptedException ex) { }
                         }
                     } catch (InterruptedException ignored) { }
@@ -623,7 +623,7 @@ public class RootContainer extends Canvas implements IContainer, IPopupFeedback,
             };
             repeatThread.start();
         }
-        
+
         public void hide() {
             if(repeatThread != null) {
                 repeatThread.interrupt();
@@ -636,7 +636,7 @@ public class RootContainer extends Canvas implements IContainer, IPopupFeedback,
             } else {
                 pressCount = 1;
             }
-            
+
             updateLastEventTime();
             lastKey = k;
             pressState = true;
@@ -656,11 +656,11 @@ public class RootContainer extends Canvas implements IContainer, IPopupFeedback,
             repeatThread.interrupt();
             handleKeyReleased(k, pressCount);
         }
-        
+
         private boolean isLastEventOld() {
             return System.currentTimeMillis() - lastEvent > 200;
         }
-        
+
         private void updateLastEventTime() {
             lastEvent = System.currentTimeMillis();
         }

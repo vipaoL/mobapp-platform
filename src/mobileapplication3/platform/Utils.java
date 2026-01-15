@@ -7,7 +7,7 @@ package mobileapplication3.platform;
  * @author vipaol
  */
 public class Utils {
-    
+
     public static String shortArrayToString(short [] arr) {
         try {
             if (arr == null) {
@@ -57,7 +57,7 @@ public class Utils {
             return ex.toString();
         }
     }
-    
+
     public static String[] split(String sb, String splitter){
         String[] strs = new String[sb.length()];
         int splitterLength = splitter.length();
@@ -140,7 +140,7 @@ public class Utils {
 
         return sb.toString();
     }
-    
+
     public static int count(String s, char c) {
         int ret = 0;
         for (int i = 0; i < s.length(); i++) {

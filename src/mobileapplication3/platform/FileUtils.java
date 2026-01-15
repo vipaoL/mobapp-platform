@@ -15,13 +15,13 @@ import java.util.Vector;
  * @author vipaol
  */
 public class FileUtils {
-    
+
     public static final String PREFIX = "";
     public static final char SEP = '/';
     private static final String[] FOLDERS_ON_EACH_DRIVE = {""};
     private static final short[] TESTDATA = new short[]{0, 1, 2, 3};
     private static String storagePath = System.getProperty("user.dir", ".") + SEP + "Mobapp";
-    
+
     public static void saveShortArrayToFile(short[] arr, String path) throws IOException, SecurityException {
         ByteArrayOutputStream buf = new ByteArrayOutputStream(arr.length*2);
         DataOutputStream dos = new DataOutputStream(buf);
@@ -65,7 +65,7 @@ public class FileUtils {
         }
         return null;
     }
-    
+
     public static DataInputStream fileToDataInputStream(String path) {
         try {
             return new DataInputStream(new FileInputStream(path));
@@ -73,7 +73,7 @@ public class FileUtils {
             return null;
         }
     }
-    
+
     public static String[] getRoots() {
         return new String[]{
             getAppStoragePath()
@@ -83,17 +83,17 @@ public class FileUtils {
     public static String getAppStoragePath() {
         return getStoragePath() + SEP;
     }
-    
+
     public static String[] list(String path) throws IOException {
         return new File(path).list();
     }
-    
+
     public static String[] enumToArray(Enumeration en) {
         Vector tmp = new Vector(5);
         while (en.hasMoreElements()) {
             tmp.addElement(en.nextElement());
         }
-        
+
         String[] arr = new String[tmp.size()];
         for (int i = 0; i < tmp.size(); i++) {
             arr[i] = (String) tmp.elementAt(i);
@@ -105,7 +105,7 @@ public class FileUtils {
         File f = new File(path);
         f.mkdirs();
     }
-    
+
     public static void checkFolder(String path) throws IOException {
         path = path + "test.mgstruct";
 

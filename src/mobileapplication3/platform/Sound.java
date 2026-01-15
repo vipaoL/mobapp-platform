@@ -8,10 +8,10 @@ package mobileapplication3.platform;
  */
 public class Sound {
     public void start() { }
-    
+
     public boolean load(String path_res, boolean supressAlert) {
         return false;
     }
-    
+
     public void stop() { }
 }
