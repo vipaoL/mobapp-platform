@@ -2,8 +2,6 @@
 
 package mobileapplication3.platform;
 
-import static android.content.Context.BATTERY_SERVICE;
-
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
@@ -14,6 +12,8 @@ import android.os.Vibrator;
 import android.view.View;
 
 import java.io.File;
+
+import static android.content.Context.BATTERY_SERVICE;
 
 public class ModernAndroidUtils {
 

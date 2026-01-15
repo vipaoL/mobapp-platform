@@ -6,7 +6,6 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.os.Build;
-
 import mobileapplication3.platform.ModernAndroidUtils;
 import mobileapplication3.platform.Platform;
 

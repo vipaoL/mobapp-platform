@@ -4,7 +4,6 @@ package mobileapplication3.platform.ui;
 
 import android.content.Context;
 import android.os.Build;
-
 import mobileapplication3.platform.Platform;
 import mobileapplication3.ui.IUIComponent;
 import mobileapplication3.ui.Keys;

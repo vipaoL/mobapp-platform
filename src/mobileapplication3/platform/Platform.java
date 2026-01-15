@@ -2,8 +2,6 @@
 
 package mobileapplication3.platform;
 
-import static mobileapplication3.platform.FileUtils.SEP;
-
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -18,6 +16,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
+
+import static mobileapplication3.platform.FileUtils.SEP;
 
 public class Platform {
 	public static final int SDK_INT = getAndroidAPIVersion();

@@ -6,12 +6,11 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.util.Log;
+import mobileapplication3.platform.Platform;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Random;
-
-import mobileapplication3.platform.Platform;
 
 public class Image implements IImage {
     private Bitmap image;

@@ -3,8 +3,6 @@
 package mobileapplication3.platform.ui;
 
 import android.content.Context;
-import android.util.Log;
-import android.view.View;
 
 public class RootContainerViewLegacy extends RootContainerView {
     public RootContainerViewLegacy(Context context) {

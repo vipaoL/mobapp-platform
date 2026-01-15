@@ -4,10 +4,9 @@ package mobileapplication3.platform.ui;
 
 import android.graphics.Paint;
 import android.graphics.Rect;
+import mobileapplication3.platform.Platform;
 
 import java.util.Vector;
-
-import mobileapplication3.platform.Platform;
 
 public class Font implements IFont {
     private Paint p;

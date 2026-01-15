@@ -6,7 +6,6 @@ import android.app.Activity;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.KeyEvent;
-
 import mobileapplication3.platform.ModernAndroidUtils;
 import mobileapplication3.platform.Platform;
 import mobileapplication3.ui.IUIComponent;

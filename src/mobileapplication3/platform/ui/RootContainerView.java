@@ -2,44 +2,16 @@
 
 package mobileapplication3.platform.ui;
 
-import static android.view.KeyEvent.KEYCODE_0;
-import static android.view.KeyEvent.KEYCODE_1;
-import static android.view.KeyEvent.KEYCODE_2;
-import static android.view.KeyEvent.KEYCODE_3;
-import static android.view.KeyEvent.KEYCODE_4;
-import static android.view.KeyEvent.KEYCODE_5;
-import static android.view.KeyEvent.KEYCODE_6;
-import static android.view.KeyEvent.KEYCODE_7;
-import static android.view.KeyEvent.KEYCODE_8;
-import static android.view.KeyEvent.KEYCODE_9;
-import static android.view.KeyEvent.KEYCODE_BACK;
-import static android.view.KeyEvent.KEYCODE_CHANNEL_DOWN;
-import static android.view.KeyEvent.KEYCODE_CHANNEL_UP;
-import static android.view.KeyEvent.KEYCODE_DPAD_CENTER;
-import static android.view.KeyEvent.KEYCODE_DPAD_DOWN;
-import static android.view.KeyEvent.KEYCODE_DPAD_LEFT;
-import static android.view.KeyEvent.KEYCODE_DPAD_RIGHT;
-import static android.view.KeyEvent.KEYCODE_DPAD_UP;
-import static android.view.KeyEvent.KEYCODE_ENTER;
-import static android.view.KeyEvent.KEYCODE_MENU;
-import static android.view.KeyEvent.KEYCODE_POUND;
-import static android.view.KeyEvent.KEYCODE_SOFT_LEFT;
-import static android.view.KeyEvent.KEYCODE_SOFT_RIGHT;
-import static android.view.KeyEvent.KEYCODE_STAR;
-
 import android.content.Context;
 import android.graphics.Canvas;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
-
 import mobileapplication3.platform.Logger;
 import mobileapplication3.platform.Platform;
-import mobileapplication3.ui.IContainer;
-import mobileapplication3.ui.IPopupFeedback;
-import mobileapplication3.ui.IUIComponent;
-import mobileapplication3.ui.Keys;
-import mobileapplication3.ui.UISettings;
+import mobileapplication3.ui.*;
+
+import static android.view.KeyEvent.*;
 
 public abstract class RootContainerView extends SurfaceView implements IContainer, IPopupFeedback, SurfaceHolder.Callback {
     private IUIComponent rootUIComponent = null;
