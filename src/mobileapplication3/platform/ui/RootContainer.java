@@ -17,7 +17,7 @@ import javax.microedition.lcdui.game.GameCanvas;
 public class RootContainer extends GameCanvas implements IContainer, IPopupFeedback {
     private static final int SE_KEY_BACK = -11;
 
-	private static RootContainer inst = null;
+    private static RootContainer inst = null;
     private IUIComponent rootUIComponent = null;
     private KeyboardHelper kbHelper;
     private mobileapplication3.platform.ui.Graphics lastGraphics = null;
@@ -33,56 +33,56 @@ public class RootContainer extends GameCanvas implements IContainer, IPopupFeedb
     private boolean rootUIComponentPostInitDone = false;
 
     private RootContainer() {
-    	super(false);
+        super(false);
         setFullScreenMode(true);
         kbHelper = new KeyboardHelper();
         displayKbHints = !hasPointerEvents();
     }
 
     public static RootContainer getInst() {
-    	if (inst == null) {
-    		inst = new RootContainer();
-    	}
-    	return inst;
+        if (inst == null) {
+            inst = new RootContainer();
+        }
+        return inst;
     }
 
     public static void init() {
-    	RootContainer.inst = getInst();
+        RootContainer.inst = getInst();
 
-    	enableOnScreenLog = inst.uiSettings == null || inst.uiSettings.enableOnScreenLog();
-    	if (enableOnScreenLog) {
-    		if (inst.h > 0) {
-        		Logger.enableOnScreenLog(inst.h);
-        	}
-    	} else {
-    		Logger.disableOnScreenLog();
-    	}
+        enableOnScreenLog = inst.uiSettings == null || inst.uiSettings.enableOnScreenLog();
+        if (enableOnScreenLog) {
+            if (inst.h > 0) {
+                Logger.enableOnScreenLog(inst.h);
+            }
+        } else {
+            Logger.disableOnScreenLog();
+        }
 
-    	if (inst.rootUIComponent != null) {
-    		inst.rootUIComponent.init();
-    	}
-	}
+        if (inst.rootUIComponent != null) {
+            inst.rootUIComponent.init();
+        }
+    }
 
     public static RootContainer setUISettings(UISettings uiSettings) {
-    	getInst().uiSettings = uiSettings;
-    	if (uiSettings != null) {
-    		uiSettings.onChange();
-    	}
-		return inst;
+        getInst().uiSettings = uiSettings;
+        if (uiSettings != null) {
+            uiSettings.onChange();
+        }
+        return inst;
     }
 
     public static RootContainer setRootUIComponent(IUIComponent rootUIComponent) {
-    	getInst();
-    	inst.wasDownEvent = false;
+        getInst();
+        inst.wasDownEvent = false;
         if (inst.rootUIComponent != null) {
             inst.rootUIComponent.setParent(null);
             inst.rootUIComponent.setFocused(false);
         }
 
         if (rootUIComponent != null) {
-		    inst.rootUIComponent = rootUIComponent.setParent(inst).setVisible(true);
-		    inst.rootUIComponentPostInitDone = false;
-		    rootUIComponent.init();
+            inst.rootUIComponent = rootUIComponent.setParent(inst).setVisible(true);
+            inst.rootUIComponentPostInitDone = false;
+            rootUIComponent.init();
             if (inst.getWidth() > 0 && inst.getHeight() > 0) {
                 rootUIComponent.setSize(inst.getWidth(), inst.getHeight());
                 rootUIComponent.postInit();
@@ -95,48 +95,48 @@ public class RootContainer extends GameCanvas implements IContainer, IPopupFeedb
     }
 
     public UISettings getUISettings() {
-		return uiSettings;
-	}
+        return uiSettings;
+    }
 
     public final void repaintt() {
-    	if (rootUIComponent == null || !rootUIComponent.repaintOnlyOnFlushGraphics()) {
-    		super.repaint();
-    	}
+        if (rootUIComponent == null || !rootUIComponent.repaintOnlyOnFlushGraphics()) {
+            super.repaint();
+        }
     }
 
     public void paint(Graphics g) {
-    	if (bgColor >= 0) {
-    		g.fillRect(0, 0, w, h);
-    	}
+        if (bgColor >= 0) {
+            g.fillRect(0, 0, w, h);
+        }
 
         if (rootUIComponent != null) {
             rootUIComponent.paint(new mobileapplication3.platform.ui.Graphics(g));
         } else {
-        	g.setColor(0xaaaaaa);
-        	g.drawString("Nothing to draw. " + rootUIComponent, w/2, h, Graphics.BOTTOM | Graphics.HCENTER);
+            g.setColor(0xaaaaaa);
+            g.drawString("Nothing to draw. " + rootUIComponent, w/2, h, Graphics.BOTTOM | Graphics.HCENTER);
         }
         Logger.paint(new mobileapplication3.platform.ui.Graphics(g));
     }
 
     public mobileapplication3.platform.ui.Graphics getUGraphics() {
-		return lastGraphics = new mobileapplication3.platform.ui.Graphics(getGraphics());
-	}
+        return lastGraphics = new mobileapplication3.platform.ui.Graphics(getGraphics());
+    }
 
     public void flushGraphics() {
-    	Logger.paint(lastGraphics);
-    	super.flushGraphics();
+        Logger.paint(lastGraphics);
+        super.flushGraphics();
     }
 
     public int getBgColor() {
-		return bgColor;
-	}
+        return bgColor;
+    }
 
     public void setBgColor(int bgColor) {
-		this.bgColor = bgColor;
-	}
+        this.bgColor = bgColor;
+    }
 
     public static int getAction(int keyCode) {
-    	return inst.getGameAction(keyCode);
+        return inst.getGameAction(keyCode);
     }
 
     protected void keyPressed(int keyCode) {
@@ -147,23 +147,23 @@ public class RootContainer extends GameCanvas implements IContainer, IPopupFeedb
     }
 
     private void handleKeyPressed(int keyCode, int count) {
-    	wasDownEvent = true;
-    	try {
-	        if (rootUIComponent != null) {
-	            rootUIComponent.setVisible(true);
-	            if (rootUIComponent.keyPressed(keyCode, count)) {
-	            	if (!displayKbHints) {
-	            		displayKbHints = true;
-	            		if (uiSettings != null) {
-	            			uiSettings.onChange();
-	            		}
-	            	}
-	                repaintt();
-	            }
-	        }
-	    } catch (Exception ex) {
-			Logger.log(ex);
-		}
+        wasDownEvent = true;
+        try {
+            if (rootUIComponent != null) {
+                rootUIComponent.setVisible(true);
+                if (rootUIComponent.keyPressed(keyCode, count)) {
+                    if (!displayKbHints) {
+                        displayKbHints = true;
+                        if (uiSettings != null) {
+                            uiSettings.onChange();
+                        }
+                    }
+                    repaintt();
+                }
+            }
+        } catch (Exception ex) {
+            Logger.log(ex);
+        }
     }
 
     protected void keyReleased(int keyCode) {
@@ -195,7 +195,7 @@ public class RootContainer extends GameCanvas implements IContainer, IPopupFeedb
     }
 
     protected void pointerPressed(int x, int y) {
-    	lastPointerX = pressedX = x;
+        lastPointerX = pressedX = x;
         lastPointerY = pressedY = y;
         pressedTime = System.currentTimeMillis();
         if (rootUIComponent != null) {
@@ -208,7 +208,7 @@ public class RootContainer extends GameCanvas implements IContainer, IPopupFeedb
     }
 
     protected void pointerDragged(int x, int y) {
-    	if (lastPointerX == x && lastPointerY == y) {
+        if (lastPointerX == x && lastPointerY == y) {
             return;
         }
 
@@ -219,46 +219,46 @@ public class RootContainer extends GameCanvas implements IContainer, IPopupFeedb
                 repaintt();
             }
         }
-        
+
         if (!wasDragged) {
-	        int d = Math.abs(x - pressedX) + Math.abs(y - pressedY);
-	        if (d > 4) {
-	        	wasDragged = true;
-	        }
+            int d = Math.abs(x - pressedX) + Math.abs(y - pressedY);
+            if (d > 4) {
+                wasDragged = true;
+            }
         }
     }
-    
+
     protected void pointerReleased(int x, int y) {
-    	try {
-	        if (rootUIComponent != null && wasDownEvent) {
-	            if (rootUIComponent.pointerReleased(x, y)) {
-	                repaintt();
-	            }
+        try {
+            if (rootUIComponent != null && wasDownEvent) {
+                if (rootUIComponent.pointerReleased(x, y)) {
+                    repaintt();
+                }
 
                 if (!wasDragged && System.currentTimeMillis() - pressedTime < 1000) {
-                	if (rootUIComponent.pointerClicked(x, y)) {
-                		repaintt();
-                	}
+                    if (rootUIComponent.pointerClicked(x, y)) {
+                        repaintt();
+                    }
                 }
-	        }
-    	} catch (Exception ex) {
-    		Logger.log(ex);
-    	}
+            }
+        } catch (Exception ex) {
+            Logger.log(ex);
+        }
         wasDownEvent = false;
         wasDragged = false;
     }
-    
+
     protected void sizeChanged(int w, int h) {
         if (w <= 0 || h <= 0) {
             return;
         }
 
-    	this.w = w;
-    	this.h = h;
+        this.w = w;
+        this.h = h;
 
-    	if (enableOnScreenLog) {
-    		Logger.enableOnScreenLog(h);
-    	}
+        if (enableOnScreenLog) {
+            Logger.enableOnScreenLog(h);
+        }
 
         if (rootUIComponent != null) {
             rootUIComponent.setSize(w, h);
@@ -274,29 +274,29 @@ public class RootContainer extends GameCanvas implements IContainer, IPopupFeedb
     protected void showNotify() {
         kbHelper.show();
         if (rootUIComponent != null) {
-        	rootUIComponent.onShow();
+            rootUIComponent.onShow();
             rootUIComponent.setVisible(true);
             repaintt();
         }
         sizeChanged(getWidth(), getHeight());
     }
-    
+
     protected void hideNotify() {
         kbHelper.hide();
         if (rootUIComponent != null) {
-        	rootUIComponent.onHide();
+            rootUIComponent.onHide();
             rootUIComponent.setVisible(false);
             repaintt();
         }
     }
 
     public void closePopup() {
-		Platform.exit();
-	}
+        Platform.exit();
+    }
 
     public boolean isOnScreen() {
-		return true;
-	}
+        return true;
+    }
 
     private class KeyboardHelper {
         private int lastKey, pressCount;
@@ -314,17 +314,17 @@ public class RootContainer extends GameCanvas implements IContainer, IPopupFeedb
                     }
                 } catch (InterruptedException ex) { }
             }
-		};
+        };
 
         public void show() {
             pressCount = 1;
             lastKey = 0;
         }
-        
+
         public void hide() {
             if(repeatThread != null) {
-            	Thread thread = repeatThread;
-            	repeatThread = null;
+                Thread thread = repeatThread;
+                repeatThread = null;
                 thread.interrupt();
             }
         }
@@ -335,7 +335,7 @@ public class RootContainer extends GameCanvas implements IContainer, IPopupFeedb
             } else {
                 pressCount = 1;
             }
-            
+
             updateLastEventTime();
             lastKey = k;
             handleKeyPressed(k, pressCount);
@@ -351,11 +351,11 @@ public class RootContainer extends GameCanvas implements IContainer, IPopupFeedb
             repeatThread.interrupt();
             handleKeyReleased(k, pressCount);
         }
-        
+
         private boolean isLastEventOld() {
             return System.currentTimeMillis() - lastEvent > 200;
         }
-        
+
         private void updateLastEventTime() {
             lastEvent = System.currentTimeMillis();
         }

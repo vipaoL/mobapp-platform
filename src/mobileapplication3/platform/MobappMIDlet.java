@@ -26,11 +26,11 @@ public abstract class MobappMIDlet extends MIDlet {
     public void pauseApp() { }
 
     public void destroyApp(boolean unconditional) {
-    	notifyDestroyed();
+        notifyDestroyed();
     }
 
     public void closeApp() {
-    	destroyApp(true);
+        destroyApp(true);
     }
 
 }

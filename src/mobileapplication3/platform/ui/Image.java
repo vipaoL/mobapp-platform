@@ -6,17 +6,17 @@ import java.io.IOException;
 import java.util.Random;
 
 public final class Image implements IImage {
-	javax.microedition.lcdui.Image image;
-	
-	public Image(javax.microedition.lcdui.Image image) {
-		this.image = image;
-	}
+    javax.microedition.lcdui.Image image;
 
-	public static Image createImage(int width, int height) {
-		return new Image(javax.microedition.lcdui.Image.createImage(width, height));
-	}
-	
-	public static void blurImg(Image img) {
+    public Image(javax.microedition.lcdui.Image image) {
+        this.image = image;
+    }
+
+    public static Image createImage(int width, int height) {
+        return new Image(javax.microedition.lcdui.Image.createImage(width, height));
+    }
+
+    public static void blurImg(Image img) {
         try {
             Graphics g = img.getGraphics();
             int x0 = 0, y0 = 0;
@@ -47,24 +47,24 @@ public final class Image implements IImage {
             ex.printStackTrace();
         }
     }
-	
-	public Graphics getGraphics() {
-		return new Graphics(image.getGraphics());
-	}
-	
-	public javax.microedition.lcdui.Image getImage() {
-		return image;
-	}
 
-	public int getWidth() {
-		return image.getWidth();
-	}
+    public Graphics getGraphics() {
+        return new Graphics(image.getGraphics());
+    }
 
-	public int getHeight() {
-		return image.getHeight();
-	}
-	
-	public Image scale(int newWidth, int newHeight) {
+    public javax.microedition.lcdui.Image getImage() {
+        return image;
+    }
+
+    public int getWidth() {
+        return image.getWidth();
+    }
+
+    public int getHeight() {
+        return image.getHeight();
+    }
+
+    public Image scale(int newWidth, int newHeight) {
         int[] rawInput = new int[image.getHeight() * image.getWidth()];
         image.getRGB(rawInput, 0, image.getWidth(), 0, 0, image.getWidth(), image.getHeight());
 
@@ -100,15 +100,15 @@ public final class Image implements IImage {
 
     }
 
-	public static Image createImage(String source) throws IOException {
-		return new Image(javax.microedition.lcdui.Image.createImage(source));
-	}
+    public static Image createImage(String source) throws IOException {
+        return new Image(javax.microedition.lcdui.Image.createImage(source));
+    }
 
-	public void getRGB(int[] rgbData, int offset, int scanlength, int x, int y, int width, int height) {
-		image.getRGB(rgbData, offset, scanlength, x, y, width, height);
-	}
+    public void getRGB(int[] rgbData, int offset, int scanlength, int x, int y, int width, int height) {
+        image.getRGB(rgbData, offset, scanlength, x, y, width, height);
+    }
 
-	public void blur() {
-		blurImg(this);
-	}
+    public void blur() {
+        blurImg(this);
+    }
 }
