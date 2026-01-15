@@ -2,11 +2,11 @@
 
 package mobileapplication3.platform.ui;
 
+import mobileapplication3.platform.PlatformSettings;
+
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.Vector;
-
-import mobileapplication3.platform.PlatformSettings;
 
 public class Font implements IFont {
     private final java.awt.Font font;

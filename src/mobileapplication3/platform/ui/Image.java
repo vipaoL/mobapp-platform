@@ -2,15 +2,13 @@
 
 package mobileapplication3.platform.ui;
 
-import java.awt.image.BufferedImage;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Random;
-
 import mobileapplication3.platform.Logger;
 import mobileapplication3.platform.Platform;
 
 import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.util.Random;
 
 public class Image implements IImage {
     private BufferedImage image;
