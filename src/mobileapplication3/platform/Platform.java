@@ -87,6 +87,10 @@ public class Platform {
         try {
             Desktop desktop = Desktop.getDesktop();
             if (desktop.isSupported(Desktop.Action.BROWSE)) {
+                String filePref = "file://";
+                if (url.startsWith(filePref)) {
+                    url = filePref + new File(url.substring(filePref.length())).getAbsolutePath();
+                }
                 desktop.browse(URI.create(url));
             } else {
                 Logger.logErr("Desktop.Action.BROWSE is not supported. Could not open " + url);
