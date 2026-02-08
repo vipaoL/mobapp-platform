@@ -125,7 +125,12 @@ public class Platform {
 
     public static boolean platformRequest(String url) {
         try {
-            Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+            if (url.startsWith("file://")) {
+                Platform.showError("Not supported on Android");
+                return false;
+            }
+            String action = Intent.ACTION_VIEW;
+            Intent browserIntent = new Intent(action, Uri.parse(url));
             getActivityInst().startActivity(browserIntent);
         } catch (Exception ex) {
             showError(ex);
