@@ -110,9 +110,13 @@ public class Platform {
     }
 
     public static String getAppVersion() {
+        return getAppVersion(context);
+    }
+
+    public static String getAppVersion(Context context) {
         try{
-            return getActivityInst().getPackageManager()
-                    .getPackageInfo(getActivityInst().getPackageName(), 0).versionName;
+            return context.getPackageManager()
+                    .getPackageInfo(context.getPackageName(), 0).versionName;
         } catch (Exception ex) {
             Log.e("mobapp error", "Can't get app version", ex);
             return null;
