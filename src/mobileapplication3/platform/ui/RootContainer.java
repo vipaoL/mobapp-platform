@@ -39,13 +39,13 @@ public class RootContainer extends Canvas implements IContainer, IPopupFeedback,
     private long lastMouseEvent;
     private Thread mouseHider = null;
     private final HashSet<Integer> pressedKeys = new HashSet<>();
-    private boolean rootUIComponentPostInitDone = false;
 
     public RootContainer() {
         inst = this;
         kbHelper = new KeyboardHelper();
         displayKbHints = false;//!hasPointerEvents();
         setFocusable(true);
+        setIgnoreRepaint(true);
         MouseAdapter mouseAdapter = new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
@@ -206,28 +206,44 @@ public class RootContainer extends Canvas implements IContainer, IPopupFeedback,
     }
 
     public static RootContainer setRootUIComponent(IUIComponent rootUIComponent) {
+        Thread oldRepaintThread = repaintThread;
+        repaintThread = null;
+        try {
+            if (oldRepaintThread != null) {
+                oldRepaintThread.join();
+            }
+        } catch (InterruptedException ignored) { }
+
         inst.wasDownEvent = false;
         if (inst.rootUIComponent != null) {
             inst.rootUIComponent.setVisible(false);
-            //inst.rootUIComponent.setParent(null);
+            inst.rootUIComponent.setParent(null);
             inst.rootUIComponent.setFocused(false);
         }
 
         if (rootUIComponent != null) {
-            inst.rootUIComponent = rootUIComponent.setParent(inst).setVisible(true);
-            inst.rootUIComponentPostInitDone = false;
+            rootUIComponent.setParent(inst).setVisible(false);
             rootUIComponent.init();
-            if (inst.getWidth() > 0 && inst.getHeight() > 0) {
-                rootUIComponent.setSize(inst.getWidth(), inst.getHeight());
-                rootUIComponent.postInit();
-                rootUIComponent.setFocused(true);
-                inst.rootUIComponentPostInitDone = true;
+            while (true) {
+                if (inst.getWidth() > 0 && inst.getHeight() > 0) {
+                    Logger.log("RootContainer.inst: " + inst.getWidth() + "x" + inst.getHeight());
+                    rootUIComponent.setSize(inst.getWidth(), inst.getHeight());
+                    rootUIComponent.postInit();
+                    rootUIComponent.setFocused(true);
+                    break;
+                } else {
+                    Logger.log("Error: Window size is 0");
+                    try {
+                        Thread.sleep(100);
+                    } catch (InterruptedException ignored) { }
+                }
             }
+            inst.rootUIComponent = rootUIComponent.setVisible(true);
             if (!rootUIComponent.repaintOnlyOnFlushGraphics() && repaintThread == null) {
                 repaintThread = new Thread(new Runnable() {
                     @Override
                     public void run() {
-                        while (!inst.rootUIComponent.repaintOnlyOnFlushGraphics()) {
+                        while (!inst.rootUIComponent.repaintOnlyOnFlushGraphics() && Thread.currentThread() == repaintThread) {
                             try {
                                 Thread.yield();
                                 Thread.sleep(200);
@@ -485,11 +501,6 @@ public class RootContainer extends Canvas implements IContainer, IPopupFeedback,
 
         if (rootUIComponent != null) {
             rootUIComponent.setSize(w, h);
-            if (!rootUIComponentPostInitDone) {
-                rootUIComponent.postInit();
-                rootUIComponent.setFocused(true);
-                rootUIComponentPostInitDone = true;
-            }
             repaint();
         }
     }
