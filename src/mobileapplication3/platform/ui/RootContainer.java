@@ -19,12 +19,7 @@ public class RootContainer {
     private static RootContainerView inst = null;
 
     public static RootContainerView createView(Context context) {
-        if (Platform.SDK_INT >= Build.VERSION_CODES.FROYO) {
-            inst = new RootContainerViewModern(context);
-        } else {
-            inst = new RootContainerViewLegacy(context);
-        }
-        return inst;
+        return inst = new RootContainerView(context);
     }
 
     public static RootContainerView getInst() {

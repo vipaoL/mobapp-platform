@@ -13,7 +13,7 @@ import mobileapplication3.ui.*;
 
 import static android.view.KeyEvent.*;
 
-public abstract class RootContainerView extends SurfaceView implements IContainer, IPopupFeedback, SurfaceHolder.Callback {
+public class RootContainerView extends SurfaceView implements IContainer, IPopupFeedback, SurfaceHolder.Callback {
     private IUIComponent rootUIComponent = null;
     private KeyboardHelper kbHelper;
     private int bgColor = 0x000000;
@@ -40,7 +40,7 @@ public abstract class RootContainerView extends SurfaceView implements IContaine
 
     @Override
     public synchronized void repaint() {
-        if (rootUIComponent != null && !rootUIComponent.repaintOnlyOnFlushGraphics()) {
+        if (rootUIComponent != null && !rootUIComponent.repaintOnlyOnFlushGraphics() && rootUIComponent.isVisible()) {
             paint();
         }
     }
@@ -58,10 +58,13 @@ public abstract class RootContainerView extends SurfaceView implements IContaine
     protected synchronized void paint() {
         if (surfaceCreated) {
             Graphics g = getUGraphics();
-            if (rootUIComponent != null) {
+            if (rootUIComponent != null && rootUIComponent.isVisible()) {
                 rootUIComponent.paint(g);
             } else {
                 g.setColor(0xaaaaaa);
+                if (rootUIComponent != null && !rootUIComponent.isVisible()) {
+                    g.drawString("root component is not visible", w/2, h - g.getFontHeight(), Graphics.BOTTOM | Graphics.HCENTER);
+                }
                 g.drawString("Nothing to draw. " + rootUIComponent, w/2, h, Graphics.BOTTOM | Graphics.HCENTER);
             }
             Logger.paint(g);
@@ -259,7 +262,6 @@ public abstract class RootContainerView extends SurfaceView implements IContaine
     protected void onShow() {
         kbHelper.show();
         if (rootUIComponent != null) {
-            rootUIComponent.setVisible(true);
             onSizeChanged(getWidth(), getHeight(), 0, 0);
             rootUIComponent.onShow();
         }
@@ -270,7 +272,17 @@ public abstract class RootContainerView extends SurfaceView implements IContaine
         kbHelper.hide();
         if (rootUIComponent != null) {
             rootUIComponent.onHide();
-            rootUIComponent.setVisible(false);
+        }
+    }
+
+    @Override
+    public void onWindowFocusChanged(boolean hasWindowFocus) {
+        Logger.log("Window focus changed (in " + getClass().getSimpleName() + ", " + hasWindowFocus + ")");
+        super.onWindowFocusChanged(hasWindowFocus);
+        if (hasWindowFocus) {
+            onShow();
+        } else {
+            onHide();
         }
     }
 
