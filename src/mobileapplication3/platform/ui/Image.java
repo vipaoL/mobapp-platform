@@ -48,6 +48,10 @@ public final class Image implements IImage {
         }
     }
 
+    public static Image createRGBImage(int[] rgb, int width, int height, boolean processAlpha) {
+        return new Image(javax.microedition.lcdui.Image.createRGBImage(rgb, width, height, processAlpha));
+    }
+
     public Graphics getGraphics() {
         return new Graphics(image.getGraphics());
     }
