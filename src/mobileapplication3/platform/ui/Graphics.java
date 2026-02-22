@@ -172,7 +172,7 @@ public final class Graphics implements IGraphics {
 
     @Override
     public void setFontSize(int size) {
-        currentFont = new Font(size);
+        setFont(new Font(size));
     }
 
     @Override
