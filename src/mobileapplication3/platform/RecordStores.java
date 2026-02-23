@@ -13,19 +13,22 @@ import java.io.UnsupportedEncodingException;
  *
  * @author vipaol
  */
-public class RecordStores {
+class RecordStores {
+    private static final Object lock = new Object();
 
     public static void writeBytesToStore(byte[] data, String recordStoreName) throws RecordStoreException {
-        try {
-            RecordStore.deleteRecordStore(recordStoreName);
-        } catch (Exception e) { }
+        synchronized (lock) {
+            try {
+                RecordStore.deleteRecordStore(recordStoreName);
+            } catch (Exception ignored) { }
 
-        RecordStore rs = RecordStore.openRecordStore(recordStoreName, true);
-        rs.addRecord(data, 0, data.length);
-
-        try {
-            rs.closeRecordStore();
-        } catch(Exception e) { }
+            RecordStore rs = RecordStore.openRecordStore(recordStoreName, true);
+            try {
+                rs.addRecord(data, 0, data.length);
+            } finally {
+                rs.closeRecordStore();
+            }
+        }
     }
 
     public static void writeStringToStore(String str, String recordStoreName) throws UnsupportedEncodingException, RecordStoreException {
@@ -35,50 +38,47 @@ public class RecordStores {
     }
 
     public static String readStringFromStore(String recordStoreName) {
-        RecordStore rs = null;
         String ret = null;
-
-        try {
-            rs = RecordStore.openRecordStore(recordStoreName, false);
-            byte[] data = rs.getRecord(1);
-            if (data != null && data.length != 0) {
-                ret = new String(data, "UTF-8");
+        byte[] bytes = readBytesFromStore(recordStoreName);
+        if (bytes != null) {
+            try {
+                ret = new String(bytes, "UTF-8");
+            } catch (Exception ex) {
+                Logger.log(ex);
             }
-        } catch (RecordStoreNotFoundException ex) {
-        } catch (Exception e) {
-            e.printStackTrace();
         }
-
-        try {
-            rs.closeRecordStore();
-        } catch(Exception e) {
-
-        }
-
         return ret;
     }
 
     public static DataInputStream openDataInputStream(String recordStoreName) {
-        RecordStore rs = null;
         DataInputStream ret = null;
         try {
-            rs = RecordStore.openRecordStore(recordStoreName, false);
-            byte[] data = rs.getRecord(1);
+            byte[] data = readBytesFromStore(recordStoreName);
             if (data != null && data.length != 0) {
                 ret = new DataInputStream(new ByteArrayInputStream(data));
             }
-        } catch (RecordStoreNotFoundException ex) {
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (Exception ex) {
+            Logger.log(ex);
         }
-
-        try {
-            rs.closeRecordStore();
-        } catch(Exception e) {
-
-        }
-
         return ret;
+    }
+
+    public static byte[] readBytesFromStore(String recordStoreName) {
+        byte[] data = null;
+        synchronized (lock) {
+            try {
+                RecordStore rs = RecordStore.openRecordStore(recordStoreName, false);
+                try {
+                    data = rs.getRecord(1);
+                } finally {
+                    rs.closeRecordStore();
+                }
+            } catch (RecordStoreNotFoundException ignored) {
+            } catch (Exception ex) {
+                Logger.log(ex);
+            }
+        }
+        return data;
     }
 
     public static void writeShorts(short[] data, String recordStoreName) throws RecordStoreException {
@@ -96,13 +96,13 @@ public class RecordStores {
     }
 
     public static void deleteStore(String recordStoreName) {
-        try {
-            RecordStore.deleteRecordStore(recordStoreName);
-        } catch (RecordStoreNotFoundException e) {
-            e.printStackTrace();
-        } catch (RecordStoreException e) {
-            e.printStackTrace();
+        synchronized (lock) {
+            try {
+                RecordStore.deleteRecordStore(recordStoreName);
+            } catch (RecordStoreNotFoundException ignored) {
+            } catch (RecordStoreException ex) {
+                Logger.log(ex);
+            }
         }
     }
-
 }
