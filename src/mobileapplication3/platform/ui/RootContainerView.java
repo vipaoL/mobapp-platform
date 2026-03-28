@@ -14,6 +14,8 @@ import mobileapplication3.ui.*;
 import static android.view.KeyEvent.*;
 
 public class RootContainerView extends SurfaceView implements IContainer, IPopupFeedback, SurfaceHolder.Callback {
+    private static final int DEFAULT_FONT_HEIGHT = Font.getDefaultFontHeight();
+
     private IUIComponent rootUIComponent = null;
     private KeyboardHelper kbHelper;
     private int bgColor = 0x000000;
@@ -184,7 +186,7 @@ public class RootContainerView extends SurfaceView implements IContainer, IPopup
 
         if (!wasDragged) {
             int d = Math.abs(x - pressedX) + Math.abs(y - pressedY);
-            if (d > 4) {
+            if (d > DEFAULT_FONT_HEIGHT) {
                 wasDragged = true;
             }
         }
