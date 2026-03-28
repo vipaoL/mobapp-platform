@@ -16,6 +16,7 @@ import javax.microedition.lcdui.game.GameCanvas;
  */
 public class RootContainer extends GameCanvas implements IContainer, IPopupFeedback {
     private static final int SE_KEY_BACK = -11;
+    private static final int DEFAULT_FONT_HEIGHT = Font.getDefaultFontHeight();
 
     private static RootContainer inst = null;
     private IUIComponent rootUIComponent = null;
@@ -222,7 +223,7 @@ public class RootContainer extends GameCanvas implements IContainer, IPopupFeedb
 
         if (!wasDragged) {
             int d = Math.abs(x - pressedX) + Math.abs(y - pressedY);
-            if (d > 4) {
+            if (d > DEFAULT_FONT_HEIGHT) {
                 wasDragged = true;
             }
         }
