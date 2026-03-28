@@ -20,6 +20,7 @@ import static mobileapplication3.ui.IUIComponent.*;
  */
 public class RootContainer extends Canvas implements IContainer, IPopupFeedback, KeyListener {
     public static final int CURSOR_HIDE_DELAY = 5000;
+    private static final int DEFAULT_FONT_HEIGHT = Font.getDefaultFontHeight();
 
     private final Toolkit toolkit = Toolkit.getDefaultToolkit();
     private java.awt.Graphics g = null;
@@ -465,7 +466,7 @@ public class RootContainer extends Canvas implements IContainer, IPopupFeedback,
 
         if (!wasDragged) {
             int d = Math.abs(x - pressedX) + Math.abs(y - pressedY);
-            if (d > 4) {
+            if (d > DEFAULT_FONT_HEIGHT) {
                 wasDragged = true;
             }
         }
