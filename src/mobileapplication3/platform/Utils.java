@@ -119,6 +119,15 @@ public class Utils {
         return index;
     }
 
+    public static int lastIndexOf(String str, char c) {
+        for (int i = str.length() - 1; i >= 0; i--) {
+            if (str.charAt(i) == c) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
     public static String replace(String _text, String _searchStr, String _replacementStr) {
         // String buffer to store str
         StringBuffer sb = new StringBuffer();
