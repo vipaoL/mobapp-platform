@@ -20,6 +20,7 @@ public class FileUtils {
     private static final short[] TESTDATA = new short[]{0, 1, 2, 3};
 
     public static void saveShortArrayToFile(short[] arr, String path) throws IOException, SecurityException {
+        Logger.log("writing " + (arr != null ? (arr.length + " shorts") : null) + " to " + path);
         File file = new File(path);
         if (!file.exists()) {
             if (!file.createNewFile()) {
