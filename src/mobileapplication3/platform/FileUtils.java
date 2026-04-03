@@ -23,6 +23,7 @@ public class FileUtils {
     private static String storagePath = System.getProperty("user.dir", ".") + SEP + "Mobapp";
 
     public static void saveShortArrayToFile(short[] arr, String path) throws IOException, SecurityException {
+        Logger.log("writing " + (arr != null ? (arr.length + " shorts") : null) + " to " + path);
         ByteArrayOutputStream buf = new ByteArrayOutputStream(arr.length*2);
         DataOutputStream dos = new DataOutputStream(buf);
         for (int i = 0; i < arr.length; i++) {
