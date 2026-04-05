@@ -28,9 +28,13 @@ public final class Graphics implements IGraphics {
             startAngle += arcAngle;
             arcAngle = -arcAngle;
         }
-        while (startAngle < 0) {
-            startAngle += 360;
+
+        startAngle %= 360;
+
+        if (startAngle + arcAngle >= 360) {
+            startAngle -= 360;
         }
+
         g.drawArc(x, y, width, height, startAngle, arcAngle);
         if (drawThickness) {
             int n = thickness * 1000 / zoomOut;
