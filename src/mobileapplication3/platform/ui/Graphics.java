@@ -108,7 +108,9 @@ public final class Graphics implements IGraphics {
     }
 
     public void setClip(int x, int y, int width, int height) {
-        g.setClip(x, y, width, height);
+        if (width > 0 && height > 0) {
+            g.setClip(x, y, width, height);
+        }
     }
 
     public void setColor(int RGB) {
