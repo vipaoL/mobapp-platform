@@ -91,7 +91,7 @@ public class RootContainer extends GameCanvas implements IContainer, IPopupFeedb
                 inst.rootUIComponentPostInitDone = true;
             }
         }
-        inst.repaintt();
+        inst.repaint();
         return inst;
     }
 
