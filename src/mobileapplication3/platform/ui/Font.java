@@ -4,16 +4,21 @@ package mobileapplication3.platform.ui;
 
 import mobileapplication3.platform.PlatformSettings;
 
-import java.awt.*;
+import java.awt.FontMetrics;
+import java.awt.font.TextAttribute;
 import java.awt.image.BufferedImage;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Vector;
 
 public class Font implements IFont {
     private final java.awt.Font font;
+    private int face;
+    private int style;
     private int size;
 
     public Font(int face, int style, int size) {
-        this(size); // TODO
+        this(face, style, size, PlatformSettings.getFontSize());
     }
 
     public Font() {
@@ -21,27 +26,62 @@ public class Font implements IFont {
     }
 
     public Font(int size) {
-        this(size, PlatformSettings.getFontSize());
+        this(FACE_SYSTEM, STYLE_PLAIN, size);
     }
 
     protected Font(int size, int baseFontSize) {
+        this(FACE_SYSTEM, STYLE_PLAIN, size, baseFontSize);
+    }
+
+    protected Font(int face, int style, int size, int baseFontSize) {
+        this.face = face;
+        this.style = style;
         this.size = size;
+
+        int awtSize = size;
         switch (size) {
             case SIZE_SMALL:
-                size = baseFontSize * 3 / 4;
+                awtSize = baseFontSize * 3 / 4;
                 break;
             case SIZE_MEDIUM:
-                size = baseFontSize;
+                awtSize = baseFontSize;
                 break;
             case SIZE_LARGE:
-                size = baseFontSize * 3 / 2;
+                awtSize = baseFontSize * 3 / 2;
                 break;
         }
-        font = new java.awt.Font(null, java.awt.Font.PLAIN, size);
+
+        String awtFace = java.awt.Font.DIALOG;
+        if (face == FACE_MONOSPACE) {
+            awtFace = java.awt.Font.MONOSPACED;
+        } else if (face == FACE_PROPORTIONAL) {
+            awtFace = java.awt.Font.SANS_SERIF;
+        }
+
+        int awtStyle = java.awt.Font.PLAIN;
+        if ((style & STYLE_BOLD) != 0) {
+            awtStyle |= java.awt.Font.BOLD;
+        }
+        if ((style & STYLE_ITALIC) != 0) {
+            awtStyle |= java.awt.Font.ITALIC;
+        }
+
+        java.awt.Font baseFont = new java.awt.Font(awtFace, awtStyle, awtSize);
+
+        if ((style & STYLE_UNDERLINED) != 0) {
+            Map<TextAttribute, Object> attributes = new HashMap<>(baseFont.getAttributes());
+            attributes.put(TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON);
+            this.font = baseFont.deriveFont(attributes);
+        } else {
+            this.font = baseFont;
+        }
     }
 
     protected Font(java.awt.Font font) {
         this.font = font;
+        this.face = FACE_SYSTEM;
+        this.style = STYLE_PLAIN;
+        this.size = SIZE_MEDIUM;
     }
 
     public java.awt.Font getAwtFont() {
@@ -73,11 +113,11 @@ public class Font implements IFont {
     }
 
     public int getFace() {
-        return FACE_SYSTEM;
+        return face;
     }
 
     public int getStyle() {
-        return STYLE_PLAIN;
+        return style;
     }
 
     public int getSize() {
