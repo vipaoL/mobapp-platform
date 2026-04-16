@@ -114,7 +114,12 @@ public class Platform {
     }
 
     public static String getAppVersion(Context context) {
-        try{
+        try {
+            int resId = context.getResources().getIdentifier("git_version", "string", context.getPackageName());
+            if (resId != 0) {
+                return context.getString(resId);
+            }
+
             return context.getPackageManager()
                     .getPackageInfo(context.getPackageName(), 0).versionName;
         } catch (Exception ex) {
