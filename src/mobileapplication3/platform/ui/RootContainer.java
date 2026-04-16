@@ -311,10 +311,12 @@ public class RootContainer extends Canvas implements IContainer, IPopupFeedback,
     public synchronized Graphics getUGraphics() {
         bufferStrategy = getBufferStrategy();
         g = bufferStrategy.getDrawGraphics();
-        if (g == null) {
-            return null;
+        java.awt.Graphics g = this.g;
+        if (g != null) {
+            g.clearRect(0, 0,getWidth(), getHeight());
+        } else {
+            g = new BufferedImage(1, 1, BufferedImage.TYPE_BYTE_BINARY).getGraphics();
         }
-        g.clearRect(0, 0,getWidth(), getHeight());
         return new Graphics(g);
     }
 
