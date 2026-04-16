@@ -4,25 +4,24 @@ package mobileapplication3.platform.ui;
 
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.graphics.Typeface;
 import mobileapplication3.platform.Platform;
 
 import java.util.Vector;
 
 public class Font implements IFont {
     private Paint p;
+    private int face;
+    private int style;
     private int size;
 
     public Font(int face, int style, int size) {
-        this(size); // TODO
-    }
-
-    public Font() {
-        this(SIZE_MEDIUM);
-    }
-
-    public Font(int size) {
+        this.face = face;
+        this.style = style;
         this.size = size;
+
         p = new Paint();
+
         float density = Platform.getActivityInst().getResources().getDisplayMetrics().density;
         switch (size) {
             case SIZE_SMALL:
@@ -35,10 +34,46 @@ public class Font implements IFont {
                 p.setTextSize(38 * density);
                 break;
         }
+
+        int typefaceStyle = Typeface.NORMAL;
+        boolean isBold = (style & STYLE_BOLD) != 0;
+        boolean isItalic = (style & STYLE_ITALIC) != 0;
+
+        if (isBold && isItalic) {
+            typefaceStyle = Typeface.BOLD_ITALIC;
+        } else if (isBold) {
+            typefaceStyle = Typeface.BOLD;
+        } else if (isItalic) {
+            typefaceStyle = Typeface.ITALIC;
+        }
+
+        if ((style & STYLE_UNDERLINED) != 0) {
+            p.setUnderlineText(true);
+        }
+
+        Typeface tf = Typeface.DEFAULT;
+        if (face == FACE_MONOSPACE) {
+            tf = Typeface.MONOSPACE;
+        } else if (face == FACE_PROPORTIONAL) {
+            tf = Typeface.SANS_SERIF;
+        }
+
+        p.setTypeface(Typeface.create(tf, typefaceStyle));
+    }
+
+    public Font() {
+        this(SIZE_MEDIUM);
+    }
+
+    public Font(int size) {
+        this(FACE_SYSTEM, STYLE_PLAIN, size);
     }
 
     protected Font(Paint p) {
         this.p = p;
+        this.face = FACE_SYSTEM;
+        this.style = STYLE_PLAIN;
+        this.size = SIZE_MEDIUM;
     }
 
     public static Font getFont(int face, int style, int size) {
@@ -70,11 +105,11 @@ public class Font implements IFont {
     }
 
     public int getFace() {
-        return FACE_SYSTEM;
+        return face;
     }
 
     public int getStyle() {
-        return STYLE_PLAIN;
+        return style;
     }
 
     public int getSize() {
