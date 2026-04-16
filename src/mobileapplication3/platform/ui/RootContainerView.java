@@ -90,7 +90,7 @@ public class RootContainerView extends SurfaceView implements IContainer, IPopup
         if (bgColor >= 0 && c != null) {
             c.drawColor(0xff000000 + bgColor);
         }
-        return new Graphics(c);
+        return new Graphics(c != null ? c : new Canvas());
     }
 
     @Override
