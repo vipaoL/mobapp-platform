@@ -106,7 +106,7 @@ public class RootContainer extends GameCanvas implements IContainer, IPopupFeedb
     }
 
     public void paint(Graphics g) {
-        if (bgColor >= 0) {
+        if (rootUIComponent == null && bgColor >= 0) {
             g.fillRect(0, 0, w, h);
         }
 
