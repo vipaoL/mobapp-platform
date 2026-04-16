@@ -17,6 +17,8 @@ public class Font implements IFont {
     private int style;
     private int size;
 
+    private FontMetrics fontMetrics = null;
+
     public Font(int face, int style, int size) {
         this(face, style, size, PlatformSettings.getFontSize());
     }
@@ -124,11 +126,18 @@ public class Font implements IFont {
         return size;
     }
 
+    private FontMetrics getMetrics() {
+        if (fontMetrics == null) {
+            java.awt.Graphics g = new BufferedImage(1, 1, BufferedImage.TYPE_BYTE_BINARY).getGraphics();
+            g.setFont(font);
+            fontMetrics = g.getFontMetrics(font);
+            g.dispose();
+        }
+        return fontMetrics;
+    }
+
     public int getHeight() {
-        java.awt.Graphics g = new BufferedImage(100, 100, BufferedImage.TYPE_BYTE_BINARY).getGraphics();
-        g.setFont(font);
-        FontMetrics metrics = g.getFontMetrics(font);
-        return metrics.getHeight();
+        return getMetrics().getHeight();
     }
 
     public int stringWidth(String str) {
@@ -136,10 +145,7 @@ public class Font implements IFont {
     }
 
     public int substringWidth(String str, int offset, int len) {
-        java.awt.Graphics g = new BufferedImage(100, 100, BufferedImage.TYPE_BYTE_BINARY).getGraphics();
-        g.setFont(font);
-        FontMetrics metrics = g.getFontMetrics(font);
-        return metrics.stringWidth(str.substring(offset, offset + len));
+        return getMetrics().stringWidth(str.substring(offset, offset + len));
     }
 
     public int[][] getLineBounds(String text, int w, int padding) {
