@@ -122,6 +122,9 @@ public class RootContainer extends GameCanvas implements IContainer, IPopupFeedb
             g.drawString("Nothing to draw. " + rootUIComponent, w/2, h, Graphics.BOTTOM | Graphics.HCENTER);
         }
         Logger.paint(new mobileapplication3.platform.ui.Graphics(g));
+
+        // workaround for Sony Ericsson phones to fix setClip() bugs. I don't know why it works (sleep(1) doesn't)
+        g.drawString(" ", 0, 0, Graphics.TOP | Graphics.LEFT);
     }
 
     public mobileapplication3.platform.ui.Graphics getUGraphics() {
