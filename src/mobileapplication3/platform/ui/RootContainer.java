@@ -91,7 +91,7 @@ public class RootContainer extends GameCanvas implements IContainer, IPopupFeedb
                 inst.rootUIComponentPostInitDone = true;
             }
         }
-        inst.repaint();
+        inst.repaintt();
         return inst;
     }
 
@@ -106,12 +106,12 @@ public class RootContainer extends GameCanvas implements IContainer, IPopupFeedb
     }
 
     public void paint(Graphics g) {
-        if (rootUIComponent == null && bgColor >= 0) {
-            g.fillRect(0, 0, w, h);
-        }
-
         if (rootUIComponent != null && rootUIComponent.repaintOnlyOnFlushGraphics()) {
             return;
+        }
+
+        if (bgColor >= 0) {
+            g.fillRect(0, 0, w, h);
         }
 
         if (rootUIComponent != null) {
