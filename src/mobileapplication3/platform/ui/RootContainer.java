@@ -223,13 +223,14 @@ public class RootContainer extends Canvas implements IContainer, IPopupFeedback,
         }
 
         if (rootUIComponent != null) {
-            rootUIComponent.setParent(inst).setVisible(false);
+            rootUIComponent.setParent(inst);
             rootUIComponent.init();
             while (true) {
                 if (inst.getWidth() > 0 && inst.getHeight() > 0) {
                     Logger.log("RootContainer.inst: " + inst.getWidth() + "x" + inst.getHeight());
                     rootUIComponent.setSize(inst.getWidth(), inst.getHeight());
                     rootUIComponent.postInit();
+                    rootUIComponent.setVisible(false);
                     rootUIComponent.setFocused(true);
                     break;
                 } else {
