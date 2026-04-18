@@ -370,11 +370,12 @@ public class RootContainerView extends SurfaceView implements IContainer, IPopup
         }
 
         if (rootUIComponent != null) {
-            this.rootUIComponent = rootUIComponent.setParent(this).setVisible(true);
+            this.rootUIComponent = rootUIComponent.setParent(this);
             rootUIComponent.init();
             if (getWidth() > 0 && getHeight() > 0) {
                 rootUIComponent.setSize(getWidth(), getHeight());
                 rootUIComponent.postInit();
+                rootUIComponent.setVisible(true);
                 rootUIComponent.setFocused(true);
                 rootUIComponentPostInitDone = true;
             }
