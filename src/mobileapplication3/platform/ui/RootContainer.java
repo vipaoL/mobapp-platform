@@ -81,12 +81,13 @@ public class RootContainer extends GameCanvas implements IContainer, IPopupFeedb
         }
 
         if (rootUIComponent != null) {
-            inst.rootUIComponent = rootUIComponent.setParent(inst).setVisible(true);
+            inst.rootUIComponent = rootUIComponent.setParent(inst);
             inst.rootUIComponentPostInitDone = false;
             rootUIComponent.init();
             if (inst.getWidth() > 0 && inst.getHeight() > 0) {
                 rootUIComponent.setSize(inst.getWidth(), inst.getHeight());
                 rootUIComponent.postInit();
+                rootUIComponent.setVisible(true);
                 rootUIComponent.setFocused(true);
                 inst.rootUIComponentPostInitDone = true;
             }
