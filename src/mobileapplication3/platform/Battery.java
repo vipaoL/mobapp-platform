@@ -2,6 +2,10 @@
 
 package mobileapplication3.platform;
 
+import oshi.SystemInfo;
+import oshi.hardware.HardwareAbstractionLayer;
+import oshi.hardware.PowerSource;
+
 public class Battery {
     public static final int ERROR = -1;
     public static final int METHOD_NONE = -1;
@@ -23,6 +27,13 @@ public class Battery {
     }
 
     public static int getBatteryLevel() {
+        SystemInfo si = new SystemInfo();
+        HardwareAbstractionLayer hal = si.getHardware();
+
+        for (PowerSource pSource : hal.getPowerSources()) {
+            return (int) (pSource.getRemainingCapacityPercent() * 100);
+        }
+
         return ERROR;
     }
 
