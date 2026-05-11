@@ -124,16 +124,6 @@ public class RootContainer extends Canvas implements IContainer, IPopupFeedback,
             public void componentResized(ComponentEvent e) {
                 onSizeChanged(getWidth(), getHeight(), w, h);
             }
-
-            @Override
-            public void componentHidden(ComponentEvent e) {
-                onHide();
-            }
-
-            @Override
-            public void componentShown(ComponentEvent e) {
-                onShow();
-            }
         });
         hideCursorAfterDelay();
     }
@@ -525,6 +515,16 @@ public class RootContainer extends Canvas implements IContainer, IPopupFeedback,
             rootUIComponent.onHide();
             rootUIComponent.setVisible(false);
         }
+    }
+
+    public void onWindowFocusGained() {
+        Logger.log("Window focus gained");
+        onShow();
+    }
+
+    public void onWindowFocusLost() {
+        Logger.log("Window focus lost");
+        onHide();
     }
 
     private int convertKeyCode(int javaSEKeyCode) { // TODO

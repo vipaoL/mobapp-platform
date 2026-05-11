@@ -28,6 +28,14 @@ public abstract class MobappDesktopMain extends Frame {
                 System.exit(0);
             }
         });
+        addWindowFocusListener(new WindowAdapter() {
+            public void windowGainedFocus(WindowEvent e) {
+                RootContainer.getInst().onWindowFocusGained();
+            }
+            public void windowLostFocus(WindowEvent e) {
+                RootContainer.getInst().onWindowFocusLost();
+            }
+        });
         setLocationRelativeTo(null);
     }
 
