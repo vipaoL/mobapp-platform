@@ -6,6 +6,8 @@ import android.app.Activity;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.KeyEvent;
+
+import mobileapplication3.platform.Logger;
 import mobileapplication3.platform.ModernAndroidUtils;
 import mobileapplication3.platform.Platform;
 import mobileapplication3.ui.IUIComponent;
@@ -70,7 +72,12 @@ public abstract class MobappActivity extends Activity {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                setContentView(newRootContainer);
+                try {
+                    setContentView(newRootContainer);
+                } catch (Throwable ex) {
+                    Platform.showError(ex);
+                    Platform.exit();
+                }
             }
         });
     }
@@ -79,7 +86,7 @@ public abstract class MobappActivity extends Activity {
         try {
             rootContainer.init();
         } catch (Exception ex) {
-            ex.printStackTrace();
+            Logger.log(ex);
         }
     }
 
