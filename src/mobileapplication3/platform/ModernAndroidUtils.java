@@ -7,9 +7,13 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.os.BatteryManager;
 import android.os.Build;
+import android.os.Handler;
+import android.os.Looper;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
+import android.view.Choreographer;
 import android.view.View;
+import mobileapplication3.platform.ui.RootContainerView;
 
 import java.io.File;
 
@@ -76,4 +80,50 @@ public class ModernAndroidUtils {
         }
     }
 
+    public static void setFrameRate(android.view.Surface surface, float frameRate) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            try {
+                surface.setFrameRate(frameRate, android.view.Surface.FRAME_RATE_COMPATIBILITY_DEFAULT);
+            } catch (Throwable ignored) { }
+        }
+    }
+
+    public static Object createVsyncHelper(final RootContainerView view) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+            return new Choreographer.FrameCallback() {
+                @Override
+                public void doFrame(long frameTimeNanos) {
+                    if (view.getTargetFPS() > 0) {
+                        view.tickAndPaint();
+                        Choreographer.getInstance().postFrameCallback(this);
+                    }
+                }
+            };
+        }
+        return null;
+    }
+
+    public static void startVsync(final Object helper) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN && helper instanceof Choreographer.FrameCallback) {
+            new Handler(Looper.getMainLooper()).post(new Runnable() {
+                @Override
+                public void run() {
+                    Choreographer c = Choreographer.getInstance();
+                    c.removeFrameCallback((Choreographer.FrameCallback) helper);
+                    c.postFrameCallback((Choreographer.FrameCallback) helper);
+                }
+            });
+        }
+    }
+
+    public static void stopVsync(final Object helper) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN && helper instanceof Choreographer.FrameCallback) {
+            new Handler(Looper.getMainLooper()).post(new Runnable() {
+                @Override
+                public void run() {
+                    Choreographer.getInstance().removeFrameCallback((Choreographer.FrameCallback) helper);
+                }
+            });
+        }
+    }
 }

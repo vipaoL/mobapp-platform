@@ -4,10 +4,12 @@ package mobileapplication3.platform.ui;
 
 import android.content.Context;
 import android.graphics.Canvas;
+import android.os.Build;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import mobileapplication3.platform.Logger;
+import mobileapplication3.platform.ModernAndroidUtils;
 import mobileapplication3.platform.Platform;
 import mobileapplication3.ui.*;
 
@@ -23,7 +25,6 @@ public class RootContainerView extends SurfaceView implements IContainer, IPopup
     private UISettings uiSettings;
     private final SurfaceHolder surfaceHolder;
     private Canvas c;
-    private static Thread repaintThread = null;
     private boolean wasDownEvent = false, wasDragged = false;
     private boolean surfaceCreated = false;
     private boolean rootUIComponentPostInitDone = false;
@@ -32,17 +33,114 @@ public class RootContainerView extends SurfaceView implements IContainer, IPopup
     private int pressedX, pressedY;
     private long pressedTime;
 
+    private Object vsyncHelper;
+    private int currentTargetFPS = 0;
+
+    private Thread legacyLoopThread = null;
+    private final Object loopLock = new Object();
+    private boolean isRunning = true;
+
     public RootContainerView(Context context) {
         super(context);
         getHolder().addCallback(this);
         kbHelper = new KeyboardHelper();
         RootContainer.displayKbHints = false;//!hasPointerEvents();
         surfaceHolder = getHolder();
+
+        if (Platform.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+            try {
+                vsyncHelper = ModernAndroidUtils.createVsyncHelper(this);
+            } catch (Throwable ignored) { }
+        }
     }
 
     @Override
     public synchronized void repaint() {
-        if (rootUIComponent != null && !rootUIComponent.repaintOnlyOnFlushGraphics() && rootUIComponent.isVisible()) {
+        if (rootUIComponent != null && rootUIComponent.isVisible()) {
+            int targetFPS = rootUIComponent.getTargetFPS();
+            if (targetFPS != currentTargetFPS) {
+                updateTargetFPS(targetFPS);
+            }
+
+            if (currentTargetFPS <= 0 && !rootUIComponent.repaintOnlyOnFlushGraphics()) {
+                paint();
+            }
+        }
+    }
+
+    private void updateTargetFPS(int targetFPS) {
+        Logger.log("new target FPS: " + targetFPS);
+        if (targetFPS != currentTargetFPS) {
+            Logger.log("setting new target FPS...");
+            currentTargetFPS = targetFPS;
+
+            // Android 11+
+            if (Platform.SDK_INT >= Build.VERSION_CODES.R) {
+                ModernAndroidUtils.setFrameRate(surfaceHolder.getSurface(), (float) targetFPS);
+            }
+
+            // Older Android versions
+            if (vsyncHelper != null) {
+                if (currentTargetFPS > 0) {
+                    ModernAndroidUtils.startVsync(vsyncHelper);
+                } else {
+                    ModernAndroidUtils.stopVsync(vsyncHelper);
+                }
+            }
+
+            synchronized (loopLock) {
+                loopLock.notifyAll();
+            }
+        }
+    }
+
+    private void ensureLegacyLoopRunning() {
+        if (legacyLoopThread == null) {
+            legacyLoopThread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    while (isRunning) {
+                        if (currentTargetFPS <= 0 || vsyncHelper != null) {
+                            synchronized (loopLock) {
+                                try {
+                                    loopLock.wait();
+                                } catch (InterruptedException ignored) { }
+                            }
+                            continue;
+                        }
+
+                        long start = System.currentTimeMillis();
+                        int currentTargetFPS = RootContainerView.this.currentTargetFPS;
+
+                        tickAndPaint();
+
+                        if (currentTargetFPS > 0) {
+                            long frameTime = 1000 / currentTargetFPS;
+                            long sleep = frameTime - (System.currentTimeMillis() - start);
+                            if (sleep > 0) {
+                                try {
+                                    Thread.sleep(sleep);
+                                } catch (InterruptedException ignored) { }
+                            } else {
+                                Thread.yield();
+                            }
+                        }
+                    }
+                }
+            });
+            legacyLoopThread.start();
+        }
+    }
+
+    public int getTargetFPS() {
+        return currentTargetFPS;
+    }
+
+    public synchronized void tickAndPaint() {
+        if (rootUIComponent != null && rootUIComponent.isVisible()) {
+            rootUIComponent.tick();
+        }
+        if (rootUIComponent == null || rootUIComponent.isVisible()) {
             paint();
         }
     }
@@ -353,6 +451,10 @@ public class RootContainerView extends SurfaceView implements IContainer, IPopup
 
     @Override
     public void closePopup() {
+        isRunning = false;
+        synchronized (loopLock) {
+            loopLock.notifyAll();
+        }
         Platform.exit();
     }
 
@@ -382,22 +484,10 @@ public class RootContainerView extends SurfaceView implements IContainer, IPopup
                 rootUIComponent.setFocused(true);
                 rootUIComponentPostInitDone = true;
             }
-            if (!rootUIComponent.repaintOnlyOnFlushGraphics() && repaintThread == null) {
-                repaintThread = new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        while (!rootUIComponent.repaintOnlyOnFlushGraphics()) {
-                            try {
-                                Thread.yield();
-                                Thread.sleep(200);
-                            } catch (InterruptedException ignored) { }
-                            repaint();
-                        }
-                        repaintThread = null;
-                    }
-                });
-                repaintThread.start();
-            }
+
+            ensureLegacyLoopRunning();
+            updateTargetFPS(rootUIComponent.getTargetFPS());
+            repaint();
         } else {
             try {
                 throw new Exception("setRootUIComponent(): got null");
@@ -442,7 +532,7 @@ public class RootContainerView extends SurfaceView implements IContainer, IPopup
             repeatThread = new Thread() {
                 public void run() {
                     try {
-                        while (true) {
+                        while (isRunning) {
                             // Wait until a key is pressed
                             if (!pressState) {
                                 synchronized(tillPressed) {
@@ -454,7 +544,7 @@ public class RootContainerView extends SurfaceView implements IContainer, IPopup
                             try {
                                 // Wait a delay and repeat
                                 Thread.sleep(500);
-                                while (true) {
+                                while (isRunning) {
                                     handleKeyRepeated(lastKey, pressCount);
                                     Thread.sleep(150);
                                 }
