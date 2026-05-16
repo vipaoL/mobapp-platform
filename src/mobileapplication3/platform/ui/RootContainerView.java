@@ -17,11 +17,11 @@ public class RootContainerView extends SurfaceView implements IContainer, IPopup
     private static final int DEFAULT_FONT_HEIGHT = Font.getDefaultFontHeight();
 
     private IUIComponent rootUIComponent = null;
-    private KeyboardHelper kbHelper;
+    private final KeyboardHelper kbHelper;
     private int bgColor = 0x000000;
     public int w, h;
     private UISettings uiSettings;
-    private SurfaceHolder surfaceHolder;
+    private final SurfaceHolder surfaceHolder;
     private Canvas c;
     private static Thread repaintThread = null;
     private boolean wasDownEvent = false, wasDragged = false;
@@ -361,17 +361,20 @@ public class RootContainerView extends SurfaceView implements IContainer, IPopup
     }
 
     public void setRootUIComponent(final IUIComponent rootUIComponent) {
+        Logger.log("setting new root component: " + (rootUIComponent != null ? rootUIComponent.getClass().getSimpleName() : rootUIComponent));
         wasDownEvent = false;
         rootUIComponentPostInitDone = false;
+
         if (this.rootUIComponent != null) {
             this.rootUIComponent.setVisible(false);
-            //this.rootUIComponent.setParent(null);
+            this.rootUIComponent.setParent(null);
             this.rootUIComponent.setFocused(false);
         }
 
         if (rootUIComponent != null) {
             this.rootUIComponent = rootUIComponent.setParent(this);
             rootUIComponent.init();
+
             if (getWidth() > 0 && getHeight() > 0) {
                 rootUIComponent.setSize(getWidth(), getHeight());
                 rootUIComponent.postInit();
@@ -399,7 +402,7 @@ public class RootContainerView extends SurfaceView implements IContainer, IPopup
             try {
                 throw new Exception("setRootUIComponent(): got null");
             } catch (Exception ex) {
-                ex.printStackTrace();
+                Logger.log(ex);
             }
         }
     }
@@ -426,7 +429,7 @@ public class RootContainerView extends SurfaceView implements IContainer, IPopup
     }
 
     private class KeyboardHelper {
-        private Object tillPressed = new Object();
+        private final Object tillPressed = new Object();
         private int lastKey, pressCount;
         private boolean pressState;
         private Thread repeatThread;
@@ -455,7 +458,7 @@ public class RootContainerView extends SurfaceView implements IContainer, IPopup
                                     handleKeyRepeated(lastKey, pressCount);
                                     Thread.sleep(150);
                                 }
-                            } catch (InterruptedException ex) { }
+                            } catch (InterruptedException ignored) { }
                         }
                     } catch (InterruptedException ignored) { }
                 }
@@ -464,7 +467,7 @@ public class RootContainerView extends SurfaceView implements IContainer, IPopup
         }
 
         public void hide() {
-            if(repeatThread != null) {
+            if (repeatThread != null) {
                 repeatThread.interrupt();
             }
         }
@@ -487,7 +490,7 @@ public class RootContainerView extends SurfaceView implements IContainer, IPopup
 
         public void keyReleased(int k) {
             updateLastEventTime();
-            if(lastKey == k) {
+            if (lastKey == k) {
                 pressState = false;
             } else {
                 pressCount = 0;
