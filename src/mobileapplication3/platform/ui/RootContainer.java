@@ -33,6 +33,11 @@ public class RootContainer extends GameCanvas implements IContainer, IPopupFeedb
     private long pressedTime;
     private boolean rootUIComponentPostInitDone = false;
 
+    private int currentTargetFPS = 0;
+    private Thread repaintLoopThread = null;
+    private final Object loopLock = new Object();
+    private boolean isRunning = true;
+
     private RootContainer() {
         super(false);
         setFullScreenMode(true);
@@ -76,6 +81,7 @@ public class RootContainer extends GameCanvas implements IContainer, IPopupFeedb
         getInst();
         inst.wasDownEvent = false;
         if (inst.rootUIComponent != null) {
+            inst.rootUIComponent.setVisible(false);
             inst.rootUIComponent.setParent(null);
             inst.rootUIComponent.setFocused(false);
         }
@@ -91,9 +97,70 @@ public class RootContainer extends GameCanvas implements IContainer, IPopupFeedb
                 rootUIComponent.setFocused(true);
                 inst.rootUIComponentPostInitDone = true;
             }
+
+            inst.ensureRepaintLoopRunning();
+            inst.updateTargetFPS(rootUIComponent.getTargetFPS());
         }
         inst.repaintt();
         return inst;
+    }
+
+    private void updateTargetFPS(int targetFPS) {
+        Logger.log("new target FPS: " + targetFPS);
+        if (targetFPS != currentTargetFPS) {
+            Logger.log("setting new target FPS...");
+            currentTargetFPS = targetFPS;
+
+            synchronized (loopLock) {
+                loopLock.notifyAll();
+            }
+        }
+    }
+
+    private void ensureRepaintLoopRunning() {
+        if (repaintLoopThread == null) {
+            repaintLoopThread = new Thread(new Runnable() {
+                public void run() {
+                    while (isRunning) {
+                        if (currentTargetFPS <= 0) {
+                            synchronized (loopLock) {
+                                try {
+                                    loopLock.wait();
+                                } catch (InterruptedException ignored) { }
+                            }
+                            continue;
+                        }
+
+                        long start = System.currentTimeMillis();
+                        int currentTargetFPS = RootContainer.this.currentTargetFPS;
+
+                        tickAndPaint();
+
+                        if (currentTargetFPS > 0) {
+                            long frameTime = 1000 / currentTargetFPS;
+                            long sleep = frameTime - (System.currentTimeMillis() - start);
+                            if (sleep > 0) {
+                                try {
+                                    Thread.sleep(sleep);
+                                } catch (InterruptedException ignored) { }
+                            } else {
+                                Thread.yield();
+                            }
+                        }
+                    }
+                }
+            });
+            repaintLoopThread.start();
+        }
+    }
+
+    public synchronized void tickAndPaint() {
+        if (rootUIComponent != null && rootUIComponent.isVisible()) {
+            rootUIComponent.tick();
+        }
+        if (rootUIComponent == null || rootUIComponent.isVisible()) {
+            paint();
+        }
     }
 
     public UISettings getUISettings() {
@@ -101,16 +168,24 @@ public class RootContainer extends GameCanvas implements IContainer, IPopupFeedb
     }
 
     public final void repaintt() {
-        if (rootUIComponent == null || !rootUIComponent.repaintOnlyOnFlushGraphics()) {
-            super.repaint();
+        if (rootUIComponent != null && rootUIComponent.isVisible()) {
+            int targetFPS = rootUIComponent.getTargetFPS();
+            if (targetFPS != currentTargetFPS) {
+                updateTargetFPS(targetFPS);
+            }
+
+            if (currentTargetFPS <= 0 && !rootUIComponent.repaintOnlyOnFlushGraphics()) {
+                paint();
+            }
         }
     }
 
-    public void paint(Graphics g) {
-        if (rootUIComponent != null && rootUIComponent.repaintOnlyOnFlushGraphics()) {
-            return;
-        }
+    private synchronized void paint() {
+        paint(getGraphics());
+        flushGraphics();
+    }
 
+    public synchronized void paint(Graphics g) {
         if (bgColor >= 0) {
             g.fillRect(0, 0, w, h);
         }
@@ -300,6 +375,10 @@ public class RootContainer extends GameCanvas implements IContainer, IPopupFeedb
     }
 
     public void closePopup() {
+        isRunning = false;
+        synchronized (loopLock) {
+            loopLock.notifyAll();
+        }
         Platform.exit();
     }
 
@@ -317,7 +396,7 @@ public class RootContainer extends GameCanvas implements IContainer, IPopupFeedb
                 try {
                     // Wait a delay and repeat
                     Thread.sleep(500);
-                    while (Thread.currentThread() == repeatThread && wasDownEvent) {
+                    while (isRunning && Thread.currentThread() == repeatThread && wasDownEvent) {
                         handleKeyRepeated(lastKey, pressCount);
                         Thread.sleep(150);
                     }
@@ -357,7 +436,9 @@ public class RootContainer extends GameCanvas implements IContainer, IPopupFeedb
             if(k != lastKey) {
                 pressCount = 0;
             }
-            repeatThread.interrupt();
+            if (repeatThread != null) {
+                repeatThread.interrupt();
+            }
             handleKeyReleased(k, pressCount);
         }
 
