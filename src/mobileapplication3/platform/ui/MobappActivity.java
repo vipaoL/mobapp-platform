@@ -20,6 +20,7 @@ public abstract class MobappActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         try {
+            Logger.logToStdout(true);
             Platform.init(this);
             setRootContainer(RootContainer.createView(this));
             RootContainer.setUISettings(getUISettings());
