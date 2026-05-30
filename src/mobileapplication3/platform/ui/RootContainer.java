@@ -32,7 +32,7 @@ public class RootContainer extends Canvas implements IContainer, IPopupFeedback,
     public int w, h;
     private static RootContainer inst = null;
     private UISettings uiSettings;
-    private static Thread repaintThread = null;
+
     private boolean wasDownEvent = false, wasDragged = false;
     private int lastPointerX, lastPointerY;
     private int pressedX, pressedY;
@@ -40,6 +40,11 @@ public class RootContainer extends Canvas implements IContainer, IPopupFeedback,
     private long lastMouseEvent;
     private Thread mouseHider = null;
     private final HashSet<Integer> pressedKeys = new HashSet<>();
+
+    private int currentTargetFPS = 0;
+    private Thread repaintLoopThread = null;
+    private final Object loopLock = new Object();
+    private boolean isRunning = true;
 
     public RootContainer() {
         inst = this;
@@ -197,14 +202,6 @@ public class RootContainer extends Canvas implements IContainer, IPopupFeedback,
     }
 
     public static RootContainer setRootUIComponent(IUIComponent rootUIComponent) {
-        Thread oldRepaintThread = repaintThread;
-        repaintThread = null;
-        try {
-            if (oldRepaintThread != null) {
-                oldRepaintThread.join();
-            }
-        } catch (InterruptedException ignored) { }
-
         inst.wasDownEvent = false;
         if (inst.rootUIComponent != null) {
             inst.rootUIComponent.setVisible(false);
@@ -231,22 +228,11 @@ public class RootContainer extends Canvas implements IContainer, IPopupFeedback,
                 }
             }
             inst.rootUIComponent = rootUIComponent.setVisible(true);
-            if (!rootUIComponent.repaintOnlyOnFlushGraphics() && repaintThread == null) {
-                repaintThread = new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        while (!inst.rootUIComponent.repaintOnlyOnFlushGraphics() && Thread.currentThread() == repaintThread) {
-                            try {
-                                Thread.yield();
-                                Thread.sleep(200);
-                            } catch (InterruptedException ignored) { }
-                            inst.repaint();
-                        }
-                        repaintThread = null;
-                    }
-                });
-                repaintThread.start();
-            }
+
+            inst.ensureRepaintLoopRunning();
+            inst.updateTargetFPS(rootUIComponent.getTargetFPS());
+            inst.repaint();
+
         } else {
             try {
                 throw new Exception("setRootUIComponent(): got null");
@@ -255,6 +241,65 @@ public class RootContainer extends Canvas implements IContainer, IPopupFeedback,
             }
         }
         return inst;
+    }
+
+    private void updateTargetFPS(int targetFPS) {
+        Logger.log("new target FPS: " + targetFPS);
+        if (targetFPS != currentTargetFPS) {
+            Logger.log("setting new target FPS...");
+            currentTargetFPS = targetFPS;
+
+            synchronized (loopLock) {
+                loopLock.notifyAll();
+            }
+        }
+    }
+
+    private void ensureRepaintLoopRunning() {
+        if (repaintLoopThread == null) {
+            repaintLoopThread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    while (isRunning) {
+                        if (currentTargetFPS <= 0) {
+                            synchronized (loopLock) {
+                                try {
+                                    loopLock.wait();
+                                } catch (InterruptedException ignored) { }
+                            }
+                            continue;
+                        }
+
+                        long start = System.currentTimeMillis();
+                        int currentTargetFPS = RootContainer.this.currentTargetFPS;
+
+                        tickAndPaint();
+
+                        if (currentTargetFPS > 0) {
+                            long frameTime = 1000 / currentTargetFPS;
+                            long sleep = frameTime - (System.currentTimeMillis() - start);
+                            if (sleep > 0) {
+                                try {
+                                    Thread.sleep(sleep);
+                                } catch (InterruptedException ignored) { }
+                            } else {
+                                Thread.yield();
+                            }
+                        }
+                    }
+                }
+            }, "repaint loop");
+            repaintLoopThread.start();
+        }
+    }
+
+    public synchronized void tickAndPaint() {
+        if (rootUIComponent != null && rootUIComponent.isVisible()) {
+            rootUIComponent.tick();
+        }
+        if (rootUIComponent == null || rootUIComponent.isVisible()) {
+            paint();
+        }
     }
 
     @Override
@@ -274,8 +319,15 @@ public class RootContainer extends Canvas implements IContainer, IPopupFeedback,
 
     @Override
     public synchronized void repaint() {
-        if (rootUIComponent != null && !rootUIComponent.repaintOnlyOnFlushGraphics()) {
-            paint();
+        if (rootUIComponent != null && rootUIComponent.isVisible()) {
+            int targetFPS = rootUIComponent.getTargetFPS();
+            if (targetFPS != currentTargetFPS) {
+                updateTargetFPS(targetFPS);
+            }
+
+            if (currentTargetFPS <= 0 && !rootUIComponent.repaintOnlyOnFlushGraphics()) {
+                paint();
+            }
         }
     }
 
@@ -598,6 +650,10 @@ public class RootContainer extends Canvas implements IContainer, IPopupFeedback,
 
     @Override
     public void closePopup() {
+        isRunning = false;
+        synchronized (loopLock) {
+            loopLock.notifyAll();
+        }
         Platform.exit();
     }
 
@@ -615,7 +671,7 @@ public class RootContainer extends Canvas implements IContainer, IPopupFeedback,
             repeatThread = new Thread() {
                 public void run() {
                     try {
-                        while (true) {
+                        while (isRunning) {
                             // Wait until a key is pressed
                             if (!pressState) {
                                 synchronized(tillPressed) {
@@ -627,7 +683,7 @@ public class RootContainer extends Canvas implements IContainer, IPopupFeedback,
                             try {
                                 // Wait a delay and repeat
                                 Thread.sleep(500);
-                                while (true) {
+                                while (isRunning) {
                                     handleKeyRepeated(lastKey, pressCount);
                                     Thread.sleep(150);
                                 }
