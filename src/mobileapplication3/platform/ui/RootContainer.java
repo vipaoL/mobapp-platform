@@ -2,6 +2,7 @@
 
 package mobileapplication3.platform.ui;
 
+import mobileapplication3.platform.KeyboardHelper;
 import mobileapplication3.platform.Logger;
 import mobileapplication3.platform.Platform;
 import mobileapplication3.ui.*;
@@ -14,13 +15,13 @@ import javax.microedition.lcdui.game.GameCanvas;
  *
  * @author vipaol
  */
-public class RootContainer extends GameCanvas implements IContainer, IPopupFeedback {
+public class RootContainer extends GameCanvas implements IContainer, IPopupFeedback, KeyboardHelper.IKeyboardListener {
     private static final int SE_KEY_BACK = -11;
     private static final int DEFAULT_FONT_HEIGHT = Font.getDefaultFontHeight();
 
     private static RootContainer inst = null;
     private IUIComponent rootUIComponent = null;
-    private KeyboardHelper kbHelper;
+    private final KeyboardHelper kbHelper;
     private mobileapplication3.platform.ui.Graphics lastGraphics = null;
     public static boolean displayKbHints = false;
     public static boolean enableOnScreenLog = false;
@@ -41,7 +42,7 @@ public class RootContainer extends GameCanvas implements IContainer, IPopupFeedb
     private RootContainer() {
         super(false);
         setFullScreenMode(true);
-        kbHelper = new KeyboardHelper();
+        kbHelper = new KeyboardHelper(this);
         displayKbHints = !hasPointerEvents();
     }
 
@@ -230,7 +231,7 @@ public class RootContainer extends GameCanvas implements IContainer, IPopupFeedb
         kbHelper.keyPressed(keyCode);
     }
 
-    private void handleKeyPressed(int keyCode, int count) {
+    public void handleKeyPressed(int keyCode, int count) {
         wasDownEvent = true;
         try {
             if (rootUIComponent != null) {
@@ -257,7 +258,7 @@ public class RootContainer extends GameCanvas implements IContainer, IPopupFeedb
         kbHelper.keyReleased(keyCode);
     }
 
-    private void handleKeyReleased(int keyCode, int count) {
+    public void handleKeyReleased(int keyCode, int count) {
         if (rootUIComponent != null && wasDownEvent) {
             rootUIComponent.setVisible(true);
             if (rootUIComponent.keyReleased(keyCode, count)) {
@@ -267,7 +268,7 @@ public class RootContainer extends GameCanvas implements IContainer, IPopupFeedb
         wasDownEvent = false;
     }
 
-    protected void handleKeyRepeated(int keyCode, int pressedCount) {
+    public void handleKeyRepeated(int keyCode, int pressedCount) {
         if (getGameAction(keyCode) == Canvas.FIRE) {
             return;
         }
@@ -356,7 +357,7 @@ public class RootContainer extends GameCanvas implements IContainer, IPopupFeedb
     }
 
     protected void showNotify() {
-        kbHelper.show();
+        kbHelper.start();
         if (rootUIComponent != null) {
             rootUIComponent.onShow();
             rootUIComponent.setVisible(true);
@@ -366,7 +367,7 @@ public class RootContainer extends GameCanvas implements IContainer, IPopupFeedb
     }
 
     protected void hideNotify() {
-        kbHelper.hide();
+        kbHelper.stop();
         if (rootUIComponent != null) {
             rootUIComponent.onHide();
             rootUIComponent.setVisible(false);
@@ -384,70 +385,5 @@ public class RootContainer extends GameCanvas implements IContainer, IPopupFeedb
 
     public boolean isOnScreen() {
         return true;
-    }
-
-    private class KeyboardHelper {
-        private int lastKey, pressCount;
-        private Thread repeatThread;
-        private long lastEvent;
-        private Runnable repeater = new Runnable() {
-            public void run() {
-                // The thread is interrupted when the key is released
-                try {
-                    // Wait a delay and repeat
-                    Thread.sleep(500);
-                    while (isRunning && Thread.currentThread() == repeatThread && wasDownEvent) {
-                        handleKeyRepeated(lastKey, pressCount);
-                        Thread.sleep(150);
-                    }
-                } catch (InterruptedException ex) { }
-            }
-        };
-
-        public void show() {
-            pressCount = 1;
-            lastKey = 0;
-        }
-
-        public void hide() {
-            if(repeatThread != null) {
-                Thread thread = repeatThread;
-                repeatThread = null;
-                thread.interrupt();
-            }
-        }
-
-        public void keyPressed(int k) {
-            if (!isLastEventOld() && k == lastKey) {
-                pressCount++;
-            } else {
-                pressCount = 1;
-            }
-
-            updateLastEventTime();
-            lastKey = k;
-            handleKeyPressed(k, pressCount);
-            repeatThread = new Thread(repeater);
-            repeatThread.start();
-        }
-
-        public void keyReleased(int k) {
-            updateLastEventTime();
-            if(k != lastKey) {
-                pressCount = 0;
-            }
-            if (repeatThread != null) {
-                repeatThread.interrupt();
-            }
-            handleKeyReleased(k, pressCount);
-        }
-
-        private boolean isLastEventOld() {
-            return System.currentTimeMillis() - lastEvent > 200;
-        }
-
-        private void updateLastEventTime() {
-            lastEvent = System.currentTimeMillis();
-        }
     }
 }
