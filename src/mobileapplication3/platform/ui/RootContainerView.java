@@ -8,6 +8,8 @@ import android.os.Build;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+
+import mobileapplication3.platform.KeyboardHelper;
 import mobileapplication3.platform.Logger;
 import mobileapplication3.platform.ModernAndroidUtils;
 import mobileapplication3.platform.Platform;
@@ -15,7 +17,7 @@ import mobileapplication3.ui.*;
 
 import static android.view.KeyEvent.*;
 
-public class RootContainerView extends SurfaceView implements IContainer, IPopupFeedback, SurfaceHolder.Callback {
+public class RootContainerView extends SurfaceView implements IContainer, IPopupFeedback, SurfaceHolder.Callback, KeyboardHelper.IKeyboardListener {
     private static final int DEFAULT_FONT_HEIGHT = Font.getDefaultFontHeight();
 
     private IUIComponent rootUIComponent = null;
@@ -43,7 +45,7 @@ public class RootContainerView extends SurfaceView implements IContainer, IPopup
     public RootContainerView(Context context) {
         super(context);
         getHolder().addCallback(this);
-        kbHelper = new KeyboardHelper();
+        kbHelper = new KeyboardHelper(this);
         RootContainer.displayKbHints = false;//!hasPointerEvents();
         surfaceHolder = getHolder();
 
@@ -217,7 +219,7 @@ public class RootContainerView extends SurfaceView implements IContainer, IPopup
         wasDownEvent = true;
     }
 
-    private void handleKeyPressed(int keyCode, int count) {
+    public void handleKeyPressed(int keyCode, int count) {
         if (rootUIComponent != null) {
             rootUIComponent.setVisible(true);
             if (rootUIComponent.keyPressed(keyCode, count)) {
@@ -237,7 +239,7 @@ public class RootContainerView extends SurfaceView implements IContainer, IPopup
         kbHelper.keyReleased(keyCode);
     }
 
-    private void handleKeyReleased(int keyCode, int count) {
+    public void handleKeyReleased(int keyCode, int count) {
         if (rootUIComponent != null && wasDownEvent) {
             rootUIComponent.setVisible(true);
             if (rootUIComponent.keyReleased(keyCode, count)) {
@@ -247,7 +249,7 @@ public class RootContainerView extends SurfaceView implements IContainer, IPopup
         wasDownEvent = false;
     }
 
-    protected void handleKeyRepeated(int keyCode, int pressedCount) {
+    public void handleKeyRepeated(int keyCode, int pressedCount) {
         if (RootContainer.getAction(keyCode) == Keys.FIRE) {
             return;
         }
@@ -360,7 +362,7 @@ public class RootContainerView extends SurfaceView implements IContainer, IPopup
     }
 
     protected void onShow() {
-        kbHelper.show();
+        kbHelper.start();
         if (rootUIComponent != null) {
             onSizeChanged(getWidth(), getHeight(), 0, 0);
             rootUIComponent.onShow();
@@ -369,7 +371,7 @@ public class RootContainerView extends SurfaceView implements IContainer, IPopup
     }
 
     protected void onHide() {
-        kbHelper.hide();
+        kbHelper.stop();
         if (rootUIComponent != null) {
             rootUIComponent.onHide();
         }
@@ -515,86 +517,6 @@ public class RootContainerView extends SurfaceView implements IContainer, IPopup
         IUIComponent rootUIComponent = getRootUIComponent();
         if (rootUIComponent != null) {
             rootUIComponent.init();
-        }
-    }
-
-    private class KeyboardHelper {
-        private final Object tillPressed = new Object();
-        private int lastKey, pressCount;
-        private boolean pressState;
-        private Thread repeatThread;
-        private long lastEvent;
-
-        public void show() {
-            pressState = false;
-            pressCount = 1;
-            lastKey = 0;
-            repeatThread = new Thread() {
-                public void run() {
-                    try {
-                        while (isRunning) {
-                            // Wait until a key is pressed
-                            if (!pressState) {
-                                synchronized(tillPressed) {
-                                    tillPressed.wait();
-                                }
-                            }
-
-                            // The thread is interrupted when the key is released
-                            try {
-                                // Wait a delay and repeat
-                                Thread.sleep(500);
-                                while (isRunning) {
-                                    handleKeyRepeated(lastKey, pressCount);
-                                    Thread.sleep(150);
-                                }
-                            } catch (InterruptedException ignored) { }
-                        }
-                    } catch (InterruptedException ignored) { }
-                }
-            };
-            repeatThread.start();
-        }
-
-        public void hide() {
-            if (repeatThread != null) {
-                repeatThread.interrupt();
-            }
-        }
-
-        public void keyPressed(int k) {
-            if (!isLastEventOld() && k == lastKey) {
-                pressCount++;
-            } else {
-                pressCount = 1;
-            }
-
-            updateLastEventTime();
-            lastKey = k;
-            pressState = true;
-            synchronized(tillPressed) {
-                tillPressed.notify();
-            }
-            handleKeyPressed(k, pressCount);
-        }
-
-        public void keyReleased(int k) {
-            updateLastEventTime();
-            if (lastKey == k) {
-                pressState = false;
-            } else {
-                pressCount = 0;
-            }
-            repeatThread.interrupt();
-            handleKeyReleased(k, pressCount);
-        }
-
-        private boolean isLastEventOld() {
-            return System.currentTimeMillis() - lastEvent > 200;
-        }
-
-        private void updateLastEventTime() {
-            lastEvent = System.currentTimeMillis();
         }
     }
 }
