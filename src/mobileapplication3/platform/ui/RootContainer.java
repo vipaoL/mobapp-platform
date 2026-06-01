@@ -169,7 +169,7 @@ public class RootContainer extends Canvas implements IContainer, IPopupFeedback,
     public void addNotify() {
         super.addNotify();
         onShow();
-        createBufferStrategy(3);
+        createBufferStrategy(2);
     }
 
     public static RootContainer getInst() {
