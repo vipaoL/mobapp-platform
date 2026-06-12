@@ -354,6 +354,7 @@ public class RootContainerView extends SurfaceView implements IContainer, IPopup
             rootUIComponent.setSize(w, h);
             if (!rootUIComponentPostInitDone) {
                 rootUIComponent.postInit();
+                rootUIComponent.setVisible(true);
                 rootUIComponent.setFocused(true);
                 rootUIComponentPostInitDone = true;
             }
@@ -476,7 +477,7 @@ public class RootContainerView extends SurfaceView implements IContainer, IPopup
         }
 
         if (rootUIComponent != null) {
-            this.rootUIComponent = rootUIComponent.setParent(this);
+            rootUIComponent.setParent(this);
             rootUIComponent.init();
 
             if (getWidth() > 0 && getHeight() > 0) {
@@ -486,6 +487,8 @@ public class RootContainerView extends SurfaceView implements IContainer, IPopup
                 rootUIComponent.setFocused(true);
                 rootUIComponentPostInitDone = true;
             }
+
+            this.rootUIComponent = rootUIComponent;
 
             ensureLegacyLoopRunning();
             updateTargetFPS(rootUIComponent.getTargetFPS());
