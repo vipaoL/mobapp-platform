@@ -213,22 +213,21 @@ public class RootContainer extends Canvas implements IContainer, IPopupFeedback,
         if (rootUIComponent != null) {
             rootUIComponent.setParent(inst);
             rootUIComponent.init();
-            while (true) {
-                if (inst.getWidth() > 0 && inst.getHeight() > 0) {
-                    Logger.log("RootContainer.inst: " + inst.getWidth() + "x" + inst.getHeight());
-                    rootUIComponent.setSize(inst.getWidth(), inst.getHeight());
-                    rootUIComponent.postInit();
-                    rootUIComponent.setVisible(false);
-                    rootUIComponent.setFocused(true);
-                    break;
-                } else {
-                    Logger.log("Error: Window size is 0");
-                    try {
-                        Thread.sleep(100);
-                    } catch (InterruptedException ignored) { }
-                }
+            while (inst.getWidth() <= 0 || inst.getHeight() <= 0) {
+                Logger.log("Error: Window size is 0");
+                try {
+                    Thread.sleep(100);
+                } catch (InterruptedException ignored) { }
             }
-            inst.rootUIComponent = rootUIComponent.setVisible(true);
+
+            Logger.log("RootContainer.inst: " + inst.getWidth() + "x" + inst.getHeight());
+            rootUIComponent.setSize(inst.getWidth(), inst.getHeight());
+            rootUIComponent.postInit();
+
+            rootUIComponent.setVisible(true);
+            rootUIComponent.setFocused(true);
+
+            inst.rootUIComponent = rootUIComponent;
 
             inst.ensureRepaintLoopRunning();
             inst.updateTargetFPS(rootUIComponent.getTargetFPS());
@@ -238,7 +237,7 @@ public class RootContainer extends Canvas implements IContainer, IPopupFeedback,
             try {
                 throw new Exception("setRootUIComponent(): got null");
             } catch (Exception ex) {
-                ex.printStackTrace();
+                Logger.log(ex);
             }
         }
         return inst;
@@ -274,7 +273,11 @@ public class RootContainer extends Canvas implements IContainer, IPopupFeedback,
                         long start = System.currentTimeMillis();
                         int currentTargetFPS = RootContainer.this.currentTargetFPS;
 
-                        tickAndPaint();
+                        try {
+                            tickAndPaint();
+                        } catch (Throwable ex) {
+                            Logger.log(ex);
+                        }
 
                         if (currentTargetFPS > 0) {
                             long frameTime = 1000 / currentTargetFPS;
