@@ -2,40 +2,66 @@
 
 package mobileapplication3.platform.ui;
 
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
-import android.util.Log;
+import mobileapplication3.platform.Logger;
+
+import org.robovm.apple.coregraphics.*;
+import org.robovm.apple.foundation.NSData;
+import org.robovm.apple.uikit.UIImage;
+import org.robovm.apple.uikit.UIGraphics;
 import mobileapplication3.platform.Platform;
 
-import java.io.IOException;
 import java.io.InputStream;
+import java.io.IOException;
 import java.util.Random;
 
 public class Image implements IImage {
-    private Bitmap image;
+    private UIImage image;
 
-    public Image(Bitmap image) {
+    public Image(UIImage image) {
         if (image == null) {
-            Log.d("new Image", "null");
+            Logger.log("got null image");
         }
         this.image = image;
     }
 
     public static Image createImage(int width, int height) {
-        return new Image(Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888));
+        UIGraphics.beginImageContext(new CGSize(width, height));
+        UIImage img = UIGraphics.getImageFromCurrentImageContext();
+        UIGraphics.endImageContext();
+        return new Image(img);
     }
 
     public static Image createRGBImage(int[] rgb, int width, int height, boolean processAlpha) {
-        return new Image(Bitmap.createBitmap(rgb, width, height, processAlpha ? Bitmap.Config.ARGB_8888 : Bitmap.Config.RGB_565));
+        byte[] bytes = new byte[width * height * 4];
+        int i = 0;
+        for (int c : rgb) {
+            bytes[i++] = (byte) ((c >> 16) & 0xFF); // R
+            bytes[i++] = (byte) ((c >> 8) & 0xFF);  // G
+            bytes[i++] = (byte) (c & 0xFF);         // B
+            bytes[i++] = (byte) (processAlpha ? ((c >> 24) & 0xFF) : 0xFF); // A
+        }
+        CGDataProvider provider = CGDataProvider.create(new NSData(bytes));
+        CGColorSpace colorSpace = CGColorSpace.createDeviceRGB();
+        CGBitmapInfo info = new CGBitmapInfo(CGImageAlphaInfo.PremultipliedLast.value());
+        CGImage cgImage = CGImage.create(width, height, 8, 32, width * 4, colorSpace, info, provider, null, false, CGColorRenderingIntent.Default);
+        return new Image(new UIImage(cgImage));
     }
 
     public static Image createImage(String source) throws IOException {
-        InputStream is = Platform.getResource(source);
-        if (is == null) {
-            return null;
+        try {
+            Logger.log("reading resourse \"" + source + "\"");
+            InputStream is = Platform.getResource(source);
+            if (is == null) {
+                return null;
+            }
+            byte[] bytes = new byte[is.available()];
+            is.read(bytes);
+            is.close();
+            return new Image(new UIImage(new NSData(bytes)));
+        } catch (Exception ex) {
+            Logger.log(ex);
+            throw new IOException("can't read image");
         }
-        return new Image(BitmapFactory.decodeStream(is));
     }
 
     public static void blurImg(Image img) {
@@ -66,76 +92,70 @@ public class Image implements IImage {
                 }
             }
         } catch (Exception ex) {
-            ex.printStackTrace();
+            Logger.log(ex);
         }
     }
 
     public Graphics getGraphics() {
-        return new Graphics(new Canvas(image));
+        return new Graphics(this);
     }
 
-    public Bitmap getImage() {
+    public UIImage getImage() {
         return image;
     }
 
-    public void setImage(Bitmap image) {
-        this.image = image;
-    }
-
     public int getWidth() {
-        return image.getWidth();
+        return (int) image.getSize().getWidth();
     }
 
     public int getHeight() {
-        return image.getHeight();
+        return (int) image.getSize().getHeight();
     }
 
     public void getRGB(int[] rgbData, int offset, int scanlength, int x, int y, int width, int height) {
-        if (image != null) {
-            image.getPixels(rgbData, offset, scanlength, x, y, width, height);
+        if (image == null || image.getCGImage() == null) {
+            return;
+        }
+
+        CGImage cgImage = image.getCGImage();
+        byte[] bytes = cgImage.getDataProvider().getData().getBytes();
+        long bytesPerRow = cgImage.getBytesPerRow();
+        long bpp = cgImage.getBitsPerPixel() / 8;
+
+        for(int r = 0; r < height; r++) {
+            for(int c = 0; c < width; c++) {
+                int imgX = x + c;
+                int imgY = y + r;
+                int idx = (int)(imgY * bytesPerRow + imgX * bpp);
+
+                int red = bytes[idx] & 0xFF;
+                int green = bytes[idx+1] & 0xFF;
+                int blue = bytes[idx+2] & 0xFF;
+                int alpha = (bpp == 4) ? (bytes[idx+3] & 0xFF) : 255;
+                rgbData[offset + r * scanlength + c] = (alpha << 24) | (red << 16) | (green << 8) | blue;
+            }
         }
     }
 
     public Image scale(int newWidth, int newHeight) {
-        if (image == null) {
-            return null;
+        UIGraphics.beginImageContext(new CGSize(newWidth, newHeight));
+
+        CGContext ctx = UIGraphics.getCurrentContext();
+        if (ctx != null) {
+            ctx.setInterpolationQuality(CGInterpolationQuality.None);
         }
 
-        int[] rawInput = new int[image.getHeight() * image.getWidth()];
-        getRGB(rawInput, 0, image.getWidth(), 0, 0, image.getWidth(), image.getHeight());
-
-        int[] rawOutput = new int[newWidth * newHeight];
-
-        // YD compensates for the x loop by subtracting the width back out
-        int YD = (image.getHeight() / newHeight) * image.getWidth() - image.getWidth();
-        int YR = image.getHeight() % newHeight;
-        int XD = image.getWidth() / newWidth;
-        int XR = image.getWidth() % newWidth;
-        int outOffset = 0;
-        int inOffset = 0;
-
-        for (int y = newHeight, YE = 0; y > 0; y--) {
-            for (int x = newWidth, XE = 0; x > 0; x--) {
-                rawOutput[outOffset++] = rawInput[inOffset];
-                inOffset += XD;
-                XE += XR;
-                if (XE >= newWidth) {
-                    XE -= newWidth;
-                    inOffset++;
-                }
-            }
-            inOffset += YD;
-            YE += YR;
-            if (YE >= newHeight) {
-                YE -= newHeight;
-                inOffset += image.getWidth();
-            }
-        }
-        return createRGBImage(rawOutput, newWidth, newHeight, true);
-
+        image.draw(new CGRect(0, 0, newWidth, newHeight));
+        UIImage scaled = UIGraphics.getImageFromCurrentImageContext();
+        UIGraphics.endImageContext();
+        return new Image(scaled);
     }
 
     public void blur() {
         blurImg(this);
+    }
+
+    public void setImage(UIImage image) {
+        this.image = image;
     }
 }

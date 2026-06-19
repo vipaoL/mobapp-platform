@@ -2,9 +2,7 @@
 
 package mobileapplication3.platform;
 
-import android.content.Intent;
-import android.content.IntentFilter;
-import android.os.BatteryManager;
+import org.robovm.apple.uikit.UIDevice;
 
 public class Battery {
     public static final int ERROR = -1;
@@ -18,31 +16,26 @@ public class Battery {
             return true;
         }
 
-        if (getBatteryLevel() == ERROR) {
-            return false;
-        } else {
+        try {
+            UIDevice.getCurrentDevice().setBatteryMonitoringEnabled(true);
             method = METHOD_DEFAULT;
             return true;
+        } catch (Throwable t) {
+            Platform.showError("Battery init failed", t);
+            return false;
         }
     }
 
     public static int getBatteryLevel() {
         try {
-            if (Platform.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
-                return ModernAndroidUtils.getBatteryLevel();
-            } else {
-                IntentFilter iFilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
-                Intent batteryStatus = Platform.getActivityInst().registerReceiver(null, iFilter);
-                int level = batteryStatus != null ? batteryStatus.getIntExtra(BatteryManager.EXTRA_LEVEL, -1) : -1;
-                int scale = batteryStatus != null ? batteryStatus.getIntExtra(BatteryManager.EXTRA_SCALE, -1) : -1;
-                double batteryPct = level / (double) scale;
-                return (int) (batteryPct * 100);
+            float level = UIDevice.getCurrentDevice().getBatteryLevel();
+            if (level < 0) {
+                return ERROR;
             }
-        } catch (Exception ex) {
-            Logger.log("can't get battery level:");
-            Logger.log(ex.toString());
+            return (int) (level * 100);
+        } catch (Throwable t) {
+            return ERROR;
         }
-        return ERROR;
     }
 
     public static int getMethod() {

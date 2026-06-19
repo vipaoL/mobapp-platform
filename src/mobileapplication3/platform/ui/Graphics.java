@@ -2,55 +2,107 @@
 
 package mobileapplication3.platform.ui;
 
-import android.graphics.Canvas;
-import android.graphics.Paint;
-import android.graphics.Path;
-import android.os.Build;
-import mobileapplication3.platform.ModernAndroidUtils;
-import mobileapplication3.platform.Platform;
+import org.robovm.apple.coregraphics.*;
+import org.robovm.apple.foundation.NSString;
+import org.robovm.apple.uikit.*;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class Graphics implements IGraphics {
-
-    private final Canvas c;
-    private final Paint p;
+    private static final Map<Integer, UIColor> colorCache = new HashMap<>();
+    private CGContext context;
     private Font currentFont;
+    private UIColor currentColor = UIColor.black();
+    private int currentRGB = 0x000000;
+    private CGRect clipBounds;
 
-    public Graphics(Canvas c) {
-        c.save();
-        this.c = c;
-        p = new Paint();
-        p.setStrokeWidth(1);
-        p.setTextSize(88);
+    private final CGPoint cachedPoint = new CGPoint(0, 0);
+
+    public Graphics(CGContext c) {
+        context = c;
         currentFont = new Font();
+        if (context != null) {
+            context.saveGState();
+            context.setInterpolationQuality(CGInterpolationQuality.None);
+            clipBounds = c.getClipBoundingBox();
+        }
+    }
+
+    public Graphics(Image img) {
+        UIGraphics.beginImageContext(img.getImage().getSize());
+        img.getImage().draw(new CGPoint(0, 0));
+        context = UIGraphics.getCurrentContext();
+        if (context != null) {
+            context.setInterpolationQuality(CGInterpolationQuality.None);
+        }
+        currentFont = new Font();
+        context.saveGState();
+        clipBounds = context.getClipBoundingBox();
+    }
+
+    public void setContext(CGContext c) {
+        this.context = c;
+        if (c != null) {
+            context.saveGState();
+            context.setInterpolationQuality(CGInterpolationQuality.None);
+            clipBounds = c.getClipBoundingBox();
+        }
     }
 
     @Override
     public void drawArc(int x, int y, int width, int height, int startAngle, int arcAngle) {
-        drawArc(x, y, width, height, startAngle, arcAngle, false, true, 1);
+        drawArc(x, y, width, height, startAngle, arcAngle, false);
     }
 
+    @Override
     public void drawArc(int x, int y, int width, int height, int startAngle, int arcAngle, int thickness, int zoomOut, boolean drawThickness, boolean zoomThickness, boolean rounding) {
-        float strokeWidth = 1;
-        if (drawThickness) {
-            strokeWidth = thickness * (zoomThickness ? (1000f / zoomOut) : 1);
-        }
-        drawArc(x, y, width, height, startAngle, arcAngle, false, rounding, strokeWidth);
+        float strokeWidth = drawThickness ? (thickness * (zoomThickness ? (1000f / zoomOut) : 1)) : 1;
+
+        double startRad = Math.toRadians(startAngle);
+        double endRad = Math.toRadians(startAngle + arcAngle);
+
+        int clockwise = (arcAngle < 0) ? 1 : 0;
+
+        context.saveGState();
+        context.translateCTM(x + width / 2.0, y + height / 2.0);
+        context.scaleCTM(width / 2.0, height / 2.0);
+
+        context.beginPath();
+        context.addArc(0, 0, 1.0, startRad, endRad, clockwise);
+
+        context.restoreGState();
+
+        context.setLineWidth(strokeWidth);
+        context.setLineCap(rounding ? CGLineCap.Round : CGLineCap.Butt);
+        context.setStrokeColor(currentColor.getCGColor());
+        context.strokePath();
     }
 
-    private void drawArc(int x, int y, int width, int height, int startAngle, int arcAngle, boolean fill, boolean rounding, float strokeWidth) {
-        p.setStrokeCap(rounding ? Paint.Cap.ROUND : Paint.Cap.BUTT);
-        if (fill) {
-            p.setStyle(Paint.Style.FILL_AND_STROKE);
-        } else {
-            p.setStyle(Paint.Style.STROKE);
-        }
-        p.setStrokeWidth(strokeWidth);
+    private void drawArc(int x, int y, int width, int height, int startAngle, int arcAngle, boolean fill) {
+        double startRad = Math.toRadians(startAngle);
+        double endRad = Math.toRadians(startAngle + arcAngle);
 
-        if (Platform.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            ModernAndroidUtils.drawArc(x, y, width, height, startAngle, arcAngle, c, p);
+        int clockwise = (arcAngle < 0) ? 1 : 0;
+
+        context.saveGState();
+        context.translateCTM(x + width / 2.0, y + height / 2.0);
+        context.scaleCTM(width / 2.0, height / 2.0);
+
+        context.beginPath();
+        context.addArc(0, 0, 1.0, startRad, endRad, clockwise);
+
+        if (fill) {
+            context.addLineToPoint(0, 0);
+            context.closePath();
+            context.restoreGState();
+            context.setFillColor(currentColor.getCGColor());
+            context.fillPath();
         } else {
-            c.drawCircle(x + width / 2f, y + height / 2f, width / 2f, p);
-            c.drawCircle(x + width / 2f, y + height / 2f, height / 2f, p);
+            context.restoreGState();
+            context.setLineWidth(1);
+            context.setStrokeColor(currentColor.getCGColor());
+            context.strokePath();
         }
     }
 
@@ -83,7 +135,11 @@ public class Graphics implements IGraphics {
                 y -= h;
             }
 
-            c.drawBitmap(img.getImage(), x, y, p);
+            UIGraphics.pushContext(context);
+            cachedPoint.setX(x);
+            cachedPoint.setY(y);
+            img.getImage().draw(cachedPoint);
+            UIGraphics.popContext();
         }
     }
 
@@ -104,31 +160,32 @@ public class Graphics implements IGraphics {
 
     @Override
     public void drawLine(int x1, int y1, int x2, int y2, int thickness, int zoomOut, boolean drawThickness, boolean zoomThickness, boolean rounding, boolean markSkeleton) {
-        p.setStrokeCap(rounding ? Paint.Cap.ROUND : Paint.Cap.BUTT);
-        p.setStyle(Paint.Style.FILL_AND_STROKE);
+        float w = 1;
         if (drawThickness) {
-            if (zoomThickness) {
-                p.setStrokeWidth(thickness * 1000f / zoomOut);
-            } else {
-                p.setStrokeWidth(thickness);
-            }
-        } else {
-            p.setStrokeWidth(1);
+            w = zoomThickness ? (thickness * 1000f / zoomOut) : thickness;
         }
 
-        float startX = x1 + 0.5f;
-        float startY = y1 + 0.5f;
-        float stopX = x2 + 0.5f;
-        float stopY = y2 + 0.5f;
+        context.setLineWidth(w);
+        context.setLineCap(rounding ? CGLineCap.Round : CGLineCap.Butt);
+        context.setStrokeColor(currentColor.getCGColor());
 
-        c.drawLine(startX, startY, stopX, stopY, p);
+        context.beginPath();
+        context.moveToPoint(x1 + 0.5, y1 + 0.5);
+        context.addLineToPoint(x2 + 0.5, y2 + 0.5);
+        context.strokePath();
 
-        if (markSkeleton && drawThickness && thickness * 1000 / zoomOut > 8) {
+        if (markSkeleton && drawThickness && w > 8) {
             int prevCol = getColor();
             setColor(0xff0000);
-            p.setStrokeWidth(1);
-            p.setStrokeCap(Paint.Cap.BUTT);
-            c.drawLine(startX, startY, stopX, stopY, p);
+            context.setLineWidth(1);
+            context.setLineCap(CGLineCap.Butt);
+            context.setStrokeColor(currentColor.getCGColor());
+
+            context.beginPath();
+            context.moveToPoint(x1 + 0.5, y1 + 0.5);
+            context.addLineToPoint(x2 + 0.5, y2 + 0.5);
+            context.strokePath();
+
             setColor(prevCol);
         }
     }
@@ -144,17 +201,32 @@ public class Graphics implements IGraphics {
     }
 
     private void drawRoundRect(int x, int y, int width, int height, int arcWidth, int arcHeight, boolean fill) {
-        if (fill) {
-            p.setStyle(Paint.Style.FILL_AND_STROKE);
+        if (arcWidth <= 0 && arcHeight <= 0) {
+            context.beginPath();
+            context.moveToPoint(x + 0.5, y + 0.5);
+            context.addLineToPoint(x + width + 0.5, y + 0.5);
+            context.addLineToPoint(x + width + 0.5, y + height + 0.5);
+            context.addLineToPoint(x + 0.5, y + height + 0.5);
+            context.closePath();
         } else {
-            p.setStyle(Paint.Style.STROKE);
-        }
-        p.setStrokeWidth(1);
+            CGRect rect = new CGRect(x + 0.5, y + 0.5, width, height);
 
-        if (Platform.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && arcWidth > 0 && arcHeight > 0) {
-            ModernAndroidUtils.drawRoundRect(x, y, width, height, arcWidth, arcHeight, c, p);
+            double cornerWidth = Math.min(arcWidth / 2.0, width / 2.0);
+            double cornerHeight = Math.min(arcHeight / 2.0, height / 2.0);
+
+            CGPath path = CGPath.createWithRoundedRect(rect, cornerWidth, cornerHeight, null);
+
+            context.beginPath();
+            context.addPath(path);
+
+        }
+        if (fill) {
+            context.setFillColor(currentColor.getCGColor());
+            context.fillPath();
         } else {
-            c.drawRect(x + 0.5f, y + 0.5f, x + width + 0.5f, y + height + 0.5f, p);
+            context.setLineWidth(1);
+            context.setStrokeColor(currentColor.getCGColor());
+            context.strokePath();
         }
     }
 
@@ -165,24 +237,38 @@ public class Graphics implements IGraphics {
 
     @Override
     public void drawSubstring(String str, int offset, int len, int x, int y, int anchor) {
-        Paint p = currentFont.getPaint();
-        p.setStyle(Paint.Style.FILL);
-        p.setColor(this.p.getColor());
-        int textW = substringWidth(str, offset, len);
-        int textH = (int) (p.descent() - p.ascent());
-        y -= (int) ((p.descent() + p.ascent()) / 2);
-        y += textH / 2;
-        if ((anchor & HCENTER) != 0) {
-            x -= textW / 2;
-        } else if ((anchor & RIGHT) != 0) {
-            x -= textW;
+        if (str == null || len <= 0) {
+            return;
         }
-        if ((anchor & VCENTER) != 0) {
-            y -= textH / 2;
-        } else if ((anchor & BOTTOM) != 0) {
-            y -= textH;
+
+        NSString nsStr = NSStringCache.get(str, offset, len);
+
+        if (anchor != 0) {
+            CGSize size = nsStr.getSize(currentFont.getAttributes());
+            int w = (int) size.getWidth();
+            int h = (int) size.getHeight();
+
+            if ((anchor & HCENTER) != 0) {
+                x -= w / 2;
+            } else if ((anchor & RIGHT) != 0) {
+                x -= w;
+            }
+
+            if ((anchor & VCENTER) != 0) {
+                y -= h / 2;
+            } else if ((anchor & BOTTOM) != 0) {
+                y -= h;
+            }
         }
-        c.drawText(str, offset, offset + len, x, y, p);
+
+        UIGraphics.pushContext(context);
+        currentFont.getAttributes().setForegroundColor(currentColor);
+
+        cachedPoint.setX(x);
+        cachedPoint.setY(y);
+        nsStr.draw(cachedPoint, currentFont.getAttributes());
+
+        UIGraphics.popContext();
     }
 
     @Override
@@ -198,7 +284,7 @@ public class Graphics implements IGraphics {
 
     @Override
     public void fillArc(int x, int y, int width, int height, int startAngle, int arcAngle) {
-        drawArc(x, y, width, height, startAngle, arcAngle, true, false, 1);
+        drawArc(x, y, width, height, startAngle, arcAngle, true);
     }
 
     @Override
@@ -213,36 +299,37 @@ public class Graphics implements IGraphics {
 
     @Override
     public void fillTriangle(int x1, int y1, int x2, int y2, int x3, int y3) {
-        p.setStyle(Paint.Style.FILL_AND_STROKE);
-        p.setStrokeWidth(1);
+        context.saveGState();
+        context.setShouldAntialias(false);
 
-        Path path = new Path();
-        path.moveTo(x1, y1);
-        path.lineTo(x2, y2);
-        path.lineTo(x3, y3);
-        path.lineTo(x1, y1);
-        path.close();
+        context.beginPath();
+        context.moveToPoint(x1, y1);
+        context.addLineToPoint(x2, y2);
+        context.addLineToPoint(x3, y3);
+        context.closePath();
 
-        c.drawPath(path, p);
+        context.setFillColor(currentColor.getCGColor());
+        context.fillPath();
+
+        context.restoreGState();
     }
 
     @Override
     public void setClip(int x, int y, int width, int height) {
-        try {
-            c.restore();
-        } catch (IllegalStateException ignored) { }
-        c.save();
-        c.clipRect(x, y, x + width, y + height);
+        context.restoreGState();
+        context.saveGState();
+        clipBounds = new CGRect(x, y, width, height);
+        context.clipToRect(clipBounds);
     }
 
     @Override
     public void setColor(int red, int green, int blue) {
-        p.setARGB(255, red, green, blue);
+        setColor((red << 16) | (green << 8) | blue);
     }
 
     @Override
     public void setFont(int face, int style, int size) {
-        currentFont = new Font(face, style, size);
+        currentFont = Font.getFont(face, style, size);
     }
 
     @Override
@@ -297,31 +384,44 @@ public class Graphics implements IGraphics {
 
     @Override
     public int getClipWidth() {
-        return c.getClipBounds().width();
+        return (int) clipBounds.getWidth();
     }
 
     @Override
     public int getClipHeight() {
-        return c.getClipBounds().height();
+        return (int) clipBounds.getHeight();
     }
 
     @Override
     public int getClipX() {
-        return c.getClipBounds().left;
+        return (int) clipBounds.getMinX();
     }
 
     @Override
     public int getClipY() {
-        return c.getClipBounds().top;
+        return (int) clipBounds.getMinY();
     }
 
     @Override
     public int getColor() {
-        return p.getColor() % 0xff000000;
+        return currentRGB;
     }
 
     @Override
     public void setColor(int RGB) {
-        p.setColor(RGB + 0xff000000);
+        if (this.currentRGB == RGB) {
+            return;
+        }
+        currentRGB = RGB;
+
+        UIColor color = colorCache.get(/*TODO*/RGB/**/);
+        if (color == null) {
+            int red = (RGB >> 16) & 0xFF;
+            int green = (RGB >> 8) & 0xFF;
+            int blue = RGB & 0xFF;
+            color = UIColor.fromRGBA(red / 255f, green / 255f, blue / 255f, 1.0f);
+            colorCache.put(RGB, color);
+        }
+        currentColor = color;
     }
 }

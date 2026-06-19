@@ -2,7 +2,11 @@
 
 package mobileapplication3.platform;
 
-import android.util.Log;
+import org.robovm.apple.foundation.NSArray;
+import org.robovm.apple.foundation.NSFileManager;
+import org.robovm.apple.foundation.NSSearchPathDirectory;
+import org.robovm.apple.foundation.NSSearchPathDomainMask;
+import org.robovm.apple.foundation.NSURL;
 
 import java.io.*;
 import java.util.Enumeration;
@@ -19,10 +23,36 @@ public class FileUtils {
     private static final String[] FOLDERS_ON_EACH_DRIVE = {""};
     private static final short[] TESTDATA = new short[]{0, 1, 2, 3};
 
+    private static final String DOCUMENTS_ROOT = "documents://";
+
+    static String toAbsolutePath(String path) {
+        if (path == null) {
+            return null;
+        }
+        if (path.startsWith(DOCUMENTS_ROOT)) {
+            return getAbsoluteDocumentsRoot() + path.substring(DOCUMENTS_ROOT.length());
+        }
+        return path;
+    }
+
+    private static String getAbsoluteDocumentsRoot() {
+        NSArray<NSURL> urls = NSFileManager.getDefaultManager()
+                .getURLsForDirectory(
+                        NSSearchPathDirectory.DocumentDirectory,
+                        NSSearchPathDomainMask.UserDomainMask
+                );
+        if (urls != null && !urls.isEmpty()) {
+            return urls.get(0).getPath() + SEP;
+        }
+        return System.getProperty("user.home") + "/Documents/";
+    }
+
     public static void saveShortArrayToFile(short[] arr, String path) throws IOException, SecurityException {
+        path = toAbsolutePath(path);
         Logger.log("writing " + (arr != null ? (arr.length + " shorts") : null) + " to " + path);
         File file = new File(path);
         if (!file.exists()) {
+            file.getParentFile().mkdirs();
             if (!file.createNewFile()) {
                 throw new IOException("Can't create file \"" + path + "\"");
             }
@@ -34,27 +64,21 @@ public class FileUtils {
         }
 
         dos.flush();
-        buf.flush();
         byte[] data = buf.toByteArray();
         dos.close();
-        buf.close();
 
         OutputStream fos = new FileOutputStream(file);
         fos.write(data);
         fos.close();
-        fos.close();
     }
 
     public static void saveStringToFile(String data, String path) {
+        path = toAbsolutePath(path);
         Logger.log("writing " + data + " to " + path);
         try {
-            try {
-                new File(path).getParentFile().mkdirs();
-            } catch (Exception ignored) { }
+            new File(path).getParentFile().mkdirs();
             DataOutputStream dos = new DataOutputStream(new FileOutputStream(path));
-            if (data != null) {
-                dos.write(data.getBytes());
-            }
+            dos.write(data != null ? data.getBytes() : new byte[0]);
             dos.flush();
             dos.close();
         } catch (Exception ex) {
@@ -65,20 +89,14 @@ public class FileUtils {
     }
 
     public static String readStringFromFile(String path) {
+        path = toAbsolutePath(path);
         Logger.log("reading string from " + path);
         try {
             File file = new File(path);
-            int length = (int) file.length();
-
-            byte[] bytes = new byte[length];
-
+            byte[] bytes = new byte[(int) file.length()];
             FileInputStream in = new FileInputStream(file);
-            try {
-                in.read(bytes);
-            } finally {
-                in.close();
-            }
-
+            in.read(bytes);
+            in.close();
             return new String(bytes);
         } catch (FileNotFoundException ex) {
             return null;
@@ -91,6 +109,7 @@ public class FileUtils {
     }
 
     public static DataInputStream fileToDataInputStream(String path) {
+        path = toAbsolutePath(path);
         try {
             return new DataInputStream(new FileInputStream(path));
         } catch (FileNotFoundException e) {
@@ -100,14 +119,12 @@ public class FileUtils {
 
     public static String[] getRoots() {
         return new String[]{
-                //Environment.getExternalStorageDirectory().getPath() + SEP,
-                String.valueOf(Platform.getFilesDir()) + SEP,
-                String.valueOf(Platform.getExternalFilesDir()) + SEP
+                DOCUMENTS_ROOT,
         };
     }
 
     public static String[] list(String path) throws IOException {
-        return new File(path).list();
+        return new File(toAbsolutePath(path)).list();
     }
 
     public static String[] enumToArray(Enumeration en) {
@@ -124,15 +141,14 @@ public class FileUtils {
     }
 
     public static void createFolder(String path) throws IOException {
-        File f = new File(path);
-        f.mkdirs();
+        new File(toAbsolutePath(path)).mkdirs();
     }
 
     public static void checkFolder(String path) throws IOException {
         path = path + "test.mgstruct";
 
         saveShortArrayToFile(TESTDATA, path);
-        new File(path).delete();
+        new File(toAbsolutePath(path)).delete();
     }
 
     public static String[] getAllPlaces(String folderName) {
@@ -140,7 +156,7 @@ public class FileUtils {
         String[] paths = new String[roots.length * FOLDERS_ON_EACH_DRIVE.length];
 
         for (int i = 0; i < roots.length; i++) {
-            Log.d("Searching for places in", roots[i]);
+            Logger.log("Searching for places in " + roots[i]);
             for (int j = 0; j < FOLDERS_ON_EACH_DRIVE.length; j++) {
                 paths[i*FOLDERS_ON_EACH_DRIVE.length + j] = roots[i] + FOLDERS_ON_EACH_DRIVE[j] + folderName + SEP;
             }

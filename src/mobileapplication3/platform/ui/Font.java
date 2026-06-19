@@ -2,63 +2,87 @@
 
 package mobileapplication3.platform.ui;
 
-import android.graphics.Paint;
-import android.graphics.Rect;
-import android.graphics.Typeface;
-import mobileapplication3.platform.Platform;
+import org.robovm.apple.foundation.NSString;
+import org.robovm.apple.uikit.NSAttributedStringAttributes;
+import org.robovm.apple.uikit.UIFont;
+import org.robovm.apple.uikit.UIFontDescriptor;
+import org.robovm.apple.uikit.UIFontDescriptorSymbolicTraits;
+import org.robovm.apple.uikit.UIScreen;
 
+import java.util.Hashtable;
 import java.util.Vector;
 
 public class Font implements IFont {
-    private Paint p;
+    private static final int BASE_FONT_SIZE = 23;
+    private static final Hashtable nativeCache = new Hashtable();
+
+    private UIFont uiFont;
     private int face;
     private int style;
     private int size;
+    private NSAttributedStringAttributes attributes;
 
     public Font(int face, int style, int size) {
         this.face = face;
         this.style = style;
         this.size = size;
+        initFont();
+    }
 
-        p = new Paint();
+    private void initFont() {
+        String key = face + "_" + style + "_" + size;
 
-        float density = Platform.getActivityInst().getResources().getDisplayMetrics().density;
+        synchronized (nativeCache) {
+            CachedFontData cached = (CachedFontData) nativeCache.get(key);
+            if (cached != null) {
+                this.uiFont = cached.uiFont;
+                this.attributes = cached.attributes;
+                return;
+            }
+        }
+
+        double scale = UIScreen.getMainScreen().getScale();
+        float realSize = (float) (BASE_FONT_SIZE * scale);
         switch (size) {
             case SIZE_SMALL:
-                p.setTextSize(20 * density);
+                realSize = (float) (BASE_FONT_SIZE * scale * 3 / 4);
                 break;
             case SIZE_MEDIUM:
-                p.setTextSize(24 * density);
+                realSize = (float) (BASE_FONT_SIZE * scale);
                 break;
             case SIZE_LARGE:
-                p.setTextSize(38 * density);
+                realSize = (float) (BASE_FONT_SIZE * scale * 3 / 2);
                 break;
         }
 
-        int typefaceStyle = Typeface.NORMAL;
-        boolean isBold = (style & STYLE_BOLD) != 0;
-        boolean isItalic = (style & STYLE_ITALIC) != 0;
-
-        if (isBold && isItalic) {
-            typefaceStyle = Typeface.BOLD_ITALIC;
-        } else if (isBold) {
-            typefaceStyle = Typeface.BOLD;
-        } else if (isItalic) {
-            typefaceStyle = Typeface.ITALIC;
+        int trait = 0;
+        if ((style & STYLE_BOLD) != 0) {
+            trait |= UIFontDescriptorSymbolicTraits.TraitBold.value();
+        }
+        if ((style & STYLE_ITALIC) != 0) {
+            trait |= UIFontDescriptorSymbolicTraits.TraitItalic.value();
         }
 
-        if ((style & STYLE_UNDERLINED) != 0) {
-            p.setUnderlineText(true);
+        UIFont fontObj = null;
+        if (trait != 0) {
+            UIFontDescriptor descriptor = UIFont.getSystemFont(realSize).getFontDescriptor().newWithSymbolicTraits(new UIFontDescriptorSymbolicTraits(trait));
+            if (descriptor != null) {
+                fontObj = UIFont.getFont(descriptor, realSize);
+            }
         }
 
-        Typeface tf = Typeface.DEFAULT;
-        if (face == FACE_MONOSPACE) {
-            tf = Typeface.MONOSPACE;
-        } else if (face == FACE_PROPORTIONAL) {
-            tf = Typeface.SANS_SERIF;
+        if (fontObj == null) {
+            fontObj = UIFont.getSystemFont(realSize);
         }
 
-        p.setTypeface(Typeface.create(tf, typefaceStyle));
+        NSAttributedStringAttributes attrObj = new NSAttributedStringAttributes().setFont(fontObj);
+
+        this.uiFont = fontObj;
+        this.attributes = attrObj;
+
+        synchronized (nativeCache) {
+            nativeCache.put(key, new CachedFontData(fontObj, attrObj));
+        }
     }
 
     public Font() {
@@ -67,13 +91,6 @@ public class Font implements IFont {
 
     public Font(int size) {
         this(FACE_SYSTEM, STYLE_PLAIN, size);
-    }
-
-    protected Font(Paint p) {
-        this.p = p;
-        this.face = FACE_SYSTEM;
-        this.style = STYLE_PLAIN;
-        this.size = SIZE_MEDIUM;
     }
 
     public static Font getFont(int face, int style, int size) {
@@ -100,10 +117,6 @@ public class Font implements IFont {
         return getDefaultFont().getSize();
     }
 
-    protected Paint getPaint() {
-        return p;
-    }
-
     public int getFace() {
         return face;
     }
@@ -117,8 +130,11 @@ public class Font implements IFont {
     }
 
     public int getHeight() {
-        Paint.FontMetrics fm = p.getFontMetrics();
-        return (int) (fm.descent - fm.ascent);
+        return (int) Math.ceil(uiFont.getLineHeight());
+    }
+
+    NSAttributedStringAttributes getAttributes() {
+        return attributes;
     }
 
     public int stringWidth(String str) {
@@ -126,9 +142,13 @@ public class Font implements IFont {
     }
 
     public int substringWidth(String str, int offset, int len) {
-        Rect bounds = new Rect();
-        p.getTextBounds(str, offset, offset + len, bounds);
-        return bounds.width();
+        if (str == null || len <= 0) {
+            return 0;
+        }
+
+        NSString nsStr = NSStringCache.get(str, offset, len);
+
+        return (int) Math.ceil(nsStr.getSize(attributes).getWidth());
     }
 
     public int[][] getLineBounds(String text, int w, int padding) {
@@ -199,5 +219,14 @@ public class Font implements IFont {
             lineBounds[i] = (int[]) lineBoundsVector.elementAt(i);
         }
         return lineBounds;
+    }
+
+    private static class CachedFontData {
+        final UIFont uiFont;
+        final NSAttributedStringAttributes attributes;
+        CachedFontData(UIFont f, NSAttributedStringAttributes a) {
+            this.uiFont = f;
+            this.attributes = a;
+        }
     }
 }
