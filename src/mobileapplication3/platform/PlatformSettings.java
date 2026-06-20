@@ -10,6 +10,10 @@ public class PlatformSettings {
             FULLSCREEN_MODE = "fullscreen",
             BLACK_AND_WHITE_MODE = "blackAndWhiteMode";
 
+    public static final int DEFAULT_FONT_SIZE = 32;
+    public static final boolean DEFAULT_FULLSCREEN_MODE = false;
+    public static final boolean DEFAULT_BLACK_AND_WHITE_MODE = false;
+
     private static Settings settingsInst = null;
     public static int
             fontSizeOverride = UNDEF,
@@ -35,7 +39,7 @@ public class PlatformSettings {
 
     public static int getFontSize() {
         if (fontSizeOverride == UNDEF) {
-            return getSettingsInst().getInt(FONT_SIZE, 32);
+            return getSettingsInst().getInt(FONT_SIZE, DEFAULT_FONT_SIZE);
         } else {
             return fontSizeOverride;
         }
@@ -53,7 +57,7 @@ public class PlatformSettings {
 
     public static boolean getFullscreenMode() {
         if (fullscreenModeOverride == UNDEF) {
-            return getSettingsInst().getBool(FULLSCREEN_MODE, false);
+            return getSettingsInst().getBool(FULLSCREEN_MODE, DEFAULT_FULLSCREEN_MODE);
         } else {
             return fullscreenModeOverride == TRUE;
         }
@@ -71,7 +75,7 @@ public class PlatformSettings {
 
     public static boolean getBlackAndWhiteMode() {
         if (blackAndWhiteModeOverride == UNDEF) {
-            return getSettingsInst().getBool(BLACK_AND_WHITE_MODE, false);
+            return getSettingsInst().getBool(BLACK_AND_WHITE_MODE, DEFAULT_BLACK_AND_WHITE_MODE);
         } else {
             return blackAndWhiteModeOverride == TRUE;
         }
