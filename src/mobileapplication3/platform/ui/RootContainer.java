@@ -227,8 +227,14 @@ public class RootContainer extends GameCanvas implements IContainer, IPopupFeedb
     }
 
     protected void keyPressed(int keyCode) {
-        if (keyCode == SE_KEY_BACK) {
-            keyCode = Keys.KEY_SOFT_RIGHT;
+        switch (keyCode) {
+            case 'q':
+                keyCode = Keys.KEY_SOFT_LEFT;
+                break;
+            case SE_KEY_BACK:
+            case 'p':
+                keyCode = Keys.KEY_SOFT_RIGHT;
+                break;
         }
         kbHelper.keyPressed(keyCode);
     }
@@ -254,8 +260,14 @@ public class RootContainer extends GameCanvas implements IContainer, IPopupFeedb
     }
 
     protected void keyReleased(int keyCode) {
-        if (keyCode == SE_KEY_BACK) {
-            keyCode = Keys.KEY_SOFT_RIGHT;
+        switch (keyCode) {
+            case 'q':
+                keyCode = Keys.KEY_SOFT_LEFT;
+                break;
+            case SE_KEY_BACK:
+            case 'p':
+                keyCode = Keys.KEY_SOFT_RIGHT;
+                break;
         }
         kbHelper.keyReleased(keyCode);
     }
