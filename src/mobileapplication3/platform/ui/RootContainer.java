@@ -32,6 +32,7 @@ public class RootContainer extends GameCanvas implements IContainer, IPopupFeedb
     private int lastPointerX, lastPointerY;
     private int pressedX, pressedY;
     private long pressedTime;
+    private long lastDraggedEventTime;
     private boolean rootUIComponentPostInitDone = false;
 
     private int currentTargetFPS = 0;
@@ -312,7 +313,7 @@ public class RootContainer extends GameCanvas implements IContainer, IPopupFeedb
     }
 
     protected void pointerDragged(int x, int y) {
-        if (lastPointerX == x && lastPointerY == y) {
+        if (lastPointerX == x && lastPointerY == y || (System.currentTimeMillis() - lastDraggedEventTime <= 1)) {
             return;
         }
 
@@ -330,11 +331,16 @@ public class RootContainer extends GameCanvas implements IContainer, IPopupFeedb
                 wasDragged = true;
             }
         }
+
+        lastDraggedEventTime = System.currentTimeMillis();
     }
 
     protected void pointerReleased(int x, int y) {
         try {
             if (rootUIComponent != null && wasDownEvent) {
+                if (lastPointerX != x || lastPointerY != y) {
+                    pointerDragged(x, y);
+                }
                 if (rootUIComponent.pointerReleased(x, y)) {
                     repaintt();
                 }
