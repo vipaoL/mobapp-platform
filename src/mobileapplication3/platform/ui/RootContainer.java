@@ -184,25 +184,30 @@ public class RootContainer extends GameCanvas implements IContainer, IPopupFeedb
     }
 
     private synchronized void paint() {
-        paint(getGraphics());
+        paint(getUGraphics());
         flushGraphics();
     }
 
-    public synchronized void paint(Graphics g) {
+    public synchronized void paint(mobileapplication3.platform.ui.Graphics g) {
         if (bgColor >= 0) {
             g.fillRect(0, 0, w, h);
         }
 
         if (rootUIComponent != null) {
-            rootUIComponent.paint(new mobileapplication3.platform.ui.Graphics(g));
+            rootUIComponent.paint(g);
         } else {
             g.setColor(0xaaaaaa);
             g.drawString("Nothing to draw. " + rootUIComponent, w/2, h, Graphics.BOTTOM | Graphics.HCENTER);
         }
-        Logger.paint(new mobileapplication3.platform.ui.Graphics(g));
 
         // workaround for Sony Ericsson phones to fix setClip() bugs. I don't know why it works (sleep(1) doesn't)
         g.drawString(" ", 0, 0, Graphics.TOP | Graphics.LEFT);
+    }
+
+    public synchronized void paint(Graphics g) {
+        mobileapplication3.platform.ui.Graphics graphics = new mobileapplication3.platform.ui.Graphics(g);
+        paint(graphics);
+        Logger.paint(graphics);
     }
 
     public mobileapplication3.platform.ui.Graphics getUGraphics() {
