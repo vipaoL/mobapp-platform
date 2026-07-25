@@ -13,18 +13,22 @@ import java.net.URI;
 import java.util.jar.Manifest;
 
 public class Platform {
-    private static Frame inst;
+    private static Frame frame;
 
-    public static void init(Frame instObj) {
-        inst = instObj;
+    public static void init(Frame inst) {
+        frame = inst;
         refreshPlatformSettings();
     }
 
     public static void refreshPlatformSettings() {
-        if (PlatformSettings.getFullscreenMode()) {
-            inst.getGraphicsConfiguration().getDevice().setFullScreenWindow(Platform.getAppInst());
+        if (frame != null) {
+            if (PlatformSettings.getFullscreenMode()) {
+                frame.getGraphicsConfiguration().getDevice().setFullScreenWindow(frame);
+            } else {
+                frame.getGraphicsConfiguration().getDevice().setFullScreenWindow(null);
+            }
         } else {
-            inst.getGraphicsConfiguration().getDevice().setFullScreenWindow(null);
+            Logger.logErr("frame = null!");
         }
         Graphics.blackAndWhiteMode = PlatformSettings.getBlackAndWhiteMode();
     }
@@ -102,7 +106,7 @@ public class Platform {
     }
 
     public static InputStream getResource(String path) {
-        return inst.getClass().getResourceAsStream(path);
+        return Platform.class.getResourceAsStream(path);
     }
 
     private static String getStoragePath(String storageName) {
@@ -111,9 +115,5 @@ public class Platform {
 
     public static void exit() {
         System.exit(0);
-    }
-
-    public static Frame getAppInst() {
-        return inst;
     }
 }
