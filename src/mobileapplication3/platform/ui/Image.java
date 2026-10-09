@@ -2,8 +2,11 @@
 
 package mobileapplication3.platform.ui;
 
+import com.sun.jna.Memory;
+import com.sun.jna.Pointer;
 import mobileapplication3.platform.Logger;
 import mobileapplication3.platform.Platform;
+import mobileapplication3.platform.sdl3.SDL3Library;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -12,6 +15,9 @@ import java.util.Random;
 
 public class Image implements IImage {
     private BufferedImage image;
+
+    private Pointer sdlTexture = null;
+    private Pointer sdlRendererRef = null;
 
     public Image(BufferedImage image) {
         if (image == null) {
@@ -76,8 +82,68 @@ public class Image implements IImage {
         }
     }
 
+    public synchronized Pointer getSdl3Texture(Pointer renderer) {
+        if (image == null) {
+            return null;
+        }
+        if (sdlTexture != null && sdlRendererRef == renderer) {
+            return sdlTexture;
+        }
+        if (sdlTexture != null) {
+            SDL3Library.INSTANCE.SDL_DestroyTexture(sdlTexture);
+            sdlTexture = null;
+        }
+        int w = getWidth();
+        int h = getHeight();
+        if (w <= 0 || h <= 0) {
+            return null;
+        }
+
+        int[] argb = new int[w * h];
+        image.getRGB(0, 0, w, h, argb, 0, w);
+
+        byte[] rgbaBytes = new byte[w * h * 4];
+        for (int i = 0; i < argb.length; i++) {
+            int pixel = argb[i];
+            rgbaBytes[i * 4]     = (byte) ((pixel >> 16) & 0xFF); // Red -> Byte 0
+            rgbaBytes[i * 4 + 1] = (byte) ((pixel >> 8) & 0xFF);  // Green -> Byte 1
+            rgbaBytes[i * 4 + 2] = (byte) (pixel & 0xFF);         // Blue -> Byte 2
+            rgbaBytes[i * 4 + 3] = (byte) ((pixel >> 24) & 0xFF); // Alpha -> Byte 3
+        }
+
+        try (Memory mem = new Memory(rgbaBytes.length)) {
+            mem.write(0, rgbaBytes, 0, rgbaBytes.length);
+
+            Pointer surface = SDL3Library.INSTANCE.SDL_CreateSurfaceFrom(
+                    w, h, SDL3Library.SDL_PIXELFORMAT_ABGR8888, mem, w * 4
+            );
+            if (surface == null) {
+                return null;
+            }
+
+            SDL3Library.INSTANCE.SDL_SetSurfaceBlendMode(surface, SDL3Library.SDL_BLENDMODE_BLEND);
+            sdlTexture = SDL3Library.INSTANCE.SDL_CreateTextureFromSurface(renderer, surface);
+            SDL3Library.INSTANCE.SDL_DestroySurface(surface);
+
+            if (sdlTexture != null) {
+                SDL3Library.INSTANCE.SDL_SetTextureBlendMode(sdlTexture, SDL3Library.SDL_BLENDMODE_BLEND);
+            }
+            sdlRendererRef = renderer;
+            return sdlTexture;
+        }
+    }
+
+    public synchronized void invalidateSdlTexture() {
+        if (sdlTexture != null) {
+            mobileapplication3.platform.sdl3.SDL3Library.INSTANCE.SDL_DestroyTexture(sdlTexture);
+            sdlTexture = null;
+            sdlRendererRef = null;
+        }
+    }
+
     public Graphics getGraphics() {
-        return new Graphics(image.getGraphics());
+        invalidateSdlTexture();
+        return new GraphicsAWT(image.getGraphics());
     }
 
     public BufferedImage getImage() {
@@ -85,6 +151,7 @@ public class Image implements IImage {
     }
 
     public void setImage(BufferedImage image) {
+        invalidateSdlTexture();
         this.image = image;
     }
 

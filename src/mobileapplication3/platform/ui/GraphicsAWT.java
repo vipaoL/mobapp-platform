@@ -1,0 +1,326 @@
+// SPDX-License-Identifier: LGPL-2.1-only
+
+package mobileapplication3.platform.ui;
+
+import java.awt.*;
+
+public final class GraphicsAWT extends Graphics {
+    private Font currentFont = Font.getDefaultFont();
+    private final java.awt.Graphics2D g;
+
+    private int currentColorRGB = 0x000000;
+
+    public GraphicsAWT(java.awt.Graphics g) {
+        if (g == null) {
+            throw new NullPointerException();
+        }
+        this.g = (Graphics2D) g;
+        setFont(currentFont);
+    }
+
+    public void drawArc(int x, int y, int width, int height, int startAngle, int arcAngle) {
+        drawArc(x, y, width, height, startAngle, arcAngle, 1, 1000, false, false, false);
+    }
+
+    public void drawArc(int x, int y, int width, int height, int startAngle, int arcAngle, int thickness, int zoomOut, boolean drawThickness, boolean zoomThickness, boolean rounding) {
+        if (g != null) {
+            if (drawThickness) {
+                if (zoomOut < 0) {
+                    zoomOut = -zoomOut;
+                }
+                g.setStroke(new BasicStroke(thickness * (zoomThickness ? (1000f / zoomOut) : 1), rounding ? BasicStroke.CAP_ROUND : BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND));
+            } else {
+                g.setStroke(new BasicStroke(1));
+            }
+            g.drawArc(x, y, width, height, -startAngle, -arcAngle);
+        }
+    }
+
+    public void drawImage(Image img, int x, int y, int anchor) {
+        if (img == null) {
+            throw new NullPointerException("Can't draw null image");
+        }
+        int w = img.getWidth();
+        int h = img.getHeight();
+        if ((anchor & HCENTER) != 0) {
+            x -= w / 2;
+        } else if ((anchor & RIGHT) != 0) {
+            x -= w;
+        }
+
+        if ((anchor & VCENTER) != 0) {
+            y -= h / 2;
+        } else if ((anchor & BOTTOM) != 0) {
+            y -= h;
+        }
+
+        if (g != null) {
+            if (img.getImage() == null) {
+                throw new NullPointerException("Can't draw null image");
+            }
+            g.drawImage(img.getImage(), x, y, null);
+        }
+    }
+
+    public void drawLine(int x1, int y1, int x2, int y2) {
+        if (g != null) {
+            g.setStroke(new BasicStroke());
+            g.drawLine(x1, y1, x2, y2);
+        }
+    }
+
+    public void drawRect(int x, int y, int width, int height) {
+        if (g != null) {
+            g.drawRect(x, y, width, height);
+        }
+    }
+
+    public void drawRoundRect(int x, int y, int width, int height, int arcWidth, int arcHeight) {
+        if (g != null) {
+            g.drawRoundRect(x, y, width, height, arcWidth, arcHeight);
+        }
+    }
+
+    public void drawString(String str, int x, int y, int anchor) {
+        if (str != null) {
+            drawSubstring(str, 0, str.length(), x, y, anchor);
+        }
+    }
+
+    public void drawSubstring(String str, int offset, int len, int x, int y, int anchor) {
+        if (str == null || len <= 0) return;
+        String sub = str.substring(offset, offset + len);
+        int w = substringWidth(str, offset, len);
+        int h = getFontHeight();
+
+        if ((anchor & HCENTER) != 0) {
+            x -= w / 2;
+        } else if ((anchor & RIGHT) != 0) {
+            x -= w;
+        }
+
+        if ((anchor & VCENTER) != 0) {
+            y -= h / 2;
+        } else if ((anchor & BOTTOM) != 0) {
+            y -= h;
+        }
+
+        if (g != null) {
+            FontMetrics metrics = g.getFontMetrics(g.getFont());
+            g.drawString(sub, x, y + metrics.getAscent());
+        }
+    }
+
+    public void fillArc(int x, int y, int width, int height, int startAngle, int arcAngle) {
+        if (g != null) {
+            g.fillArc(x, y, width, height, -startAngle, -arcAngle);
+        }
+    }
+
+    public void fillRect(int x, int y, int width, int height) {
+        if (g != null) {
+            g.fillRect(x, y, width, height);
+        }
+    }
+
+    public void fillRoundRect(int x, int y, int width, int height, int arcWidth, int arcHeight) {
+        if (g != null) {
+            g.fillRoundRect(x, y, width, height, arcWidth, arcHeight);
+        }
+    }
+
+    public void fillTriangle(int x1, int y1, int x2, int y2, int x3, int y3) {
+        if (g != null) {
+            g.fillPolygon(new int[]{x1, x2, x3}, new int[]{y1, y2, y3}, 3);
+        }
+    }
+
+    public void setClip(int x, int y, int width, int height) {
+        if (g != null) {
+            g.setClip(x, y, width, height);
+        }
+    }
+
+    public void setColor(int RGB) {
+        setColor(new Color(RGB));
+    }
+
+    public void setColor(int red, int green, int blue) {
+        setColor(new Color(red, green, blue));
+    }
+
+    private void setColor(Color color) {
+        if (blackAndWhiteMode) {
+            if (color.getRed() * 3 + color.getGreen() * 6 + color.getBlue() > 500) {
+                color = Color.WHITE;
+            } else {
+                color = Color.BLACK;
+            }
+        }
+        currentColorRGB = color.getRGB();
+
+        if (g != null) {
+            g.setColor(color);
+        }
+    }
+
+    @Override
+    public void setFont(int face, int style, int size) {
+        setFont(new Font(face, style, size));
+    }
+
+    @Override
+    public Font getFont() {
+        return currentFont;
+    }
+
+    @Override
+    public void setFont(Font font) {
+        currentFont = font;
+        if (g != null) {
+            g.setFont(currentFont.getAwtFont());
+        }
+    }
+
+    @Override
+    public int getFontFace() {
+        return currentFont.getFace();
+    }
+
+    @Override
+    public int getFontStyle() {
+        return currentFont.getStyle();
+    }
+
+    @Override
+    public int getFontSize() {
+        return currentFont.getSize();
+    }
+
+    @Override
+    public void setFontSize(int size) {
+        setFont(new Font(size));
+    }
+
+    @Override
+    public int getFontHeight() {
+        return currentFont.getHeight();
+    }
+
+    @Override
+    public int stringWidth(String str) {
+        return currentFont.stringWidth(str);
+    }
+
+    @Override
+    public int substringWidth(String str, int offset, int len) {
+        return currentFont.substringWidth(str, offset, len);
+    }
+
+    @Override
+    public int getFontHeight(int face, int style, int size) {
+        return currentFont.getHeight();
+    }
+
+    public int getClipWidth() {
+        if (g != null) {
+            try {
+                return g.getClipBounds().width;
+            } catch (NullPointerException ex) {
+                return RootContainer.getInst().getWidth();
+            }
+        }
+        return 0;
+    }
+
+    public int getClipHeight() {
+        if (g != null) {
+            try {
+                return g.getClipBounds().height;
+            } catch (NullPointerException ex) {
+                return RootContainer.getInst().getHeight();
+            }
+        }
+        return 0;
+    }
+
+    public int getClipX() {
+        if (g != null) {
+            try {
+                return g.getClipBounds().x;
+            } catch (NullPointerException ex) {
+                return 0;
+            }
+        }
+        return 0;
+    }
+
+    public int getClipY() {
+        if (g != null) {
+            try {
+                return g.getClipBounds().y;
+            } catch (NullPointerException ex) {
+                return 0;
+            }
+        }
+        return 0;
+    }
+
+    public int getColor() {
+        if (g != null) {
+            return g.getColor().getRGB();
+        }
+        return currentColorRGB;
+    }
+
+    public void drawLine(int x1, int y1, int x2, int y2, int thickness, int zoomOut, boolean drawThickness) {
+        drawLine(x1, y1, x2, y2, thickness, zoomOut, drawThickness, true);
+    }
+
+    public void drawLine(int x1, int y1, int x2, int y2, int thickness, int zoomOut, boolean drawThickness, boolean zoomThickness) {
+        drawLine(x1, y1, x2, y2, thickness, zoomOut, drawThickness, zoomThickness, true, false); // TODO
+    }
+
+    public void drawLine(int x1, int y1, int x2, int y2, int thickness, int zoomOut, boolean drawThickness, boolean zoomThickness, boolean rounding, boolean markSkeleton) {
+        if (g != null) {
+            if (drawThickness) {
+                if (zoomOut < 0) {
+                    zoomOut = -zoomOut;
+                }
+                g.setStroke(new BasicStroke(thickness * (zoomThickness ? (1000f / zoomOut) : 1), rounding ? BasicStroke.CAP_ROUND : BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND));
+            } else {
+                g.setStroke(new BasicStroke(1));
+            }
+            g.drawLine(x1, y1, x2, y2);
+
+            if (markSkeleton && drawThickness && thickness * 1000 / zoomOut > 8) {
+                int prevCol = getColor();
+                setColor(0xff0000);
+                g.setStroke(new BasicStroke());
+                g.drawLine(x1, y1, x2, y2);
+                setColor(prevCol);
+            }
+        }
+    }
+
+    public void drawTriangle(int x1, int y1, int x2, int y2, int x3, int y3, boolean fill) {
+        if (!fill) {
+            drawLine(x1, y1, x2, y2);
+            drawLine(x2, y2, x3, y3);
+            drawLine(x1, y1, x3, y3);
+        } else {
+            fillTriangle(x1, y1, x2, y2, x3, y3);
+        }
+    }
+
+    public void drawArrow(int x1, int y1, int x2, int y2, int thickness, int zoomOut, boolean drawThickness) {
+        int dx = x2 - x1;
+        int dy = y2 - y1;
+        int arrowX = (x2 * 5 + x1) / 6;
+        int arrowY = (y2 * 5 + y1) / 6;
+        int arrowSideVecX = dy / 8;
+        int arrowSideVecY = -dx / 8;
+        drawLine(x1, y1, arrowX, arrowY, thickness, zoomOut, drawThickness, true, false, false);
+        drawTriangle(x2, y2, arrowX + arrowSideVecX, arrowY + arrowSideVecY, arrowX - arrowSideVecX, arrowY - arrowSideVecY, drawThickness);
+    }
+}

@@ -4,6 +4,8 @@ package mobileapplication3.platform;
 
 import mobileapplication3.platform.ui.Font;
 import mobileapplication3.platform.ui.RootContainer;
+import mobileapplication3.platform.ui.RootContainerAWT;
+import mobileapplication3.platform.ui.sdl3.RootContainerSDL3;
 
 import java.awt.*;
 import java.awt.event.WindowAdapter;
@@ -13,12 +15,8 @@ public abstract class MobappDesktopMain {
     public MobappDesktopMain(String[] args) {
         parseArgs(args);
 
-        Frame frame = new Frame();
-        Platform.init(frame);
-        RootContainer.getInst().setBgColor(0);
-        frame.setVisible(true);
-        frame.setLayout(new BorderLayout());
-        frame.add(RootContainer.getInst(), BorderLayout.CENTER);
+        String backend = PlatformSettings.getBackend();
+        Throwable err = null;
 
         int screenW = 1280;
         int screenH = 720;
@@ -26,10 +24,41 @@ public abstract class MobappDesktopMain {
             screenW = Toolkit.getDefaultToolkit().getScreenSize().width;
             screenH = Toolkit.getDefaultToolkit().getScreenSize().height;
         } catch (Throwable ignored) { }
+
         int minW = Math.min(screenW * 10 / 16, Font.getDefaultFontHeight() * 10);
         int minH = Math.min(screenH * 10 / 16, Font.getDefaultFontHeight() * 8);
+        int targetW = Math.min(screenW, minW * 2);
+        int targetH = Math.min(screenH, minH * 2);
+
+        if (PlatformSettings.BACKEND_SDL3.equals(backend)) {
+            try {
+                RootContainerSDL3 rootContainerSDL3 = new RootContainerSDL3();
+                RootContainer.setInst(rootContainerSDL3);
+                rootContainerSDL3.initWindow(null, targetW, targetH);
+
+                Platform.init();
+                init();
+
+                rootContainerSDL3.runMainLoop();
+
+                return;
+            } catch (Throwable e) {
+                err = e;
+                Logger.log("Can't initialize SDL3", e);
+            }
+        }
+
+        Frame frame = new Frame();
+        RootContainerAWT rootContainerAWT = new RootContainerAWT();
+        RootContainer.setInst(rootContainerAWT);
+
+        frame.setLayout(new BorderLayout());
+        frame.add(rootContainerAWT, BorderLayout.CENTER);
+
         frame.setMinimumSize(new Dimension(minW, minH));
-        frame.setSize(Math.min(screenW, minW * 2), Math.min(screenH, minH * 2));
+        frame.setSize(targetW, targetH);
+        frame.setLocationRelativeTo(null);
+
         frame.addWindowListener(new WindowAdapter() {
             public void windowClosing(WindowEvent windowEvent){
                 System.exit(0);
@@ -37,14 +66,24 @@ public abstract class MobappDesktopMain {
         });
         frame.addWindowFocusListener(new WindowAdapter() {
             public void windowGainedFocus(WindowEvent e) {
-                RootContainer.getInst().onWindowFocusGained();
+                RootContainer.getInst().onShow();
             }
             public void windowLostFocus(WindowEvent e) {
-                RootContainer.getInst().onWindowFocusLost();
+                RootContainer.getInst().onHide();
             }
         });
-        frame.setLocationRelativeTo(null);
+
+        frame.setVisible(true);
+
+        Platform.init();
+
+        init();
+
+        if (err != null) {
+            Platform.showError("Can't initialize " + backend + ". Falling back to the default backend.\n\n", err);
+        }
     }
 
+    protected abstract void init();
     protected abstract void parseArgs(String[] args);
 }

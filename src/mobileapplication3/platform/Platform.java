@@ -3,6 +3,9 @@
 package mobileapplication3.platform;
 
 import mobileapplication3.platform.ui.Graphics;
+import mobileapplication3.platform.ui.RootContainer;
+import mobileapplication3.ui.IUIComponent;
+import mobileapplication3.ui.PopupMessage;
 
 import java.awt.*;
 import java.io.DataInputStream;
@@ -13,23 +16,12 @@ import java.net.URI;
 import java.util.jar.Manifest;
 
 public class Platform {
-    private static Frame frame;
-
-    public static void init(Frame inst) {
-        frame = inst;
+    public static void init() {
         refreshPlatformSettings();
     }
 
     public static void refreshPlatformSettings() {
-        if (frame != null) {
-            if (PlatformSettings.getFullscreenMode()) {
-                frame.getGraphicsConfiguration().getDevice().setFullScreenWindow(frame);
-            } else {
-                frame.getGraphicsConfiguration().getDevice().setFullScreenWindow(null);
-            }
-        } else {
-            Logger.logErr("frame = null!");
-        }
+        RootContainer.getInst().setFullscreenMode(PlatformSettings.getFullscreenMode());
         Graphics.blackAndWhiteMode = PlatformSettings.getBlackAndWhiteMode();
     }
 

@@ -10,15 +10,20 @@ public class PlatformSettings {
             FULLSCREEN_MODE = "fullscreen",
             BLACK_AND_WHITE_MODE = "blackAndWhiteMode";
 
+    public static final String BACKEND_AWT = "AWT", BACKEND_SDL3 = "SDL3";
+
     public static final int DEFAULT_FONT_SIZE = 32;
     public static final boolean DEFAULT_FULLSCREEN_MODE = false;
     public static final boolean DEFAULT_BLACK_AND_WHITE_MODE = false;
+    public static final String DEFAULT_BACKEND = BACKEND_AWT;
 
     private static Settings settingsInst = null;
     public static int
             fontSizeOverride = UNDEF,
             fullscreenModeOverride = UNDEF,
             blackAndWhiteModeOverride = UNDEF;
+
+    public static String backendOverride = null;
 
     private PlatformSettings() { }
 
@@ -87,5 +92,18 @@ public class PlatformSettings {
 
     public static void setBlackAndWhiteModeOverride(boolean value) {
         blackAndWhiteModeOverride = value ? TRUE : FALSE;
+    }
+
+    ///
+
+    public static String getBackend() {
+        if (backendOverride != null) {
+            return backendOverride;
+        }
+        return DEFAULT_BACKEND;
+    }
+
+    public static void setBackendOverride(String backend) {
+        backendOverride = backend;
     }
 }
