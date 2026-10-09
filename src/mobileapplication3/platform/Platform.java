@@ -45,8 +45,12 @@ public class Platform {
     }
 
     public static void showError(String message) {
-        Logger.log(message);
-        // TODO
+        Logger.log("showError: " + message);
+
+        IUIComponent currentScreen = RootContainer.getInst().getRootUIComponent();
+
+        PopupMessage popup = new PopupMessage("Error", message, currentScreen);
+        RootContainer.setRootUIComponent(popup);
     }
 
     public static void vibrate(int ms) {
