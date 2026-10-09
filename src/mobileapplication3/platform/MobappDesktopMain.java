@@ -20,8 +20,12 @@ public abstract class MobappDesktopMain {
         frame.setLayout(new BorderLayout());
         frame.add(RootContainer.getInst(), BorderLayout.CENTER);
 
-        int screenW = Toolkit.getDefaultToolkit().getScreenSize().width;
-        int screenH = Toolkit.getDefaultToolkit().getScreenSize().height;
+        int screenW = 1280;
+        int screenH = 720;
+        try {
+            screenW = Toolkit.getDefaultToolkit().getScreenSize().width;
+            screenH = Toolkit.getDefaultToolkit().getScreenSize().height;
+        } catch (Throwable ignored) { }
         int minW = Math.min(screenW * 10 / 16, Font.getDefaultFontHeight() * 10);
         int minH = Math.min(screenH * 10 / 16, Font.getDefaultFontHeight() * 8);
         frame.setMinimumSize(new Dimension(minW, minH));
