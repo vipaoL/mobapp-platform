@@ -201,6 +201,219 @@ public class GraphicsSDL3 extends Graphics {
     }
 
     @Override
+    public void drawPolyline(int[] xPoints, int[] yPoints, int nPoints, int thickness, int zoomOut, boolean drawThickness, boolean zoomThickness, boolean roundCaps) {
+        if (nPoints < 2) {
+            return;
+        }
+
+        float effThickness = 1f;
+        if (drawThickness) {
+            if (zoomOut < 0) {
+                zoomOut = -zoomOut;
+            }
+            effThickness = thickness * (zoomThickness ? (1000f / zoomOut) : 1f);
+        }
+
+        if (effThickness <= 1f) {
+            int count = Math.min(nPoints, MAX_VERTICES);
+            for (int i = 0; i < count; i++) {
+                sharedPointsBuffer.setFloat(i * 8L, xPoints[i]);
+                sharedPointsBuffer.setFloat(i * 8L + 4, yPoints[i]);
+            }
+            SDL3Library.INSTANCE.SDL_RenderLines(sdlTarget.getRenderer(), sharedPointsBuffer, count);
+            return;
+        }
+
+        float[] px = new float[nPoints];
+        float[] py = new float[nPoints];
+        int validPoints = 0;
+        for (int i = 0; i < nPoints; i++) {
+            if (validPoints > 0) {
+                float dx = xPoints[i] - px[validPoints - 1];
+                float dy = yPoints[i] - py[validPoints - 1];
+                if (dx * dx + dy * dy < 0.25f) {
+                    continue;
+                }
+            }
+            px[validPoints] = xPoints[i];
+            py[validPoints] = yPoints[i];
+            validPoints++;
+        }
+
+        if (validPoints < 2) {
+            if (validPoints == 1 && roundCaps) {
+                int r = Math.round(effThickness / 2f);
+                fillArc((int) px[0] - r, (int) py[0] - r, Math.round(effThickness), Math.round(effThickness), 0, 360);
+            }
+            return;
+        }
+
+        float radius = effThickness / 2.0f;
+        int numSegs = Math.min(validPoints - 1, (MAX_VERTICES - 64) / 8);
+
+        float[] nX = new float[numSegs];
+        float[] nY = new float[numSegs];
+
+        for (int i = 0; i < numSegs; i++) {
+            float dx = px[i + 1] - px[i];
+            float dy = py[i + 1] - py[i];
+            float len = (float) Math.hypot(dx, dy);
+            if (len > 0.0001f) {
+                nX[i] = -dy / len * radius;
+                nY[i] =  dx / len * radius;
+            } else {
+                nX[i] = 0;
+                nY[i] = radius;
+            }
+        }
+
+        int vIdx = 0;
+        int iIdx = 0;
+        int[] segVerts = new int[numSegs * 4];
+        for (int i = 0; i < numSegs; i++) {
+            int base = vIdx;
+            segVerts[i * 4] = base;
+            segVerts[i * 4 + 1] = base + 1;
+            segVerts[i * 4 + 2] = base + 2;
+            segVerts[i * 4 + 3] = base + 3;
+
+            writeVertex(vertexBuffer, base, px[i] - nX[i], py[i] - nY[i]);
+            writeVertex(vertexBuffer, base + 1, px[i] + nX[i], py[i] + nY[i]);
+            writeVertex(vertexBuffer, base + 2, px[i + 1] + nX[i], py[i + 1] + nY[i]);
+            writeVertex(vertexBuffer, base + 3, px[i + 1] - nX[i], py[i + 1] - nY[i]);
+            vIdx += 4;
+
+            indicesBuffer[iIdx++] = base;
+            indicesBuffer[iIdx++] = base + 1;
+            indicesBuffer[iIdx++] = base + 2;
+
+            indicesBuffer[iIdx++] = base;
+            indicesBuffer[iIdx++] = base + 2;
+            indicesBuffer[iIdx++] = base + 3;
+        }
+
+        float MITER_LIMIT = 2.5f;
+
+        for (int i = 0; i < numSegs - 1; i++) {
+            float dx1 = px[i + 1] - px[i];
+            float dy1 = py[i + 1] - py[i];
+            float dx2 = px[i + 2] - px[i + 1];
+            float dy2 = py[i + 2] - py[i + 1];
+
+            float cross = dx1 * dy2 - dy1 * dx2;
+
+            if (Math.abs(cross) < 0.001f) {
+                continue;
+            }
+
+            int centerV = vIdx++;
+            writeVertex(vertexBuffer, centerV, px[i + 1], py[i + 1]);
+
+            int startV, endV;
+            float outX1, outY1, outX2, outY2;
+            if (cross > 0) {
+                startV = segVerts[i * 4 + 3];
+                endV = segVerts[(i + 1) * 4];
+                outX1 = -nX[i];
+                outY1 = -nY[i];
+                outX2 = -nX[i + 1];
+                outY2 = -nY[i + 1];
+            } else {
+                startV = segVerts[i * 4 + 2];
+                endV = segVerts[(i + 1) * 4 + 1];
+                outX1 = nX[i];
+                outY1 = nY[i];
+                outX2 = nX[i + 1];
+                outY2 = nY[i + 1];
+            }
+
+            float ax = (outX1 + outX2) / radius;
+            float ay = (outY1 + outY2) / radius;
+            float aLenSq = ax * ax + ay * ay;
+
+            if (aLenSq > 0.001f) {
+                float miterScale = 2.0f / aLenSq;
+                if (miterScale <= MITER_LIMIT) {
+                    float mx = ax * miterScale * radius;
+                    float my = ay * miterScale * radius;
+
+                    int miterV = vIdx++;
+                    writeVertex(vertexBuffer, miterV, px[i + 1] + mx, py[i + 1] + my);
+
+                    indicesBuffer[iIdx++] = centerV;
+                    indicesBuffer[iIdx++] = startV;
+                    indicesBuffer[iIdx++] = miterV;
+
+                    indicesBuffer[iIdx++] = centerV;
+                    indicesBuffer[iIdx++] = miterV;
+                    indicesBuffer[iIdx++] = endV;
+                    continue;
+                }
+            }
+
+            indicesBuffer[iIdx++] = centerV;
+            indicesBuffer[iIdx++] = startV;
+            indicesBuffer[iIdx++] = endV;
+        }
+
+        if (roundCaps) {
+            int capSegs = 6;
+
+            float dx0 = px[1] - px[0];
+            float dy0 = py[1] - py[0];
+            double startAngle = Math.atan2(dy0, dx0);
+            int startCapCenter = vIdx++;
+            writeVertex(vertexBuffer, startCapCenter, px[0], py[0]);
+
+            int prevStartCapV = segVerts[1];
+            for (int k = 1; k <= capSegs; k++) {
+                int currStartCapV = (k == capSegs) ? segVerts[0] : vIdx++;
+                if (k < capSegs) {
+                    double a = (startAngle + Math.PI / 2) + Math.PI * ((double) k / capSegs);
+                    writeVertex(vertexBuffer, currStartCapV,
+                            (float) (px[0] + radius * Math.cos(a)),
+                            (float) (py[0] + radius * Math.sin(a)));
+                }
+                indicesBuffer[iIdx++] = startCapCenter;
+                indicesBuffer[iIdx++] = prevStartCapV;
+                indicesBuffer[iIdx++] = currStartCapV;
+                prevStartCapV = currStartCapV;
+            }
+
+            int lastSeg = numSegs - 1;
+            float dx1 = px[numSegs] - px[numSegs - 1];
+            float dy1 = py[numSegs] - py[numSegs - 1];
+            double endAngle = Math.atan2(dy1, dx1);
+            int endCapCenter = vIdx++;
+            writeVertex(vertexBuffer, endCapCenter, px[numSegs], py[numSegs]);
+
+            int prevEndCapV = segVerts[lastSeg * 4 + 2];
+            for (int k = 1; k <= capSegs; k++) {
+                int currEndCapV = (k == capSegs) ? segVerts[lastSeg * 4 + 3] : vIdx++;
+                if (k < capSegs) {
+                    double a = (endAngle + Math.PI / 2) - Math.PI * ((double) k / capSegs);
+                    writeVertex(vertexBuffer, currEndCapV,
+                            (float) (px[numSegs] + radius * Math.cos(a)),
+                            (float) (py[numSegs] + radius * Math.sin(a)));
+                }
+                indicesBuffer[iIdx++] = endCapCenter;
+                indicesBuffer[iIdx++] = prevEndCapV;
+                indicesBuffer[iIdx++] = currEndCapV;
+                prevEndCapV = currEndCapV;
+            }
+        }
+
+        SDL3Library.INSTANCE.SDL_RenderGeometry(
+                sdlTarget.getRenderer(),
+                null,
+                vertexBuffer,
+                vIdx,
+                indicesBuffer,
+                iIdx
+        );
+    }
+
+    @Override
     public void drawRect(int x, int y, int width, int height) {
         sharedFRect.x = x;
         sharedFRect.y = y;

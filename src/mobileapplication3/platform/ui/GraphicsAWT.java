@@ -303,6 +303,34 @@ public final class GraphicsAWT extends Graphics {
         }
     }
 
+    @Override
+    public void drawPolyline(int[] xPoints, int[] yPoints, int nPoints, int thickness, int zoomOut, boolean drawThickness, boolean zoomThickness, boolean roundCaps) {
+        if (nPoints < 2) {
+            return;
+        }
+
+        float effThickness = 1f;
+        if (drawThickness) {
+            if (zoomOut < 0) {
+                zoomOut = -zoomOut;
+            }
+            effThickness = thickness * (zoomThickness ? (1000f / zoomOut) : 1f);
+        }
+
+        if (effThickness <= 1f) {
+            g.setStroke(new BasicStroke(1f));
+        } else {
+            g.setStroke(new BasicStroke(
+                    effThickness,
+                    roundCaps ? BasicStroke.CAP_ROUND : BasicStroke.CAP_BUTT,
+                    BasicStroke.JOIN_MITER,
+                    2.5f
+            ));
+        }
+
+        g.drawPolyline(xPoints, yPoints, nPoints);
+    }
+
     public void drawTriangle(int x1, int y1, int x2, int y2, int x3, int y3, boolean fill) {
         if (!fill) {
             drawLine(x1, y1, x2, y2);
