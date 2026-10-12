@@ -17,6 +17,7 @@ public class Graphics implements IGraphics {
     private Font currentFont;
 
     private final Rect clipBounds = new Rect();
+    private final Path sharedPath = new Path();
     private final int baseSaveCount;
 
     public Graphics(Canvas c) {
@@ -220,14 +221,13 @@ public class Graphics implements IGraphics {
         p.setStyle(Paint.Style.FILL_AND_STROKE);
         p.setStrokeWidth(1);
 
-        Path path = new Path();
-        path.moveTo(x1, y1);
-        path.lineTo(x2, y2);
-        path.lineTo(x3, y3);
-        path.lineTo(x1, y1);
-        path.close();
+        sharedPath.rewind();
+        sharedPath.moveTo(x1, y1);
+        sharedPath.lineTo(x2, y2);
+        sharedPath.lineTo(x3, y3);
+        sharedPath.close();
 
-        c.drawPath(path, p);
+        c.drawPath(sharedPath, p);
     }
 
     @Override
