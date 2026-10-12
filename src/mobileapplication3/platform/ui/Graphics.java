@@ -2,6 +2,8 @@
 
 package mobileapplication3.platform.ui;
 
+import mobileapplication3.platform.Mathh;
+
 public final class Graphics implements IGraphics {
     public static final int HCENTER = 1;
     public static final int VCENTER = 2;
@@ -12,6 +14,9 @@ public final class Graphics implements IGraphics {
     public static final int BASELINE = 64;
 
     private javax.microedition.lcdui.Graphics g;
+
+    private int[] pxBuf = new int[32];
+    private int[] pyBuf = new int[32];
 
     public Graphics(javax.microedition.lcdui.Graphics g) {
         this.g = g;
@@ -232,6 +237,148 @@ public final class Graphics implements IGraphics {
             }
         } else {
             g.drawLine(x1, y1, x2, y2);
+        }
+    }
+
+    public void drawPolyline(int[] xPoints, int[] yPoints, int nPoints, int thickness, int zoomOut, boolean drawThickness, boolean zoomThickness, boolean roundCaps) {
+        if (nPoints < 2) {
+            return;
+        }
+
+        int effThickness = Mathh.FP_ONE;
+        if (drawThickness) {
+            if (zoomThickness) {
+                effThickness = (int) (Mathh.toFP(thickness) * 1000L / zoomOut);
+            } else {
+                effThickness = Mathh.toFP(thickness);
+            }
+        }
+
+        if (effThickness <= (Mathh.FP_ONE * 3 / 2)) {
+            for (int i = 0; i < nPoints - 1; i++) {
+                g.drawLine(xPoints[i], yPoints[i], xPoints[i + 1], yPoints[i + 1]);
+            }
+            return;
+        }
+
+        if (pxBuf.length < nPoints) {
+            pxBuf = new int[nPoints];
+            pyBuf = new int[nPoints];
+        }
+        int[] px = pxBuf;
+        int[] py = pyBuf;
+
+        int validPoints = 0;
+        for (int i = 0; i < nPoints; i++) {
+            if (validPoints > 0) {
+                int dx = xPoints[i] - px[validPoints - 1];
+                int dy = yPoints[i] - py[validPoints - 1];
+                if (dx == 0 && dy == 0) {
+                    continue;
+                }
+            }
+            px[validPoints] = xPoints[i];
+            py[validPoints] = yPoints[i];
+            validPoints++;
+        }
+
+        if (validPoints < 2) {
+            return;
+        }
+
+        int radius = effThickness / 2;
+        long rSq = (long) radius * radius;
+        int numSegs = validPoints - 1;
+
+        long fdx0 = Mathh.toFP(px[1] - px[0]);
+        long fdy0 = Mathh.toFP(py[1] - py[0]);
+        long len0 = Mathh.isqrt(fdx0 * fdx0 + fdy0 * fdy0);
+        int curNx = (len0 > 0) ? (int) ((-fdy0 * radius) / len0) : 0;
+        int curNy = (len0 > 0) ? (int) (( fdx0 * radius) / len0) : radius;
+
+        for (int i = 0; i < numSegs; i++) {
+            g.drawLine(px[i], py[i], px[i + 1], py[i + 1]);
+
+            int cx0 = Mathh.toFP(px[i]);
+            int cy0 = Mathh.toFP(py[i]);
+            int cx1 = Mathh.toFP(px[i + 1]);
+            int cy1 = Mathh.toFP(py[i + 1]);
+
+            int x0 = Mathh.fpRound(cx0 - curNx);
+            int y0 = Mathh.fpRound(cy0 - curNy);
+            int x1 = Mathh.fpRound(cx0 + curNx);
+            int y1 = Mathh.fpRound(cy0 + curNy);
+            int x2 = Mathh.fpRound(cx1 + curNx);
+            int y2 = Mathh.fpRound(cy1 + curNy);
+            int x3 = Mathh.fpRound(cx1 - curNx);
+            int y3 = Mathh.fpRound(cy1 - curNy);
+
+            g.fillTriangle(x0, y0, x1, y1, x2, y2);
+            g.fillTriangle(x0, y0, x2, y2, x3, y3);
+
+            if (i < numSegs - 1) {
+                long fdx1 = Mathh.toFP(px[i + 2] - px[i + 1]);
+                long fdy1 = Mathh.toFP(py[i + 2] - py[i + 1]);
+                long len1 = Mathh.isqrt(fdx1 * fdx1 + fdy1 * fdy1);
+                int nextNx = (len1 > 0) ? (int) ((-fdy1 * radius) / len1) : 0;
+                int nextNy = (len1 > 0) ? (int) (( fdx1 * radius) / len1) : radius;
+
+                int dx1 = px[i + 1] - px[i];
+                int dy1 = py[i + 1] - py[i];
+                int dx2 = px[i + 2] - px[i + 1];
+                int dy2 = py[i + 2] - py[i + 1];
+
+                long cross = (long) dx1 * dy2 - (long) dy1 * dx2;
+                if (cross != 0) {
+                    int outX1, outY1, outX2, outY2;
+                    if (cross > 0) {
+                        outX1 = -curNx;
+                        outY1 = -curNy;
+                        outX2 = -nextNx;
+                        outY2 = -nextNy;
+                    } else {
+                        outX1 = curNx;
+                        outY1 = curNy;
+                        outX2 = nextNx;
+                        outY2 = nextNy;
+                    }
+
+                    int sumX = outX1 + outX2;
+                    int sumY = outY1 + outY2;
+                    long sumLenSq = (long) sumX * sumX + (long) sumY * sumY;
+
+                    int cx = Mathh.toFP(px[i + 1]);
+                    int cy = Mathh.toFP(py[i + 1]);
+
+                    int sx = Mathh.fpRound(cx + outX1);
+                    int sy = Mathh.fpRound(cy + outY1);
+                    int ex = Mathh.fpRound(cx + outX2);
+                    int ey = Mathh.fpRound(cy + outY2);
+
+                    if (sumLenSq > 0 && (sumLenSq * 5 >= rSq * 4)) {
+                        int mX = (int) ((2L * rSq * sumX) / sumLenSq);
+                        int mY = (int) ((2L * rSq * sumY) / sumLenSq);
+
+                        int mx = Mathh.fpRound(cx + mX);
+                        int my = Mathh.fpRound(cy + mY);
+
+                        g.fillTriangle(px[i + 1], py[i + 1], sx, sy, mx, my);
+                        g.fillTriangle(px[i + 1], py[i + 1], mx, my, ex, ey);
+                    } else {
+                        g.fillTriangle(px[i + 1], py[i + 1], sx, sy, ex, ey);
+                    }
+                }
+
+                curNx = nextNx;
+                curNy = nextNy;
+            }
+        }
+
+        if (roundCaps) {
+            int d = Mathh.fpRound(effThickness);
+            int r = d / 2;
+            g.fillArc(px[0] - r, py[0] - r, d, d, 0, 360);
+            g.fillArc(px[numSegs] - r, py[numSegs] - r, d, d, 0, 360);
         }
     }
 
