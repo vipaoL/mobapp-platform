@@ -5,6 +5,7 @@ package mobileapplication3.platform.ui;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Path;
+import android.graphics.Rect;
 import android.os.Build;
 import mobileapplication3.platform.ModernAndroidUtils;
 import mobileapplication3.platform.Platform;
@@ -15,8 +16,11 @@ public class Graphics implements IGraphics {
     private final Paint p;
     private Font currentFont;
 
+    private final Rect clipBounds = new Rect();
+    private final int baseSaveCount;
+
     public Graphics(Canvas c) {
-        c.save();
+        this.baseSaveCount = c.save();
         this.c = c;
         p = new Paint();
         p.setStrokeWidth(1);
@@ -228,9 +232,7 @@ public class Graphics implements IGraphics {
 
     @Override
     public void setClip(int x, int y, int width, int height) {
-        try {
-            c.restore();
-        } catch (IllegalStateException ignored) { }
+        c.restoreToCount(baseSaveCount);
         c.save();
         c.clipRect(x, y, x + width, y + height);
     }
@@ -297,22 +299,26 @@ public class Graphics implements IGraphics {
 
     @Override
     public int getClipWidth() {
-        return c.getClipBounds().width();
+        c.getClipBounds(clipBounds);
+        return clipBounds.width();
     }
 
     @Override
     public int getClipHeight() {
-        return c.getClipBounds().height();
+        c.getClipBounds(clipBounds);
+        return clipBounds.height();
     }
 
     @Override
     public int getClipX() {
-        return c.getClipBounds().left;
+        c.getClipBounds(clipBounds);
+        return clipBounds.left;
     }
 
     @Override
     public int getClipY() {
-        return c.getClipBounds().top;
+        c.getClipBounds(clipBounds);
+        return clipBounds.top;
     }
 
     @Override
