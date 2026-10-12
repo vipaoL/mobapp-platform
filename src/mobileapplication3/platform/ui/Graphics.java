@@ -6,9 +6,7 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Rect;
-import android.os.Build;
-import mobileapplication3.platform.ModernAndroidUtils;
-import mobileapplication3.platform.Platform;
+import android.graphics.RectF;
 
 public class Graphics implements IGraphics {
 
@@ -16,6 +14,7 @@ public class Graphics implements IGraphics {
     private final Paint p;
     private Font currentFont;
 
+    private final RectF sharedRectF = new RectF();
     private final Rect clipBounds = new Rect();
     private final Path sharedPath = new Path();
     private final int baseSaveCount;
@@ -51,12 +50,9 @@ public class Graphics implements IGraphics {
         }
         p.setStrokeWidth(strokeWidth);
 
-        if (Platform.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            ModernAndroidUtils.drawArc(x, y, width, height, startAngle, arcAngle, c, p);
-        } else {
-            c.drawCircle(x + width / 2f, y + height / 2f, width / 2f, p);
-            c.drawCircle(x + width / 2f, y + height / 2f, height / 2f, p);
-        }
+        sharedRectF.set(x, y, x + width, y + height);
+
+        c.drawArc(sharedRectF, startAngle, arcAngle, fill, p);
     }
 
     @Override
@@ -156,8 +152,9 @@ public class Graphics implements IGraphics {
         }
         p.setStrokeWidth(1);
 
-        if (Platform.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && arcWidth > 0 && arcHeight > 0) {
-            ModernAndroidUtils.drawRoundRect(x, y, width, height, arcWidth, arcHeight, c, p);
+        if (arcWidth > 0 && arcHeight > 0) {
+            sharedRectF.set(x + 0.5f, y + 0.5f, x + width + 0.5f, y + height + 0.5f);
+            c.drawRoundRect(sharedRectF, arcWidth / 2f, arcHeight / 2f, p);
         } else {
             c.drawRect(x + 0.5f, y + 0.5f, x + width + 0.5f, y + height + 0.5f, p);
         }

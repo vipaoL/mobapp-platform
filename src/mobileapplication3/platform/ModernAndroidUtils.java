@@ -54,23 +54,6 @@ public class ModernAndroidUtils {
         }
     }
 
-    public static void drawArc(int x, int y, int width, int height, int startAngle, int arcAngle, Canvas c, Paint p) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            c.drawArc(x, y, x + width, y + height, startAngle, arcAngle, false, p);
-        } else {
-            c.drawCircle(x + width / 2f, y + height / 2f, width / 2f, p);
-            c.drawCircle(x + width / 2f, y + height / 2f, height / 2f, p);
-        }
-    }
-
-    public static void drawRoundRect(int x, int y, int width, int height, int arcWidth, int arcHeight, Canvas c, Paint p) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && arcWidth > 0 && arcHeight > 0) {
-            c.drawRoundRect(x + 0.5f, y + 0.5f, x + width + 0.5f, y + height + 0.5f, arcWidth / 2f, arcHeight / 2f, p);
-        } else {
-            c.drawRect(x + 0.5f, y + 0.5f, x + width + 0.5f, y + height + 0.5f, p);
-        }
-    }
-
     public static int getBatteryLevel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             BatteryManager bm = (BatteryManager) Platform.getActivityInst().getSystemService(BATTERY_SERVICE);
