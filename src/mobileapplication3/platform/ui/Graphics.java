@@ -135,6 +135,36 @@ public class Graphics implements IGraphics {
     }
 
     @Override
+    public void drawPolyline(int[] xPoints, int[] yPoints, int nPoints, int thickness, int zoomOut, boolean drawThickness, boolean zoomThickness, boolean roundCaps) {
+        if (nPoints < 2) {
+            return;
+        }
+
+        float effThickness = 1f;
+        if (drawThickness) {
+            if (zoomThickness) {
+                effThickness = thickness * 1000f / zoomOut;
+            } else {
+                effThickness = thickness * 1f;
+            }
+        }
+
+        p.setStyle(Paint.Style.STROKE);
+        p.setStrokeWidth(Math.max(effThickness, 1f));
+        p.setStrokeCap(roundCaps ? Paint.Cap.ROUND : Paint.Cap.BUTT);
+        p.setStrokeJoin(Paint.Join.MITER);
+        p.setStrokeMiter(2.5f);
+
+        sharedPath.rewind();
+        sharedPath.moveTo(xPoints[0] + 0.5f, yPoints[0] + 0.5f);
+        for (int i = 1; i < nPoints; i++) {
+            sharedPath.lineTo(xPoints[i] + 0.5f, yPoints[i] + 0.5f);
+        }
+
+        c.drawPath(sharedPath, p);
+    }
+
+    @Override
     public void drawRect(int x, int y, int width, int height) {
         drawRoundRect(x, y, width, height, 0, 0, false);
     }
