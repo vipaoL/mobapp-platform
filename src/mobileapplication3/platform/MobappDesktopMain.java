@@ -12,6 +12,8 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
 public abstract class MobappDesktopMain {
+    protected boolean isBackendExplicit = false;
+
     public MobappDesktopMain(String[] args) {
         parseArgs(args);
 
@@ -79,7 +81,7 @@ public abstract class MobappDesktopMain {
 
         init();
 
-        if (err != null) {
+        if (err != null && isBackendExplicit) {
             Platform.showError("Can't initialize " + backend + ". Falling back to the default backend.\n\n", err);
         }
     }

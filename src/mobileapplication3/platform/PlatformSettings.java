@@ -15,7 +15,7 @@ public class PlatformSettings {
     public static final int DEFAULT_FONT_SIZE = 32;
     public static final boolean DEFAULT_FULLSCREEN_MODE = false;
     public static final boolean DEFAULT_BLACK_AND_WHITE_MODE = false;
-    public static final String DEFAULT_BACKEND = BACKEND_AWT;
+    public static final String DEFAULT_BACKEND = BACKEND_SDL3;
 
     private static Settings settingsInst = null;
     public static int
