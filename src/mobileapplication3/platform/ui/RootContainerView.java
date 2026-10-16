@@ -97,6 +97,9 @@ public class RootContainerView extends UIView implements IContainer, IPopupFeedb
             this.rootUIComponent.setParent(this);
             initContainer();
         }
+
+        // GC is disabled in robovm_hooks.m. We need to call it manually
+        System.gc();
     }
 
     private void updateTargetFPS(int targetFPS) {
@@ -119,6 +122,9 @@ public class RootContainerView extends UIView implements IContainer, IPopupFeedb
                 }
             }
         }
+
+        // GC is disabled in robovm_hooks.m. We need to call it manually
+        System.gc();
     }
 
     private void ensureLoopRunning() {
