@@ -437,12 +437,20 @@ public class Graphics implements IGraphics {
         return currentRGB;
     }
 
+    private int lastRGB = -1;
+    private UIColor lastColor = null;
+
     @Override
     public void setColor(int RGB) {
         if (this.currentRGB == RGB) {
             return;
         }
         currentRGB = RGB;
+
+        if (RGB == lastRGB) {
+            currentColor = lastColor;
+            return;
+        }
 
         UIColor color = colorCache.get(/*TODO*/RGB/**/);
         if (color == null) {

@@ -50,6 +50,7 @@ public class RootContainerView extends UIView implements IContainer, IPopupFeedb
         Logger.log("RootContainerView initialized: " + w + "x" + h + " (Scale: " + scale + "x)");
         setMultipleTouchEnabled(true);
         setBackgroundColor(UIColor.black());
+        setOpaque(true);
 
         NSNotificationCenter.getDefaultCenter().addObserver(
             UIApplication.DidBecomeActiveNotification(),
@@ -241,21 +242,23 @@ public class RootContainerView extends UIView implements IContainer, IPopupFeedb
 
     @Override
     public synchronized void draw(CGRect rect) {
-        CGContext context = UIGraphics.getCurrentContext();
-        if (context != null && rootUIComponent != null && rootUIComponent.isVisible()) {
-            context.saveGState();
-            context.scaleCTM(1.0 / scale, 1.0 / scale);
+        try (NSAutoreleasePool pool = new NSAutoreleasePool()) {
+            CGContext context = UIGraphics.getCurrentContext();
+            if (context != null && rootUIComponent != null && rootUIComponent.isVisible()) {
+                context.saveGState();
+                context.scaleCTM(1.0 / scale, 1.0 / scale);
 
-            if (g == null) {
-                g = new Graphics(context);
-            } else {
-                g.setContext(context);
+                if (g == null) {
+                    g = new Graphics(context);
+                } else {
+                    g.setContext(context);
+                }
+
+                rootUIComponent.paint(g);
+                Logger.paint(g);
+
+                context.restoreGState();
             }
-
-            rootUIComponent.paint(g);
-            Logger.paint(g);
-
-            context.restoreGState();
         }
     }
 
