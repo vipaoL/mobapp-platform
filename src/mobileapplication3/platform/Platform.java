@@ -92,12 +92,23 @@ public class Platform {
                     url = filePref + new File(url.substring(filePref.length())).getAbsolutePath();
                 }
                 desktop.browse(URI.create(url));
-            } else {
-                Logger.logErr("Desktop.Action.BROWSE is not supported. Could not open " + url);
+                return true;
             }
-        } catch (IOException ex) {
-            showError(ex);
+            Logger.logErr("Desktop.Action.BROWSE is not supported. Could not open " + url);
+        } catch (Exception ex) {
+            Logger.log("Could not open " + url + ": ", ex);
         }
+
+        // XDG fallback: useful when AWT is unavailable in a Wayland session.
+        if (System.getProperty("os.name", "").toLowerCase().contains("linux")) {
+            try {
+                new ProcessBuilder("xdg-open", url).start();
+                return true;
+            } catch (Exception ex) {
+                Logger.logErr("xdg-open could not open " + url + ": " + ex);
+            }
+        }
+
         return false;
     }
 
