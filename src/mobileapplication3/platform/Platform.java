@@ -137,7 +137,11 @@ public class Platform {
     private static void handleURL(String url) {
         try {
             if (url.startsWith("file://")) {
-                Platform.showError("Not supported on Android");
+                File file = new File(Uri.parse(url).getPath());
+                Context context = getActivityInst();
+                if (context == null || !MobappDocumentsProvider.openFolder(context, file)) {
+                    showError("Cannot open folder: " + file.getName());
+                }
             } else {
                 String action = Intent.ACTION_VIEW;
                 Intent browserIntent = new Intent(action, Uri.parse(url));
