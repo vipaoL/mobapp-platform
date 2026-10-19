@@ -129,18 +129,23 @@ public class Platform {
     }
 
     public static boolean platformRequest(String url) {
+        Logger.log("platformRequest: " + url);
+        handleURL(url);
+        return false;
+    }
+
+    private static void handleURL(String url) {
         try {
             if (url.startsWith("file://")) {
                 Platform.showError("Not supported on Android");
-                return false;
+            } else {
+                String action = Intent.ACTION_VIEW;
+                Intent browserIntent = new Intent(action, Uri.parse(url));
+                getActivityInst().startActivity(browserIntent);
             }
-            String action = Intent.ACTION_VIEW;
-            Intent browserIntent = new Intent(action, Uri.parse(url));
-            getActivityInst().startActivity(browserIntent);
         } catch (Exception ex) {
             showError(ex);
         }
-        return false;
     }
 
     public static InputStream getResource(String path) {
