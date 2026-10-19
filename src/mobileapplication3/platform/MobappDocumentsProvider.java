@@ -3,11 +3,16 @@
 package mobileapplication3.platform;
 
 import android.annotation.TargetApi;
+import android.content.Context;
+import android.content.Intent;
+import android.content.pm.ProviderInfo;
 import android.database.Cursor;
 import android.database.MatrixCursor;
+import android.net.Uri;
 import android.os.Build;
 import android.os.CancellationSignal;
 import android.os.ParcelFileDescriptor;
+import android.provider.DocumentsContract;
 import android.provider.DocumentsContract.Document;
 import android.provider.DocumentsContract.Root;
 import android.provider.DocumentsProvider;
@@ -16,6 +21,9 @@ import android.webkit.MimeTypeMap;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import static mobileapplication3.platform.Platform.SDK_INT;
 
@@ -41,13 +49,96 @@ public abstract class MobappDocumentsProvider extends DocumentsProvider {
     };
 
     private static final String ROOT_NAME = "root";
-    private File ROOT;
+    private static File ROOT;
+    private static String sAuthority;
+
+    @Override
+    public void attachInfo(Context context, ProviderInfo info) {
+        super.attachInfo(context, info);
+        sAuthority = info.authority;
+    }
 
     @Override
     public boolean onCreate() {
         Platform.init(getContext());
         ROOT = getRootDir();
         return true;
+    }
+
+    @Override
+    public DocumentsContract.Path findDocumentPath(String parentDocumentId, String childDocumentId) throws FileNotFoundException {
+        File target = getFileForDocId(childDocumentId);
+        File targetParent = parentDocumentId != null ? getFileForDocId(parentDocumentId) : ROOT;
+
+        List<String> pathList = new ArrayList<>();
+        File current = target;
+
+        while (current != null) {
+            pathList.add(getDocIdForFile(current));
+            if (current.equals(targetParent)) {
+                break;
+            }
+            current = current.getParentFile();
+        }
+
+        if (current == null && targetParent != null) {
+            throw new FileNotFoundException("Failed to find path from " + parentDocumentId + " to " + childDocumentId);
+        }
+
+        Collections.reverse(pathList);
+
+        if (SDK_INT >= Build.VERSION_CODES.O) {
+            return new DocumentsContract.Path(ROOT_NAME, pathList);
+        } else {
+            return null;
+        }
+    }
+
+    public static boolean openFolder(Context context, File targetFile) {
+        if (ROOT == null || targetFile == null || sAuthority == null) {
+            return false;
+        }
+
+        try {
+            File canonicalTarget = targetFile.getCanonicalFile();
+            File canonicalRoot = ROOT.getCanonicalFile();
+
+            File temp = canonicalTarget;
+            boolean isUnderRoot = false;
+            while (temp != null) {
+                if (temp.equals(canonicalRoot)) {
+                    isUnderRoot = true;
+                    break;
+                }
+                temp = temp.getParentFile();
+            }
+
+            if (!isUnderRoot) {
+                return false;
+            }
+
+            String docId = getDocIdForFile(canonicalTarget);
+            Uri documentUri = DocumentsContract.buildDocumentUri(sAuthority, docId);
+
+            Intent intent = null;
+            if (SDK_INT >= Build.VERSION_CODES.O) {
+                intent = new Intent(Intent.ACTION_VIEW);
+                intent.setDataAndType(documentUri, DocumentsContract.Document.MIME_TYPE_DIR);
+                intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION
+                        | Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                        | Intent.FLAG_GRANT_PREFIX_URI_PERMISSION);
+            } else if (SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
+            }
+
+            if (intent != null) {
+                context.startActivity(intent);
+                return true;
+            }
+        } catch (Exception ex) {
+            Logger.log(ex);
+        }
+        return false;
     }
 
     @Override
@@ -232,24 +323,30 @@ public abstract class MobappDocumentsProvider extends DocumentsProvider {
         row.add(Document.COLUMN_FLAGS, flags);
     }
 
-    private String getDocIdForFile(File file) {
-        String path = file.getAbsolutePath();
+    private static String getDocIdForFile(File file) {
+        try {
+            File root = ROOT.getCanonicalFile();
+            file = file.getCanonicalFile();
 
-        final String rootPath = ROOT.getPath();
-        if (rootPath.equals(path)) {
-            path = "";
-        } else if (rootPath.endsWith("/")) {
-            path = path.substring(rootPath.length());
-        } else {
-            path = path.substring(rootPath.length() + 1);
+            if (root.equals(file)) {
+                return ROOT_NAME;
+            }
+
+            String relativePath = root.toURI().relativize(file.toURI()).getPath();
+            if (relativePath.endsWith("/")) {
+                relativePath = relativePath.substring(0, relativePath.length() - 1);
+            }
+
+            return ROOT_NAME + ':' + relativePath;
+        } catch (IOException ex) {
+            Logger.log(ex);
+            return null;
         }
-
-        return "root" + ':' + path;
     }
 
     private File getFileForDocId(String docId) throws FileNotFoundException {
         File target = ROOT;
-        if (docId.equals(ROOT_NAME)) {
+        if (docId.equals(ROOT_NAME) || docId.equals(ROOT_NAME + ":")) {
             return target;
         }
         final int splitIndex = docId.indexOf(':', 1);
@@ -257,6 +354,9 @@ public abstract class MobappDocumentsProvider extends DocumentsProvider {
             throw new FileNotFoundException("Missing root: " + docId);
         } else {
             final String path = docId.substring(splitIndex + 1);
+            if (path.isEmpty()) {
+                return target;
+            }
             target = new File(target, path);
             if (!target.exists()) {
                 throw new FileNotFoundException("File \"" + target + "\" not found (id: \"" + docId + "\")");

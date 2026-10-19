@@ -109,4 +109,11 @@ public class ModernAndroidUtils {
             });
         }
     }
+
+    public static boolean openFolder(Context context, File targetFile) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            return MobappDocumentsProvider.openFolder(context, targetFile);
+        }
+        return false;
+    }
 }
