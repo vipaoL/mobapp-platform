@@ -121,12 +121,15 @@ public abstract class MobappDocumentsProvider extends DocumentsProvider {
     public String createDocument(String documentId, String mimeType, String displayName) throws FileNotFoundException {
         File parent = getFileForDocId(documentId);
         File file = new File(parent.getPath(), displayName);
-        boolean success = false;
+        boolean success;
         try {
-            if (file.createNewFile()) {
-                if (file.setWritable(true) && file.setReadable(true)) {
-                    success = true;
-                }
+            if (Document.MIME_TYPE_DIR.equals(mimeType)) {
+                success = file.mkdir();
+            } else {
+                success = file.createNewFile();
+            }
+            if (success) {
+                success = file.setReadable(true) && file.setWritable(true);
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -209,14 +212,15 @@ public abstract class MobappDocumentsProvider extends DocumentsProvider {
             flags |= Document.FLAG_DIR_SUPPORTS_CREATE;
         } else {
             flags |= Document.FLAG_SUPPORTS_WRITE;
-            flags |= Document.FLAG_SUPPORTS_DELETE;
-            if (SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                flags |= Document.FLAG_SUPPORTS_RENAME;
-            }
-            if (SDK_INT >= Build.VERSION_CODES.N) {
-                flags |= Document.FLAG_SUPPORTS_REMOVE;
-                flags |= Document.FLAG_SUPPORTS_MOVE;
-            }
+        }
+
+        flags |= Document.FLAG_SUPPORTS_DELETE;
+        if (SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            flags |= Document.FLAG_SUPPORTS_RENAME;
+        }
+        if (SDK_INT >= Build.VERSION_CODES.N) {
+            flags |= Document.FLAG_SUPPORTS_REMOVE;
+            flags |= Document.FLAG_SUPPORTS_MOVE;
         }
 
         final MatrixCursor.RowBuilder row = result.newRow();
