@@ -238,8 +238,28 @@ public interface SDL3Library extends Library {
         }
     }
 
+    @Structure.FieldOrder({"displayID", "format", "w", "h", "pixel_density", "refresh_rate", "refresh_rate_numerator", "refresh_rate_denominator", "internal"})
+    class SDL_DisplayMode extends Structure {
+        public static class ByReference extends SDL_DisplayMode implements Structure.ByReference {}
+
+        public int displayID;
+        public int format;
+        public int w;
+        public int h;
+        public float pixel_density;
+        public float refresh_rate;
+        public int refresh_rate_numerator;
+        public int refresh_rate_denominator;
+        public Pointer internal;
+    }
+
+    SDL_DisplayMode.ByReference SDL_GetCurrentDisplayMode(int displayID);
+
     boolean SDL_Init(int flags);
     void SDL_Quit();
+
+    int SDL_GetPrimaryDisplay();
+    boolean SDL_GetDisplayBounds(int displayID, SDL_Rect rect);
 
     Pointer SDL_CreateWindow(String title, int width, int height, long flags);
     void SDL_DestroyWindow(Pointer window);
