@@ -40,16 +40,18 @@ public class Font implements IFont {
         this.style = style;
         this.size = size;
 
+        int scaledBase = Math.round(baseFontSize * PlatformSettings.systemScale);
+
         int awtSize = size;
         switch (size) {
             case SIZE_SMALL:
-                awtSize = baseFontSize * 3 / 4;
+                awtSize = scaledBase * 3 / 4;
                 break;
             case SIZE_MEDIUM:
-                awtSize = baseFontSize;
+                awtSize = scaledBase;
                 break;
             case SIZE_LARGE:
-                awtSize = baseFontSize * 3 / 2;
+                awtSize = scaledBase * 3 / 2;
                 break;
         }
 

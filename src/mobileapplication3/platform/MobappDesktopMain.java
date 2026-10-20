@@ -2,6 +2,7 @@
 
 package mobileapplication3.platform;
 
+import mobileapplication3.platform.sdl3.SDL3Library;
 import mobileapplication3.platform.ui.Font;
 import mobileapplication3.platform.ui.RootContainer;
 import mobileapplication3.platform.ui.RootContainerAWT;
@@ -20,26 +21,46 @@ public abstract class MobappDesktopMain {
         String backend = PlatformSettings.getBackend();
         Throwable err = null;
 
+        float scale = 1.0f;
         int screenW = 1280;
         int screenH = 720;
-        try {
-            screenW = Toolkit.getDefaultToolkit().getScreenSize().width;
-            screenH = Toolkit.getDefaultToolkit().getScreenSize().height;
-        } catch (Throwable ignored) { }
 
         if (PlatformSettings.BACKEND_SDL3.equals(backend)) {
             try {
                 RootContainerSDL3 rootContainerSDL3 = new RootContainerSDL3();
                 RootContainer.setInst(rootContainerSDL3);
                 rootContainerSDL3.initSDL3(getAppTitle(), getAppId(), getAppVersion());
+
+                int displayId = SDL3Library.INSTANCE.SDL_GetPrimaryDisplay();
+
+                SDL3Library.SDL_DisplayMode mode = SDL3Library.INSTANCE.SDL_GetCurrentDisplayMode(displayId);
+                if (mode != null && mode.pixel_density > 0.0f) {
+                    scale = mode.pixel_density;
+                }
+
+                SDL3Library.SDL_Rect bounds = new SDL3Library.SDL_Rect();
+                if (SDL3Library.INSTANCE.SDL_GetDisplayBounds(displayId, bounds) && bounds.w > 0) {
+                    screenW = bounds.w;
+                    screenH = bounds.h;
+                }
             } catch (Throwable e) {
                 err = e;
                 Logger.log("Can't initialize SDL3", e);
             }
+        } else if (PlatformSettings.BACKEND_AWT.equals(backend)) {
+            try {
+                Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+                screenW = screenSize.width;
+                screenH = screenSize.height;
+            } catch (Throwable ignored) { }
         }
 
-        int minW = Math.min(screenW * 10 / 16, Font.getDefaultFontHeight() * 10);
-        int minH = Math.min(screenH * 10 / 16, Font.getDefaultFontHeight() * 8);
+        PlatformSettings.systemScale = scale;
+
+        int logicalFontHeight = Math.round(Font.getDefaultFontHeight() / scale);
+
+        int minW = Math.min(screenW * 10 / 16, logicalFontHeight * 10);
+        int minH = Math.min(screenH * 10 / 16, logicalFontHeight * 8);
         int targetW = Math.min(screenW, minW * 2);
         int targetH = Math.min(screenH, minH * 2);
 

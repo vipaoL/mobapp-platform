@@ -25,6 +25,8 @@ public class PlatformSettings {
 
     public static String backendOverride = null;
 
+    public static float systemScale = 1.0f;
+
     private PlatformSettings() { }
 
     public static void reset() {
