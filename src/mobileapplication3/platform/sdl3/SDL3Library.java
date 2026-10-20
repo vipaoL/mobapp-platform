@@ -8,6 +8,7 @@ public interface SDL3Library extends Library {
     SDL3Library INSTANCE = Native.load("SDL3", SDL3Library.class);
 
     int SDL_INIT_VIDEO = 0x20;
+    long SDL_WINDOW_FULLSCREEN = 0x1L;
     long SDL_WINDOW_RESIZABLE = 0x20L;
     long SDL_WINDOW_HIGH_PIXEL_DENSITY = 0x2000L;
     int SDL_EVENT_QUIT = 0x100;
