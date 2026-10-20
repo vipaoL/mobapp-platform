@@ -57,7 +57,7 @@ public class RootContainerSDL3 implements IRootContainer {
         kbHelper = new KeyboardHelper(this);
     }
 
-    public void initWindow(String title, int width, int height) {
+    public void initWindow(String title, int width, int height, boolean fullscreen) {
         if (isRunning) {
             return;
         }
@@ -69,10 +69,14 @@ public class RootContainerSDL3 implements IRootContainer {
         this.w = width;
         this.h = height;
 
+        long flags = SDL3Library.SDL_WINDOW_RESIZABLE | SDL3Library.SDL_WINDOW_HIGH_PIXEL_DENSITY;
+        if (fullscreen) {
+            flags |= SDL3Library.SDL_WINDOW_FULLSCREEN;
+        }
         window = SDL3Library.INSTANCE.SDL_CreateWindow(
                 title != null ? title : "",
                 w, h,
-                SDL3Library.SDL_WINDOW_RESIZABLE | SDL3Library.SDL_WINDOW_HIGH_PIXEL_DENSITY
+                flags
         );
 
         if (window == null) {

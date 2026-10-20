@@ -36,7 +36,7 @@ public abstract class MobappDesktopMain {
             try {
                 RootContainerSDL3 rootContainerSDL3 = new RootContainerSDL3();
                 RootContainer.setInst(rootContainerSDL3);
-                rootContainerSDL3.initWindow(null, targetW, targetH);
+                rootContainerSDL3.initWindow(null, targetW, targetH, PlatformSettings.getFullscreenMode());
 
                 Platform.init();
                 init();
