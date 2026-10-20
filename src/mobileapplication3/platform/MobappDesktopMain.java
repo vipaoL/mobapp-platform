@@ -27,6 +27,17 @@ public abstract class MobappDesktopMain {
             screenH = Toolkit.getDefaultToolkit().getScreenSize().height;
         } catch (Throwable ignored) { }
 
+        if (PlatformSettings.BACKEND_SDL3.equals(backend)) {
+            try {
+                RootContainerSDL3 rootContainerSDL3 = new RootContainerSDL3();
+                RootContainer.setInst(rootContainerSDL3);
+                rootContainerSDL3.initSDL3(getAppTitle(), getAppId(), getAppVersion());
+            } catch (Throwable e) {
+                err = e;
+                Logger.log("Can't initialize SDL3", e);
+            }
+        }
+
         int minW = Math.min(screenW * 10 / 16, Font.getDefaultFontHeight() * 10);
         int minH = Math.min(screenH * 10 / 16, Font.getDefaultFontHeight() * 8);
         int targetW = Math.min(screenW, minW * 2);
@@ -34,15 +45,8 @@ public abstract class MobappDesktopMain {
 
         if (PlatformSettings.BACKEND_SDL3.equals(backend)) {
             try {
-                RootContainerSDL3 rootContainerSDL3 = new RootContainerSDL3();
-                RootContainer.setInst(rootContainerSDL3);
-                rootContainerSDL3.initWindow(
-                        getAppTitle(),
-                        getAppId(),
-                        getAppVersion(),
-                        targetW, targetH,
-                        PlatformSettings.getFullscreenMode()
-                );
+                RootContainerSDL3 rootContainerSDL3 = (RootContainerSDL3) RootContainer.getInst();
+                rootContainerSDL3.initWindow(targetW, targetH, PlatformSettings.getFullscreenMode());
 
                 Platform.init();
                 init();
@@ -51,8 +55,10 @@ public abstract class MobappDesktopMain {
 
                 return;
             } catch (Throwable e) {
-                err = e;
-                Logger.log("Can't initialize SDL3", e);
+                if (err == null) {
+                    err = e;
+                }
+                Logger.log("Can't initialize SDL3 window", e);
             }
         }
 

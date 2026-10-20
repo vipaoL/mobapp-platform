@@ -46,21 +46,25 @@ public class RootContainerSDL3 implements IRootContainer {
     private final HashSet<Integer> pressedKeys = new HashSet<>();
 
     private int currentTargetFPS = 60;
+    private boolean isInited = false;
     private boolean isRunning = false;
     private boolean mainLoopStarted = false;
 
     private boolean isMinimized = false;
 
     private final SDL3Library.SDL_Event event = new SDL3Library.SDL_Event();
+    private String title;
 
     public RootContainerSDL3() {
         kbHelper = new KeyboardHelper(this);
     }
 
-    public void initWindow(String title, String appID, String version, int width, int height, boolean fullscreen) {
-        if (isRunning) {
+    public void initSDL3(String title, String appID, String version) {
+        if (isInited) {
             return;
         }
+
+        this.title = title;
 
         if (title != null || appID != null || version != null) {
             SDL3Library.INSTANCE.SDL_SetAppMetadata(
@@ -72,6 +76,14 @@ public class RootContainerSDL3 implements IRootContainer {
 
         if (!SDL3Library.INSTANCE.SDL_Init(SDL3Library.SDL_INIT_VIDEO)) {
             throw new IllegalStateException("SDL_Init failed");
+        }
+
+        isInited = true;
+    }
+
+    public void initWindow(int width, int height, boolean fullscreen) {
+        if (isRunning) {
+            return;
         }
 
         this.w = width;
