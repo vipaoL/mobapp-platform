@@ -280,4 +280,6 @@ public interface SDL3Library extends Library {
 
     void SDL_Delay(int ms);
     long SDL_GetTicks();
+
+    boolean SDL_SetAppMetadata(String appname, String appversion, String appidentifier);
 }
