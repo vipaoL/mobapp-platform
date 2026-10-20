@@ -36,7 +36,13 @@ public abstract class MobappDesktopMain {
             try {
                 RootContainerSDL3 rootContainerSDL3 = new RootContainerSDL3();
                 RootContainer.setInst(rootContainerSDL3);
-                rootContainerSDL3.initWindow(null, targetW, targetH, PlatformSettings.getFullscreenMode());
+                rootContainerSDL3.initWindow(
+                        getAppTitle(),
+                        getAppId(),
+                        getAppVersion(),
+                        targetW, targetH,
+                        PlatformSettings.getFullscreenMode()
+                );
 
                 Platform.init();
                 init();
@@ -84,6 +90,18 @@ public abstract class MobappDesktopMain {
         if (err != null && isBackendExplicit) {
             Platform.showError("Can't initialize " + backend + ". Falling back to the default backend.\n\n", err);
         }
+    }
+
+    protected String getAppTitle() {
+        return null;
+    }
+
+    protected String getAppId() {
+        return null;
+    }
+
+    protected String getAppVersion() {
+        return null;
     }
 
     protected abstract void init();

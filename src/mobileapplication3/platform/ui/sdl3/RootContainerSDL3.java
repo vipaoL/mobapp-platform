@@ -57,9 +57,17 @@ public class RootContainerSDL3 implements IRootContainer {
         kbHelper = new KeyboardHelper(this);
     }
 
-    public void initWindow(String title, int width, int height, boolean fullscreen) {
+    public void initWindow(String title, String appID, String version, int width, int height, boolean fullscreen) {
         if (isRunning) {
             return;
+        }
+
+        if (title != null || appID != null || version != null) {
+            SDL3Library.INSTANCE.SDL_SetAppMetadata(
+                    title != null ? title : "",
+                    version != null ? version : "",
+                    appID != null ? appID : ""
+            );
         }
 
         if (!SDL3Library.INSTANCE.SDL_Init(SDL3Library.SDL_INIT_VIDEO)) {
