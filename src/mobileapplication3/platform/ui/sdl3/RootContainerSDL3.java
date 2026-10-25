@@ -593,6 +593,7 @@ public class RootContainerSDL3 implements IRootContainer {
             case SDL3Library.SDLK_4: return Keys.KEY_NUM4;
             case SDL3Library.SDLK_5: return Keys.KEY_NUM5;
             case SDL3Library.SDLK_6: return Keys.KEY_NUM6;
+            case SDL3Library.SDLK_R:
             case SDL3Library.SDLK_7: return Keys.KEY_NUM7;
             case SDL3Library.SDLK_8: return Keys.KEY_NUM8;
             case SDL3Library.SDLK_9: return Keys.KEY_NUM9;
