@@ -20,6 +20,8 @@ import java.util.HashSet;
 import static mobileapplication3.ui.IUIComponent.*;
 
 public class RootContainerSDL3 implements IRootContainer {
+    public static final int CURSOR_HIDE_DELAY = 5000;
+
     private Pointer window = null;
     private Pointer renderer = null;
     private RendererTargetSDL3 rendererTarget = null;
@@ -42,6 +44,7 @@ public class RootContainerSDL3 implements IRootContainer {
     private int pressedX, pressedY;
     private float mouseScaleX = 1.0f;
     private float mouseScaleY = 1.0f;
+    private long lastMouseMotionEvent = System.currentTimeMillis();
     private long pressedTime;
     private final HashSet<Integer> pressedKeys = new HashSet<>();
 
@@ -50,6 +53,7 @@ public class RootContainerSDL3 implements IRootContainer {
     private boolean isRunning = false;
     private boolean mainLoopStarted = false;
 
+    private boolean cursorHidden = false;
     private boolean isMinimized = false;
 
     private final SDL3Library.SDL_Event event = new SDL3Library.SDL_Event();
@@ -126,6 +130,7 @@ public class RootContainerSDL3 implements IRootContainer {
             long startNanos = System.nanoTime();
 
             pollEvents();
+            checkCursorTimeout();
 
             if (isMinimized) {
                 try {
@@ -180,6 +185,21 @@ public class RootContainerSDL3 implements IRootContainer {
                     onSizeChanged(outW[0], outH[0]);
                 }
             }
+        }
+    }
+
+    private void onMouseMoved() {
+        lastMouseMotionEvent = System.currentTimeMillis();
+        if (cursorHidden) {
+            SDL3Library.INSTANCE.SDL_ShowCursor();
+            cursorHidden = false;
+        }
+    }
+
+    private void checkCursorTimeout() {
+        if (!cursorHidden && (System.currentTimeMillis() - lastMouseMotionEvent >= CURSOR_HIDE_DELAY)) {
+            SDL3Library.INSTANCE.SDL_HideCursor();
+            cursorHidden = true;
         }
     }
 
@@ -242,6 +262,8 @@ public class RootContainerSDL3 implements IRootContainer {
 
                 case SDL3Library.SDL_EVENT_MOUSE_MOTION:
                 {
+                    onMouseMoved();
+
                     SDL3Library.SDL_MouseMotionEvent motion = event.motion();
                     float x = motion.x * mouseScaleX;
                     float y = motion.y * mouseScaleY;

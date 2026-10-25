@@ -308,6 +308,9 @@ public interface SDL3Library extends Library {
     boolean SDL_SetRenderVSync(Pointer renderer, int vsync);
     void SDL_SetWindowTitle(Pointer window, String title);
 
+    boolean SDL_HideCursor();
+    boolean SDL_ShowCursor();
+
     void SDL_Delay(int ms);
     long SDL_GetTicks();
 
