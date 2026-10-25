@@ -26,6 +26,7 @@ public interface SDL3Library extends Library {
     int SDL_EVENT_MOUSE_BUTTON_UP = 0x402;
     int SDL_EVENT_MOUSE_WHEEL = 0x403;
 
+    int SDLK_TAB = 0x09;
     int SDLK_RETURN = 0xD;
     int SDLK_ESCAPE = 0x1B;
     int SDLK_SPACE = 0x20;
@@ -44,6 +45,7 @@ public interface SDL3Library extends Library {
     int SDLK_7 = 0x37;
     int SDLK_8 = 0x38;
     int SDLK_9 = 0x39;
+    int SDLK_R = 0x72;
     int SDLK_F1 = 0x4000003A;
     int SDLK_F2 = 0x4000003B;
     int SDLK_F3 = 0x4000003C;
@@ -52,6 +54,14 @@ public interface SDL3Library extends Library {
     int SDLK_LEFT = 0x40000050;
     int SDLK_DOWN = 0x40000051;
     int SDLK_UP = 0x40000052;
+    int SDLK_LCTRL = 0x400000E0;
+    int SDLK_LSHIFT = 0x400000E1;
+    int SDLK_LALT = 0x400000E2;
+    int SDLK_LGUI = 0x400000E3;
+    int SDLK_RCTRL = 0x400000E4;
+    int SDLK_RSHIFT = 0x400000E5;
+    int SDLK_RALT = 0x400000E6;
+    int SDLK_RGUI = 0x400000E7;
 
     int SDL_PIXELFORMAT_ARGB8888 = 0x16661804;
     int SDL_PIXELFORMAT_RGBA8888 = 0x16461804;

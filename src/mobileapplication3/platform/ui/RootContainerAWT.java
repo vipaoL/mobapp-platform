@@ -385,6 +385,9 @@ public class RootContainerAWT extends Canvas implements IRootContainer, KeyListe
     @Override
     public void keyPressed(KeyEvent e) {
         int keyCode = e.getKeyCode();
+        if (isIgnoredKey(keyCode)) {
+            return;
+        }
         if (pressedKeys.add(keyCode)) {
             keyCode = convertKeyCode(keyCode);
             kbHelper.keyPressed(keyCode);
@@ -395,9 +398,10 @@ public class RootContainerAWT extends Canvas implements IRootContainer, KeyListe
     @Override
     public void keyReleased(KeyEvent e) {
         int keyCode = e.getKeyCode();
-        if (pressedKeys.contains(keyCode)) {
-            pressedKeys.remove(keyCode);
+        if (isIgnoredKey(keyCode)) {
+            return;
         }
+        pressedKeys.remove(keyCode);
         keyCode = convertKeyCode(keyCode);
         kbHelper.keyReleased(keyCode);
     }
@@ -435,6 +439,21 @@ public class RootContainerAWT extends Canvas implements IRootContainer, KeyListe
             if (rootUIComponent.keyRepeated(keyCode, pressedCount)) {
                 repaint();
             }
+        }
+    }
+
+    private static boolean isIgnoredKey(int keyCode) {
+        switch (keyCode) {
+            case KeyEvent.VK_TAB:
+            case KeyEvent.VK_SHIFT:
+            case KeyEvent.VK_CONTROL:
+            case KeyEvent.VK_ALT:
+            case KeyEvent.VK_ALT_GRAPH:
+            case KeyEvent.VK_META:
+            case KeyEvent.VK_WINDOWS:
+                return true;
+            default:
+                return false;
         }
     }
 

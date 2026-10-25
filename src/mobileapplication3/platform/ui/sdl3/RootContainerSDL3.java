@@ -216,6 +216,9 @@ public class RootContainerSDL3 implements IRootContainer {
                 case SDL3Library.SDL_EVENT_KEY_DOWN: {
                     SDL3Library.SDL_KeyboardEvent key = event.key();
                     int keycode = key.key;
+                    if (isIgnoredKey(keycode)) {
+                        break;
+                    }
                     boolean repeat = key.repeat != 0;
                     if (!repeat && pressedKeys.add(keycode)) {
                         int converted = convertSdlKeyCode(keycode);
@@ -228,6 +231,9 @@ public class RootContainerSDL3 implements IRootContainer {
                 case SDL3Library.SDL_EVENT_KEY_UP:
                 {
                     int keycode = event.key().key;
+                    if (isIgnoredKey(keycode)) {
+                        break;
+                    }
                     pressedKeys.remove(keycode);
                     int converted = convertSdlKeyCode(keycode);
                     kbHelper.keyReleased(converted);
@@ -307,6 +313,19 @@ public class RootContainerSDL3 implements IRootContainer {
                     break;
                 }
             }
+        }
+    }
+
+    private static boolean isIgnoredKey(int keycode) {
+        if (keycode >= SDL3Library.SDLK_LCTRL && keycode <= SDL3Library.SDLK_RGUI) {
+            return true;
+        }
+
+        switch (keycode) {
+            case SDL3Library.SDLK_TAB:
+                return true;
+            default:
+                return false;
         }
     }
 
