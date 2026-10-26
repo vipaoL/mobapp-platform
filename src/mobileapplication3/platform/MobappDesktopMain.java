@@ -64,22 +64,28 @@ public abstract class MobappDesktopMain {
         int targetW = Math.min(screenW, minW * 2);
         int targetH = Math.min(screenH, minH * 2);
 
-        if (PlatformSettings.BACKEND_SDL3.equals(backend)) {
+        if (PlatformSettings.BACKEND_SDL3.equals(backend) && err == null) {
+            boolean windowInitialized = false;
+            RootContainerSDL3 rootContainerSDL3 = (RootContainerSDL3) RootContainer.getInst();
+
             try {
-                RootContainerSDL3 rootContainerSDL3 = (RootContainerSDL3) RootContainer.getInst();
                 rootContainerSDL3.initWindow(targetW, targetH, PlatformSettings.getFullscreenMode());
-
-                Platform.init();
-                init();
-
-                rootContainerSDL3.runMainLoop();
-
-                return;
+                windowInitialized = true;
             } catch (Throwable e) {
-                if (err == null) {
-                    err = e;
-                }
+                err = e;
                 Logger.log("Can't initialize SDL3 window", e);
+            }
+
+            if (windowInitialized) {
+                try {
+                    Platform.init();
+                    init();
+                    rootContainerSDL3.runMainLoop();
+                } catch (Throwable t) {
+                    Logger.log("Game crashed: ", t);
+                    System.exit(1);
+                }
+                return;
             }
         }
 
