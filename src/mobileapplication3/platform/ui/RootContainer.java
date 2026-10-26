@@ -212,7 +212,12 @@ public class RootContainer extends GameCanvas implements IContainer, IPopupFeedb
     }
 
     public mobileapplication3.platform.ui.Graphics getUGraphics() {
-        return lastGraphics = new mobileapplication3.platform.ui.Graphics(getGraphics());
+        if (lastGraphics == null) {
+            lastGraphics = new mobileapplication3.platform.ui.Graphics(getGraphics());
+        } else {
+            lastGraphics.setGraphics(getGraphics());
+        }
+        return lastGraphics;
     }
 
     public void flushGraphics() {

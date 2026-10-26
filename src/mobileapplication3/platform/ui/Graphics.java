@@ -15,10 +15,15 @@ public final class Graphics implements IGraphics {
 
     private javax.microedition.lcdui.Graphics g;
 
-    private int[] pxBuf = new int[32];
-    private int[] pyBuf = new int[32];
+    private static int[] pxBuf = new int[32];
+    private static int[] pyBuf = new int[32];
+    private Font font;
 
     public Graphics(javax.microedition.lcdui.Graphics g) {
+        this.g = g;
+    }
+
+    void setGraphics(javax.microedition.lcdui.Graphics g) {
         this.g = g;
     }
 
@@ -131,15 +136,19 @@ public final class Graphics implements IGraphics {
     }
 
     public void setFont(int face, int style, int size) {
-        g.setFont(javax.microedition.lcdui.Font.getFont(face, style, size));
+        setFont(Font.getFont(face, style, size));
     }
 
     public void setFont(Font font) {
+        this.font = font;
         g.setFont(font.getFont());
     }
 
     public Font getFont() {
-        return new Font(g.getFont());
+        if (font == null) {
+            font = new Font(g.getFont());
+        }
+        return font;
     }
 
     public int getFontFace() {
